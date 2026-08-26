@@ -206,10 +206,18 @@ button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:va
 
 <script>/*__MOCKZOHO__*/</script>
 <script>window.__DATA__=/*__DATASET__*/null;
-if(window.mockZoho&&window.__DATA__)mockZoho.load(window.__DATA__);</script>
+if(window.mockZoho&&window.__DATA__){mockZoho.load(window.__DATA__);
+  mockZoho.registerFunction('rephrase_recap', async ({input_text}) => {
+    const t=String(input_text||'').trim();
+    if(!t) throw new Error('nothing to rewrite');
+    const s=t.replace(/\s+/g,' ').replace(/\.$/,'').split(/(?<=\.)\s+/);
+    return 'Outcome: ' + s.map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' ')
+      + '. Next step agreed with the client and owned on our side.';
+  });}</script>
 <script>/*__EVENTPAGE__*/</script>
 <script>/*__PAGES__*/</script>
 <script>/*__TEAMS__*/</script>
+<script>/*__BOARD__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -540,7 +548,7 @@ function wireEventPage(){
 
 /* Entries that graduated from a placeholder to a working page live in REC now;
    their old stubs stay in DEMOS/FLOWS as copy but are filtered out of the UI. */
-const PROMOTED = new Set(['solution-map','deal-conversations','contact-enrichment','chat-recap']);
+const PROMOTED = new Set(['solution-map','deal-conversations','contact-enrichment','chat-recap','meeting-board','event-contacts']);
 const REC = [
   {id:'solution',  t:'Solution map',           host:'SolutionMap',   arg:d=>{
      // pick the programme with the richest spread of states, so the matrix is not one colour
@@ -565,6 +573,13 @@ const REC = [
         'Push one message to the tracker. The button locks, because a repeat would duplicate the comment.',
         'Switch to the tracker tab, translate the comments, and write one with an @-mention.'],
    why:'Push is made idempotent by a hidden marker inside the comment body, so a sync running every ten minutes never posts the same message twice. Avatar colour is derived from the name, so one person is the same colour everywhere without a lookup table.'},
+  {id:'board',     t:'Meeting board (mobile)', host:'__BOARD__',     arg:d=>d.Campaigns[0].id, phone:true,
+   sub:'The same event, on a phone. A room-by-room day, team load, and a bottom sheet that writes a recap back — built for a surface with no developer tools, so it carries its own.',
+   try:['Tap the clash or travel counter — the day narrows to the meetings that caused it.',
+        'Switch to Team: the load bar is share of an eight-hour day, and a double-booked person is flagged there too.',
+        'Open a meeting, write a recap, and press Rephrase. The rewrite happens server-side, so no key is ever in this page; press again to undo.',
+        'Tap the version badge in the header. That is the on-screen console — the only way to read an error on a phone inside the CRM app.'],
+   why:'Nothing here comes from a component library: the timeline, the lane layout for overlapping meetings, the sheet and the console are hand-built. Two alerts exist that the platform has no concept of — a person in two meetings at once, and a move between places with under fifteen minutes to make it.'},
   {id:'teams',     t:'Meeting recap from chat',host:'__TEAMS__',     arg:()=>null,
    sub:'The chat client on the left, the CRM record on the right, and a two-card flow between them. A trace panel shows every call as it is made.',
    try:['Pick the first chat and send the message to the CRM. The account is already resolved, and the card says which key resolved it.',
@@ -584,6 +599,7 @@ function wireRecord(r){
   const host = document.getElementById('rec-host');
   if (!host || !window.__DATA__) return;
   if (r.host === '__TEAMS__') { if (window.TeamsFlow) TeamsFlow.mount(host); return; }
+  if (r.host === '__BOARD__') { if (window.MobileBoard) MobileBoard.mount(host, r.arg(window.__DATA__)); return; }
   const P = window.CRMPages && window.CRMPages[r.host];
   if (P) P.mount(host, r.arg(window.__DATA__));
 }
@@ -723,7 +739,8 @@ function route(){
   document.getElementById('crumb').textContent = crumb;
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
-  document.getElementById('view').classList.toggle('wide', kind==='event' || kind==='rec');
+  const recNarrow = kind==='rec' && (REC.find(x=>x.id===id)||{}).phone;
+  document.getElementById('view').classList.toggle('wide', kind==='event' || (kind==='rec' && !recNarrow));
   if (kind==='platform') wirePlatform();
   if (kind==='event') wireEventPage();
   if (kind==='rec'){ const r = REC.find(x=>x.id===id); if (r) wireRecord(r); }
