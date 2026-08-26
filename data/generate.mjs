@@ -113,13 +113,26 @@ for (const p of programmes) for (const bu of BU) if (chance(.35))
     Budget:int(20,300)*1000, Contacts:`${pick(FN)} ${pick(LN)} - ${pick(TITLES)[0]}` });
 
 /* ---------- campaigns, rooms, event contacts ---------- */
+const ATT_ROLES = [['Managing Director','C-Level'],['Chief Technology Officer','C-Level'],
+  ['VP Engineering Services','BU'],['VP Test & Certification','BU'],['Director of Business Development','BD'],
+  ['Business Development Manager','BD'],['Key Account Manager','BD'],['Relationship Manager','BD'],
+  ['Marketing Manager','Marketing'],['Proposal Specialist','BD']];
+const mkAttendees = n => Array.from({length:n},(_,i)=>{
+  const [pos,fn] = ATT_ROLES[i % ATT_ROLES.length];
+  return { Name1:`${pick(FN)} ${pick(LN)}`, Position:pos, Functions:fn,
+           Speaker: i<2 ? 'yes' : 'no', Email:null };
+});
 const campaigns = [
   { id:id(), Name:'Hardware Summit 2026', Event_Type:'Event', Start:'2026-03-10', End:'2026-03-13',
-    Time_Zone_String:'Europe/Berlin',
+    Time_Zone_String:'Europe/Berlin', Country:'Germany', State:null, City:'Munich', Macro_Region:'EMEA',
+    Website:'https://www.hardware-summit.example/', Booth:'Hall 4, stand B22', Venue:'Messe Munich',
+    Benchmark:120, attendees:mkAttendees(11),
     rooms:[{name:'Room Alpha',cap:8,from:'09:00',to:'18:00'},{name:'Room Alpha 2',cap:4,from:'09:00',to:'18:00'},{name:'Lounge B',cap:12,from:'10:00',to:'17:00'}],
     spots:['Booth D14','Cafeteria, level 2','Hotel lobby'] },
   { id:id(), Name:'Nordic Roadshow 2026', Event_Type:'Roadshow', Start:'2026-05-04', End:'2026-05-08',
-    Time_Zone_String:'Europe/Stockholm', rooms:[{name:'Meeting Room 1',cap:6,from:'09:00',to:'17:00'}],
+    Time_Zone_String:'Europe/Stockholm', Country:'Sweden', State:null, City:'Gothenburg', Macro_Region:'EMEA',
+    Website:'https://www.northbeam.example/roadshow', Booth:null, Venue:'Client offices',
+    Benchmark:40, attendees:mkAttendees(6), rooms:[{name:'Meeting Room 1',cap:6,from:'09:00',to:'17:00'}],
     spots:['Client office','Restaurant'] }
 ];
 const eventContacts = [];
@@ -157,7 +170,9 @@ for (const c of campaigns){
       Meeting_DateTime_String:`${dstr(d)} ${pad(h)}:${pad(m)}`,
       Meeting_Date: iso(d), Meeting_Duration:dur,
       Meeting_Room: room, Spot: room ? null : pick(c.spots),
-      Meeting_Status: pick(['Booked','Booked','Held','Held','Declined']),
+      Meeting_Status: pick(['Booked','Booked','Booked','Held','Declined']),
+      Target_Priority: pick([null,null,'P1','P2','P3']),
+      Owner: pick(users).full_name,
       Meeting_Type: pick(['Discovery','Programme Review','Commercial','Relationship']),
       Account_Name: acc.id, Campaign: c.id,
       Deal: chance(.5) ? pick(deals.filter(x=>x.Account_Name===acc.id))?.id ?? null : null,
@@ -209,6 +224,10 @@ for (const dl of deals.filter(d=>d.Stage!=='5. Lost').slice(0,14)){
 }
 
 /* ---------- assemble ---------- */
+campaigns.forEach(c => c.attendees.forEach(a => {
+  const [f,l] = a.Name1.split(' ');
+  a.Email = `${f[0].toLowerCase()}.${slug(l)}@northbeam.example`;
+}));
 const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', seed:20260826 },
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
@@ -217,10 +236,21 @@ const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));
 // slim build for the single-file publish
+// The slim build must stay referentially whole: a row that points at a record
+// which did not make the cut renders as a blank cell, which looks like a bug in
+// the widget rather than a bug in the fixture.
+const slimContacts = contacts.filter((c,i)=> c.Account_Name===accounts[2].id ? i%6===0 : true).slice(0,220);
+const contactIds = new Set(slimContacts.map(c=>c.id));
+const slimEC = eventContacts.filter(e=>contactIds.has(e.Origin_Contact)).slice(0,300);
+const slimDeals = deals;
+const dealIds = new Set(slimDeals.map(d=>d.id));
 const slim = { ...db,
-  Contacts: contacts.filter((c,i)=> c.Account_Name===accounts[2].id ? i%6===0 : true).slice(0,220),
-  Event_Contacts: eventContacts.slice(0,260),
-  Messages: messages.slice(0,120) };
+  Contacts: slimContacts,
+  Event_Contacts: slimEC,
+  Messages: messages.filter(m=>dealIds.has(m.Deal)).slice(0,120) };
+const dangling = slimEC.filter(e=>!contactIds.has(e.Origin_Contact)).length
+  + slim.Messages.filter(m=>!dealIds.has(m.Deal)).length;
+if (dangling) { console.error('slim build has', dangling, 'dangling references'); process.exit(1); }
 writeFileSync('data/dataset.slim.json', JSON.stringify(slim));
 
 const counts = Object.entries(db).filter(([,v])=>Array.isArray(v)).map(([k,v])=>`${k}=${v.length}`).join(' ');

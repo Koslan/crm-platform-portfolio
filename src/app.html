@@ -69,6 +69,7 @@ a:hover{text-decoration:underline}
 /* ---------- main ---------- */
 main{padding:0 0 80px; min-width:0}
 .wrap{max-width:900px; padding:0 44px}
+.wrap.wide{max-width:1280px}
 .topbar{
   border-bottom:1px solid var(--line); background:var(--surface);
   padding:14px 44px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -206,6 +207,7 @@ button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:va
 <script>/*__MOCKZOHO__*/</script>
 <script>window.__DATA__=/*__DATASET__*/null;
 if(window.mockZoho&&window.__DATA__)mockZoho.load(window.__DATA__);</script>
+<script>/*__EVENTPAGE__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -500,6 +502,39 @@ function wirePlatform(){
   run();
 }
 
+
+function viewEventPage(){
+  return '<div class="pagehead"><h1>Event campaign page</h1>'
+   + '<p class="sub">One CRM record, several widgets. This is how the work actually looks: a campaign header, '
+   + 'a tabbed record page, a target list of several hundred contacts, a meeting schedule, and a booking wizard '
+   + 'that checks who and what is free before it lets you continue.</p>'
+   + '<div class="metarow"><span class="chip live">Live demo</span><span class="chip plain">Emulated CRM shell</span>'
+   + '<span class="chip plain">3 widgets + wizard</span></div></div>'
+   + '<section class="block"><h2>The record</h2><div id="ecp-host"></div></section>'
+   + '<section class="block"><h2>What to try</h2><ul>'
+   + '<li><b>Contacts</b> — several hundred rows loaded in pages of two hundred, the platform ceiling. Filter chips '
+   + 'combine as OR inside a group and AND across groups. Statuses derived from meetings carry a padlock.</li>'
+   + '<li><b>Meetings</b> — counters recompute against whatever is filtered, including booked hours. The calendar '
+   + 'column carries the five sync states the reconciliation work exists for.</li>'
+   + '<li><b>Create Meeting</b> — the wizard refuses to continue and says why: no buyer, no room, capacity exceeded. '
+   + 'Step four computes free slots from the meetings already in the CRM and names the reason a slot is blocked — '
+   + 'the room is taken, or one of our people is already in something.</li>'
+   + '<li>Book a meeting and it appears in the Meetings tab, marked <i>not in calendar</i> — because sending the '
+   + 'invitation is a server-side step, and pretending otherwise would be the exact lie this kind of screen should not tell.</li>'
+   + '</ul></section>'
+   + '<section class="block"><h2>Why this shape</h2>'
+   + '<p>A widget shown on its own is a screenshot. A record page with tabs is the thing people actually use: '
+   + 'the same campaign, seen five ways, with one set of data underneath. Everything here runs on the platform '
+   + 'emulator — the same query interpreter, the same two-hundred-record ceiling, the same write validation. '
+   + 'The wizard’s booking really is rejected if a mandatory field is missing.</p></section>';
+}
+function wireEventPage(){
+  const host = document.getElementById('ecp-host');
+  if (!host || !window.EventCampaignPage || !window.__DATA__) return;
+  const c = (window.__DATA__.Campaigns || [])[0];
+  if (c) EventCampaignPage.mount(host, c.id);
+}
+
 /* ---------------- rendering ---------------- */
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const chip = k => '<span class="chip '+KIND[k][0]+'">'+KIND[k][1]+'</span>';
@@ -511,6 +546,7 @@ function buildNav(){
      + '<a class="navlink" href="#/platform"><span class="dot live"></span>Platform emulator</a>'
      + '<a class="navlink" href="#/how"><span class="dot note"></span>How this site works</a></div>';
   h += '<div class="navgroup"><h4>Live demos</h4>'
+     + '<a class="navlink" href="#/event"><span class="dot live"></span>Event campaign page</a>'
      + DEMOS.map(d=>'<a class="navlink" href="#/demo/'+d.id+'"><span class="dot live"></span>'+esc(d.t)+'</a>').join('')
      + '</div>';
   h += '<div class="navgroup"><h4>Emulated flows</h4>'
@@ -549,6 +585,12 @@ function viewOverview(){
    + '<p>A query console over the generated dataset, with the platform\u2019s own paging ceiling, '
    + 'error envelopes and a failure switch. Type a query and run it.</p>'
    + '<div class="foot"><span class="chip live">Live demo</span></div></a></div></section>'
+
+   + '<section class="block"><h2>A CRM record page, with its widgets on it</h2>'
+   + '<div class="grid"><a class="tile" href="#/event"><h3>Event campaign page</h3>'
+   + '<p>The record page an event runs from: campaign header, tabbed widgets for the target list and the '
+   + 'meeting schedule, and the five-step booking wizard with free-slot search. All of it live.</p>'
+   + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">3 widgets + wizard</span></div></a></div></section>'
 
    + '<section class="block"><h2>Live demos</h2><div class="grid">'
    + DEMOS.map(d=>tile(d,'demo')).join('') + '</div></section>'
@@ -608,6 +650,7 @@ function route(){
   const [kind,id] = h.split('/');
   let body, crumb;
   if (!kind){ body = viewOverview(); crumb = 'overview'; }
+  else if (kind==='event'){ body = viewEventPage(); crumb = 'live demo / event campaign page'; }
   else if (kind==='platform'){ body = viewPlatform(); crumb = 'platform emulator'; }
   else if (kind==='how'){ body = viewAbout(); crumb = 'about / how this site works'; }
   else if (kind==='demo'){ const it = DEMOS.find(d=>d.id===id);
@@ -622,7 +665,9 @@ function route(){
   document.getElementById('crumb').textContent = crumb;
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
+  document.getElementById('view').classList.toggle('wide', kind==='event');
   if (kind==='platform') wirePlatform();
+  if (kind==='event') wireEventPage();
   window.scrollTo(0,0);
 }
 
