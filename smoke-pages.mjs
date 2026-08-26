@@ -29,6 +29,8 @@ say('solution map: created deal redraws matrix', (await p.locator('.ecp .cell').
 
 /* --- enrichment --- */
 await p.goto(U+'#/rec/enrich');
+await p.waitForSelector('.ecp .tabs button[data-t="Contact enrichment"]', {timeout:8000});
+await p.click('.ecp .tabs button[data-t="Contact enrichment"]');
 await p.waitForSelector('#e-load', {timeout:8000});
 await p.click('#e-load'); await p.waitForSelector('#e-tw table tbody tr', {timeout:8000});
 const r1 = await p.locator('#e-tw tbody tr').count();

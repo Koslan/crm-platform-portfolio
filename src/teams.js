@@ -204,5 +204,153 @@ const Teams = {
   }
 };
 
+
+/* ---------- chat thread -> CRM -> issue tracker ---------- */
+const Tracker = {
+  async mount(host) {
+    S.ensureCss();
+    if (!document.getElementById('tms-css')) {
+      const st = document.createElement('style'); st.id = 'tms-css'; st.textContent = CSS3; document.head.appendChild(st);
+    }
+    host.classList.add('ecp');
+    this.trace = [];
+    const { rows } = await coqlAll(
+      `select id, Deal_Name, Stage, Amount, Account_Name.Account_Name from Deals where Stage != '5. Lost' limit 200`, 200);
+    this.deals = rows;
+    const d = rows[0], d2 = rows[1] || rows[0];
+    this.threads = [
+      { id:'t1', ctx:'DELIVERY', topic:'Tolerance review', key:'NBE-'+1000, deal:d, meta:true,
+        body:'Latest drawing set is attached. Two dimensions on the bracket are outside the agreed tolerance and the supplier wants a decision before Friday.' },
+      { id:'t2', ctx:'ACCOUNT', topic:'Framework renewal', key:'NBE-'+1244, deal:d2, meta:true,
+        body:'They asked for a two-year framework instead of per-project purchase orders. Commercial wants our position by the end of the month.' },
+      { id:'t3', ctx:'OTHER', topic:'Anything about the shipment?', key:null, deal:null, meta:false,
+        body:'Does anyone know when the second sample batch lands? The client asked twice already.' }
+    ];
+    host.innerHTML = `<div class="tms">
+      <div class="col"><div class="ch">Threads <span class="tag">emulated UI</span></div><div class="list" id="tk-list"></div></div>
+      <div class="col"><div class="ch" id="tk-title">Pick a thread</div><div class="stream" id="tk-stream"></div></div>
+      <div class="col"><div class="ch">CRM &amp; issue</div><div id="tk-side" style="overflow:auto;max-height:52%"></div>
+        <div class="ch" style="border-top:1px solid var(--line)">Trace</div><div class="trace" id="tk-trace"></div></div>
+    </div>`;
+    q(host,'#tk-list').innerHTML = this.threads.map((t,i) => `<div class="chat" data-i="${i}" aria-selected="${i===0}">
+      <span class="av" style="background:${hue(t.topic)}">${ini(t.topic)}</span>
+      <div><div class="t">${E(t.topic)}</div><div class="s">${E(t.ctx)} · ${t.meta ? 'carries metadata' : 'no metadata block'}</div></div></div>`).join('');
+    q(host,'#tk-list').onclick = e => { const x = e.target.closest('[data-i]'); if (!x) return;
+      qa(host,'.chat').forEach(y => y.setAttribute('aria-selected', String(y === x)));
+      this.open(+x.dataset.i); };
+    this.host = host;
+    this.open(0);
+  },
+
+  log(kind, text, note) {
+    this.trace.unshift(`<div><b>${E(kind)}</b> ${E(text)}${note ? ` <i>${E(note)}</i>` : ''}</div>`);
+    const t = q(this.host,'#tk-trace'); if (t) t.innerHTML = this.trace.join('');
+  },
+
+  open(i) {
+    const t = this.threads[i]; this.t = t; this.trace = []; this.sent = [];
+    q(this.host,'#tk-title').textContent = `${t.topic} · ${t.ctx.toLowerCase()} channel`;
+    const block = t.meta ? `#CRM_SYNC_START
+ZOHO_DEAL: ${t.deal.id}
+JIRA_KEY: ${t.key}
+CONTEXT: ${t.ctx}
+THREAD_TOPIC: ${t.topic}
+SYNC_TO_ZOHO: true
+#CRM_SYNC_END
+
+` : '';
+    q(this.host,'#tk-stream').innerHTML = `
+      <div class="bub"><span class="av" style="background:${hue('Marta Kaminski')}">MK</span>
+        <div style="flex:1"><div class="nm">Marta Kaminski<span>first message in the thread</span></div>
+          <div class="bd" style="white-space:pre-wrap">${E(block)}${E(t.body)}</div>
+          <div class="act"><button class="chip2" data-push="0">Send to the issue</button></div></div></div>
+      <div class="bub"><span class="av" style="background:${hue('Tomas Novak')}">TN</span>
+        <div style="flex:1"><div class="nm">Tomas Novak<span>reply</span></div>
+          <div class="bd">Supplier can hold the slot until Tuesday. After that the tooling window moves by three weeks.</div>
+          <div class="act"><button class="chip2" data-push="1">Send to the issue</button>
+            <button class="chip2" data-att="1">&#128206; Attach the report</button></div></div></div>
+      <div id="tk-out"></div>`;
+    q(this.host,'#tk-stream').onclick = e => {
+      const push = e.target.closest('[data-push]'); if (push) return this.push(push);
+      const att = e.target.closest('[data-att]'); if (att) return this.attach(att);
+    };
+    this.resolve();
+  },
+
+  resolve() {
+    const t = this.t;
+    this.log('parse', 'read the block between the markers', t.meta ? 'found' : 'absent');
+    if (!t.meta) {
+      this.log('match', 'DEAL_NOT_FOUND', 'nothing to guess from');
+      this.log('write', 'stored with Needs_Review = true', 'the message is kept, the link is not invented');
+      q(this.host,'#tk-side').innerHTML = `<div class="crmcard"><h6>No deal resolved</h6>
+        <div style="font-size:12.5px;color:var(--ink-2)">This thread carries no metadata block, so there is nothing to
+        attach it to. The message is stored anyway and flagged for review — guessing the deal from the text is how a
+        conversation ends up under the wrong client.</div>
+        <div style="margin-top:10px"><span class="pill no">Needs review</span>
+          <span class="pill ghost">Sync status: DEAL_NOT_FOUND</span></div></div>`;
+      qa(this.host,'#tk-stream [data-push],#tk-stream [data-att]').forEach(x => { x.disabled = true; x.style.opacity = .45; });
+      return;
+    }
+    this.log('match', 'by ZOHO_DEAL', 'confidence 100');
+    this.log('crm', 'deal found', t.deal.Deal_Name);
+    this.render();
+  },
+
+  render() {
+    const t = this.t;
+    q(this.host,'#tk-side').innerHTML = `
+      <div class="crmcard"><h6>Deal in the CRM</h6>
+        <dl class="kvs" style="grid-template-columns:104px 1fr;font-size:12.5px">
+          <dt>Deal</dt><dd>${E(t.deal.Deal_Name)}</dd>
+          <dt>Account</dt><dd>${E(t.deal['Account_Name.Account_Name'])}</dd>
+          <dt>Stage</dt><dd>${E(t.deal.Stage)}</dd>
+          <dt>Matched by</dt><dd><span class="pill ok">ZOHO_DEAL</span> <span class="pill ghost">confidence 100</span></dd>
+          <dt>Context</dt><dd>${E(t.ctx)}</dd>
+        </dl></div>
+      <div class="crmcard"><h6>Issue ${E(t.key)}</h6>
+        <div style="font-size:12.5px;color:var(--ink-3)">Comments</div>
+        <div id="tk-comments" style="margin-top:6px">${this.sent.length ? '' :
+          '<div style="font-size:12.5px;color:var(--ink-3);font-style:italic">nothing sent across yet</div>'}
+          ${this.sent.map(c => `<div style="border-top:1px solid var(--line);padding:7px 0;font-size:12.5px">
+            <b>${E(c.who)}</b> <span style="color:var(--ink-3)">via the CRM</span><div>${E(c.text)}</div>
+            <div style="color:var(--ink-3);font-size:11px;margin-top:3px">marker ${E(c.marker)}</div></div>`).join('')}</div>
+        <div style="font-size:12.5px;color:var(--ink-3);margin-top:10px">Links</div>
+        <div id="tk-links" style="font-size:12.5px">${this.links ? this.links : '<span style="color:var(--ink-3);font-style:italic">none</span>'}</div>
+      </div>`;
+  },
+
+  push(btn) {
+    const idx = +btn.dataset.push;
+    const texts = [this.t.body, 'Supplier can hold the slot until Tuesday. After that the tooling window moves by three weeks.'];
+    const who = idx === 0 ? 'Marta Kaminski' : 'Tomas Novak';
+    const marker = `[crm-msg:${this.t.id}-${idx}]`;
+    if (this.sent.some(c => c.marker === marker)) {
+      this.log('skip', 'marker already present on the issue', 'a ten-minute sync would have duplicated this');
+      btn.textContent = 'already there'; return;
+    }
+    btn.disabled = true; btn.style.opacity = .55;
+    this.log('tracker', 'POST comment', marker);
+    this.sent.push({ who, text:texts[idx], marker });
+    btn.innerHTML = '&#10003; on the issue';
+    this.render();
+  },
+
+  attach(btn) {
+    btn.disabled = true; btn.style.opacity = .55;
+    this.log('storage', 'GET file metadata', 'read from the channel folder');
+    this.log('proxy', 'multipart upload refused', '200 with an empty body — the bytes never arrive');
+    this.log('tracker', 'POST remotelink', 'globalId keeps it idempotent');
+    this.links = `<div style="border-top:1px solid var(--line);padding:7px 0">
+        &#128279; <span style="color:var(--accent)">tolerance-report-r3.pdf</span>
+        <div style="color:var(--ink-3);font-size:11px">a link, not an upload — it inherits the folder's permissions,
+        which is the only way to keep a rates document off everyone who can see the issue</div></div>`;
+    btn.innerHTML = '&#10003; linked';
+    this.render();
+  }
+};
+
+window.TrackerFlow = Tracker;
+
 window.TeamsFlow = Teams;
 })();

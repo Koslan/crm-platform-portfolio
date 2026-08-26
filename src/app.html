@@ -218,6 +218,7 @@ if(window.mockZoho&&window.__DATA__){mockZoho.load(window.__DATA__);
 <script>/*__PAGES__*/</script>
 <script>/*__TEAMS__*/</script>
 <script>/*__BOARD__*/</script>
+<script>/*__WIDGETS2__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -386,6 +387,43 @@ const CASES = {
       ['The constraint','Three problems kill the naive version. Speech recognition mangles mixed-language technical vocabulary and company names. An agent granted write access can be wrong and nobody would know which record it touched — the built-in audit log exports only through the interface and is no control loop. And a command from a chat arrives with no context about which record is meant.'],
       ['What was built','A speech layer with a domain vocabulary supplied as an initial prompt. An intent layer that must return a structured intent — module, record, fields, operation — validated against the live field list, refusing rather than guessing. Entity resolution that reuses the priority chain from the meeting work and asks again when the answer is ambiguous. Execution through the CRM’s own tool interface, with one hard condition: every action writes to a journal module — time, channel, the original utterance, the parsed intent, the target record, a before/after diff, the result. And a confirmation screen showing that diff for anything above a risk threshold.'],
       ['The trade','The journal duplicates what the record already holds. Taken deliberately: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement call — crude, but predictable and explainable.']]}],
+  'Teams and orchestration':[
+    {id:'teams-sync', t:'Getting a chat platform into the CRM without a bot',
+     sub:'Conversations decide things. None of it reaches the record, and nobody is going to retype it.',
+     body:[
+      ['The constraint','Three at once. A channel is not a deal — one channel carries several, and a management channel carries dozens, so any "channel equals deal" rule is wrong on the cases that matter most. Building an app inside the chat client was not going to happen in a reasonable timescale. And the function that does the work is time-limited, while the platform API throttles: pulling replies means one call per root message, and the pauses alone ran to ten and thirteen seconds.'],
+      ['The mechanism','A text contract in the first message of a thread — a block between two markers carrying the deal, the issue key, the context and a sync flag. It is deliberately the least clever option available: people will type in a chat window, and they will not leave it to fill in a form. The parser takes only what sits between the markers, so anything written below is free text and breaks nothing.'],
+      ['Where the mapping lives','On the thread, not the channel. And the registry of which channels to read at all lives on the deal record itself, in two link fields — so adding a channel is a business user filling in a field, not an engineer deploying. Resolution runs in a fixed order with the source recorded: by deal id at full confidence, falling back to the issue key; several matches park the thread for review; none at all means the replies are not imported and the message is stored with the reason attached.'],
+      ['Surviving the time limit','The function is resumable without any external state: before touching a channel it checks whether records already exist for it, and it takes no more than five new channels a run. A schedule every ten minutes then walks the whole estate on its own, and no single run ever comes near the ceiling.'],
+      ['What was traded away','Only the first page of history is imported, so a long-running channel arrives partial — recorded in the backlog rather than hidden. Thread-level fields are duplicated onto every reply, which is denormalisation on purpose: it buys simple related lists and reports on a platform where joins are expensive. And a management channel is deliberately excluded from the backfill, because sweeping it in would file a year of mixed conversation under one deal.'],
+      ['Still open, and worth saying out loud','A controlled run took 218 seconds against a 120-second ceiling on the synchronous call, with no retry policy — so after a timeout it is unknown whether the work finished. The fix is the same one used elsewhere in this portfolio: stop waiting for the call and let it report back. Knowing where a system is thin is worth more than pretending it is not.']]},
+
+    {id:'teams-recap', t:'A recap written from the meeting itself',
+     sub:'The notes that matter are in the recording. Nobody transcribes them, so the field stays empty.',
+     body:[
+      ['The chain','Read the meeting record, resolve the organiser to a directory identity, turn a join link into an online-meeting identifier, list the transcripts on it, download the caption file, put it through a model, write the summary and a processing stage back. Seven hops, each of which can fail differently.'],
+      ['The timing trick','The whole chain is started the moment a person picks the account on the first card — long before anyone asks for a recap. Nothing waits for it. Two steps later, when the recap card opens, the field is already filled. It is the cheapest possible optimisation and it changes how the feature feels entirely.'],
+      ['When there is no transcript','A second source exists, and the two have no identifier in common. Matching is done by score rather than by key: overlap between intervals of unequal length, expressed as two coverage ratios with the larger taken and a penalty for the gap between them, then adjusted by service hints and by addresses lifted out of the transcript body. Above that sits a gate — if the owner of the recording is known and the best candidate does not include them, the automatic link is refused outright.'],
+      ['Two thresholds, not one','The link is written at a lower score than the text is. "I believe this is the meeting" and "I am willing to write data into it" are different decisions and were given different bars, with every candidate and its score kept for a human to look at.'],
+      ['The failure that shaped it','Access to transcripts was switched off at the tenant level with no warning, and every call started returning a permission error. The pipeline records the stage it reached on the record itself, so the answer to "why is this empty" is visible in the data rather than buried in a run log.']]},
+
+    {id:'teams-cards', t:'A two-card wizard in a chat, with nothing held open',
+     sub:'A person takes minutes to fill in a form. A synchronous call has seconds.',
+     body:[
+      ['The constraint','The trigger has to answer quickly, and a card is not an application: it has no state, cannot fetch more rows, and ends when it is submitted. Holding the request open while somebody thinks is not slow — it is impossible.'],
+      ['The shape','Every human step is a callback subscription rather than a wait. The card posts, the flow suspends, the answer arrives as a new event. Around the card sits a loop: the card reports which button was pressed, and if it was a search rather than a submit, the loop reissues the card with fresh results. That is how a search across hundreds of accounts happens inside something that cannot fetch.'],
+      ['Guard rails','The loop is bounded — a fixed number of iterations and half an hour — so a card somebody forgot about cannot hold a run open indefinitely. Every call into the CRM is short, retried with exponential backoff, and does its heavy lifting server-side; the orchestration layer only sequences.'],
+      ['One string, two meanings','A dropdown returns exactly one value. When the opportunity already linked to the meeting belongs to a different account, it has to be shown, kept and saved knowingly. It travels as a marked value: a prefix the saving function recognises and strips. Both ends know that the choice was deliberate, through a control that cannot carry a flag.'],
+      ['What earlier versions got wrong','The first design edited the previous card in place, which meant tracking message identifiers and lost a race whenever two events arrived close together. Replacing the card instead costs a little clutter in the chat and removes the entire class of problem. Going back a step was also dropped on purpose: it would have meant one loop around both cards and a much larger state machine for a rare action.']]},
+
+    {id:'authority', t:'Deciding which system is allowed to be right',
+     sub:'Four systems touch the same meeting. Without a rule, the last write wins, and the last write is usually a robot.',
+     body:[
+      ['The problem','A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record.'],
+      ['The map','Time belongs to the calendar: it is where people accept and move things. The room note, the meeting type and the recap belong to the CRM, because a person typed them. The issue owns delivery state. The chat owns nothing and is a source, not a store. Written down as a table, this settles most arguments before they start.'],
+      ['How it is enforced','In the payload builder, create and update are separated. Several fields are written only on creation, so a later sync cannot erase an edit somebody made by hand. Two fields are never written at all because of length ceilings, and one is truncated — each with the reason recorded next to it. The meeting type is never taken from the calendar side.'],
+      ['Where it becomes visible','The reconciliation screen in this portfolio is the same rule made clickable: a third column showing what the record should say, computed from both sources plus this map, and a repair that writes exactly that. The rule is printed under the comparison, so the person clicking it can disagree with it.']]}
+  ],
   'Interfaces':[
     {id:'reconciliation', t:'Reconciliation with a third column',
      sub:'"Sixty minutes here, forty-five there" does not tell anyone what it should be.',
@@ -548,7 +586,7 @@ function wireEventPage(){
 
 /* Entries that graduated from a placeholder to a working page live in REC now;
    their old stubs stay in DEMOS/FLOWS as copy but are filtered out of the UI. */
-const PROMOTED = new Set(['solution-map','deal-conversations','contact-enrichment','chat-recap','meeting-board','event-contacts']);
+const PROMOTED = new Set(['solution-map','deal-conversations','contact-enrichment','chat-recap','meeting-board','event-contacts','chat-tracker']);
 const REC = [
   {id:'solution',  t:'Solution map',           host:'SolutionMap',   arg:d=>{
      // pick the programme with the richest spread of states, so the matrix is not one colour
@@ -580,6 +618,23 @@ const REC = [
         'Open a meeting, write a recap, and press Rephrase. The rewrite happens server-side, so no key is ever in this page; press again to undo.',
         'Tap the version badge in the header. That is the on-screen console — the only way to read an error on a phone inside the CRM app.'],
    why:'Nothing here comes from a component library: the timeline, the lane layout for overlapping meetings, the sheet and the console are hand-built. Two alerts exist that the platform has no concept of — a person in two meetings at once, and a move between places with under fifteen minutes to make it.'},
+  {id:'tracker',   t:'Chat to issue tracker',  host:'__TRACKER__',   arg:()=>null,
+   sub:'A thread in chat, the deal it resolves to, and the issue it ends up on — three panes, with the trace of every call beside them.',
+   try:['Read the first message: the block between the markers is the whole mapping mechanism. People will type; they will not leave the chat to fill in a form.',
+        'Send a message across, then send the same one again. The second attempt is skipped, because the comment already carries its marker.',
+        'Attach the report. Watch the trace: the upload is refused by the proxy, and what lands on the issue is a link.',
+        'Switch to the third thread — no metadata block. Nothing is guessed; the message is stored and flagged for review.'],
+   why:'The mapping lives at the level of the thread, not the channel, because one channel carries several deals. The idempotency marker is hidden inside the comment body, so a sync running every ten minutes never posts twice. And the attachment is a link rather than a file for two reasons at once: the proxy drops multipart bodies, and the tracker cannot restrict a file to a role.'},
+  {id:'contact',   t:'Employment history',     host:'__HISTORY__',   arg:d=>{
+     // a contact who has actually moved around, otherwise the screen shows one row
+     const by={}; d.Employment.forEach(e=>by[e.Contact]=(by[e.Contact]||0)+1);
+     const best=Object.entries(by).sort((a,b)=>b[1]-a[1])[0];
+     return best?best[0]:d.Contacts[0].id; },
+   sub:'A contact record and every company this person has worked for. The point is the pointer: exactly one row is the main employer, and moving it moves what the CRM believes.',
+   try:['Tick “main” on a different row. Every other row is unticked first, then the new one is set — two writes, in that order, so the record is never briefly without an employer.',
+        'Filter the table by seniority or by buyer role.',
+        'Add an employment from the header. The company search offers accounts, but free text is allowed — most people arrive from companies that are not clients.'],
+   why:'A checkbox that behaves like a radio button is easy to get wrong: the naive version sets the new row first and leaves two rows claiming to be main if the second write fails. The order here is deliberate, and the whole set of controls is disabled while it runs.'},
   {id:'teams',     t:'Meeting recap from chat',host:'__TEAMS__',     arg:()=>null,
    sub:'The chat client on the left, the CRM record on the right, and a two-card flow between them. A trace panel shows every call as it is made.',
    try:['Pick the first chat and send the message to the CRM. The account is already resolved, and the card says which key resolved it.',
@@ -600,6 +655,8 @@ function wireRecord(r){
   if (!host || !window.__DATA__) return;
   if (r.host === '__TEAMS__') { if (window.TeamsFlow) TeamsFlow.mount(host); return; }
   if (r.host === '__BOARD__') { if (window.MobileBoard) MobileBoard.mount(host, r.arg(window.__DATA__)); return; }
+  if (r.host === '__HISTORY__') { if (window.CRMWidgets2) CRMWidgets2.History.mount(host, r.arg(window.__DATA__)); return; }
+  if (r.host === '__TRACKER__') { if (window.TrackerFlow) TrackerFlow.mount(host); return; }
   const P = window.CRMPages && window.CRMPages[r.host];
   if (P) P.mount(host, r.arg(window.__DATA__));
 }

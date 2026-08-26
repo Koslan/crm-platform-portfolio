@@ -263,6 +263,63 @@ for (let i=0;i<18;i++){
 }
 const enrichment = { Account: enrichAccount.id, People: providerPeople };
 
+
+/* ---------- account development plan ---------- */
+const PLAYER_ROLES = ['Sponsor','Strategic coach','Neutral','Anti-sponsor'];
+const REL_LEVELS = ['No relationship','Approved vendor','Preferred supplier','Solutions consultant','Strategic contributor','Trusted partner'];
+const planAccounts = accounts.slice(0, 6);
+const planPlayers = [], planActions = [], serviceMatrix = [];
+planAccounts.forEach(a => {
+  a.Relationship_Now      = pick(REL_LEVELS.slice(0,4));
+  a.Relationship_Client   = pick(REL_LEVELS.slice(0,5));
+  a.Relationship_Target   = pick(REL_LEVELS.slice(3));
+  a.Plan_Blockers         = pick(['Procurement runs a closed vendor list','No budget owner identified','Incumbent has a two-year contract','Technical evaluation stalled',null]);
+  a.Plan_Objective        = pick(['Move from single service line to two','Reach the platform team, not just procurement','Convert the pilot into a framework agreement']);
+  a.Plan_Active           = chance(.7);
+  a.Plan_Updated          = a.Plan_Active ? iso(new Date(2026, int(0,7), int(1,28))) : null;
+  const people = contacts.filter(c => c.Account_Name === a.id).slice(0, int(3,6));
+  people.forEach((c,i) => planPlayers.push({ id:id(), Account_Name:a.id, Contact:c.id,
+    Name:c.Full_Name, Title:c.Title,
+    Player_Role: i === 0 ? 'Sponsor' : pick(PLAYER_ROLES),
+    Relationship: pick(REL_LEVELS),
+    Justification: pick(['Introduced us to the platform team','Owns the budget line we need','Has pushed back on scope twice','Neutral so far, worth a technical session','Prefers the incumbent openly']),
+    Best_Contact: pick(users).full_name,
+    Strategy: pick(['Invite to the certification workshop','Quarterly review with the delivery lead','Joint session with our test manager','Share the reliability report']) }));
+  const n = int(3,6);
+  for (let i=0;i<n;i++) planActions.push({ id:id(), Account_Name:a.id,
+    Task: pick(['Run a technical deep-dive on thermal','Prepare a two-year framework proposal','Introduce the certification team',
+                'Map the decision process end to end','Bring the delivery lead to the next review','Draft a joint reliability plan']),
+    Expected: pick(['Signed NDA extension','Named budget owner','Invitation to the vendor list review','Agreed pilot scope']),
+    Actual: chance(.45) ? pick(['Done, owner named','Partially — meeting moved','Blocked on their side']) : null,
+    Business_Unit: pick(BU), Deadline: iso(new Date(2026, int(7,11), int(1,28))),
+    Progress: pick([0,15,35,50,70,85,100]), Status: pick(['Not started','In progress','In progress','Done','At risk']),
+    Owner: pick(users).full_name });
+  BU.forEach(bu => SERVICES[bu].forEach(sv => { if (chance(.55)) serviceMatrix.push({ id:id(), Account_Name:a.id,
+    Business_Unit:bu, Service:sv,
+    Selling: chance(.25), Lost: chance(.15), Providing: chance(.3), Provided_Before: chance(.25),
+    Want: chance(.4), Not_Relevant: chance(.15),
+    Comment: chance(.2) ? 'Raised at the last review; waiting on their side.' : null }); }));
+});
+
+/* ---------- employment history ---------- */
+const employment = [];
+contacts.slice(0, 120).forEach(c => {
+  const n = int(1,4);
+  let year = 2015 + int(0,3);
+  for (let i=0;i<n;i++){
+    const last = i === n-1;
+    const comp = last ? accounts.find(a=>a.id===c.Account_Name).Account_Name : `${pick(A1)} ${pick(A2)}`;
+    const from = iso(new Date(year, int(0,11), 1));
+    year += int(2,4);
+    employment.push({ id:id(), Contact:c.id, Account_Name: last ? c.Account_Name : null,
+      Company: comp, Title: last ? c.Title : pick(TITLES)[0], Seniority: pick(['Junior','Middle','Senior','Lead','C-Level']),
+      Email: last ? c.Email : null, Start_Date: from, End_Date: last ? null : iso(new Date(Math.min(year,2026), int(0,11), 1)),
+      Is_Main: last, Status: last ? 'Current' : 'Past',
+      Buyer_Role: last ? pick(['Economic Buyer','Technical Buyer','User Buyer','Coach',null]) : null,
+      Comment: chance(.15) ? 'Met at the summit two years ago.' : null });
+  }
+});
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -271,7 +328,8 @@ campaigns.forEach(c => c.attendees.forEach(a => {
 const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', seed:20260826 },
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
-  Meetings:meetings, Messages:messages, Enrichment:enrichment };
+  Meetings:meetings, Messages:messages, Enrichment:enrichment,
+  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));
@@ -286,6 +344,8 @@ const slimDeals = deals;
 const dealIds = new Set(slimDeals.map(d=>d.id));
 const slim = { ...db,
   Contacts: slimContacts,
+  Plan_Players: planPlayers.filter(p=>contactIds.has(p.Contact)),
+  Employment: employment.filter(e=>contactIds.has(e.Contact)),
   Event_Contacts: slimEC,
   Messages: messages.filter(m=>dealIds.has(m.Deal)).slice(0,120) };
 const dangling = slimEC.filter(e=>!contactIds.has(e.Origin_Contact)).length

@@ -17,24 +17,37 @@
     Event_Contacts:{ Account_Name:'Accounts', Campaign:'Campaigns', Origin_Contact:'Contacts' },
     Messages:{ Deal:'Deals' },
     Potentials:{ Programme:'Programmes' },
-    Accounts:{ Main_Parent_Account:'Accounts' }
+    Accounts:{ Main_Parent_Account:'Accounts' },
+    Plan_Players:{ Account_Name:'Accounts', Contact:'Contacts' },
+    Plan_Actions:{ Account_Name:'Accounts' },
+    Service_Matrix:{ Account_Name:'Accounts' },
+    Employment:{ Contact:'Contacts', Account_Name:'Accounts' }
   };
   const DISPLAY = { Accounts:'Account_Name', Contacts:'Full_Name', Deals:'Deal_Name',
     Programmes:'Name', Campaigns:'Name', Meetings:'Name', Service_Catalog:'Name',
-    Event_Contacts:'id', Messages:'Thread_Topic', Users:'full_name', Potentials:'Solutions' };
+    Event_Contacts:'id', Messages:'Thread_Topic', Users:'full_name', Potentials:'Solutions',
+    Plan_Players:'Name', Plan_Actions:'Task', Service_Matrix:'Service', Employment:'Company' };
   const RELATED = {
     Accounts:{ Contacts:['Contacts','Account_Name'], Deals:['Deals','Account_Name'] },
     Campaigns:{ Event_Contacts:['Event_Contacts','Campaign'], Meetings:['Meetings','Campaign'] },
     Deals:{ Messages:['Messages','Deal'], Meetings:['Meetings','Deal'] },
     Contacts:{ Event_Contacts:['Event_Contacts','Origin_Contact'] },
-    Programmes:{ Deals:['Deals','Programme'], Potentials:['Potentials','Programme'] }
+    Programmes:{ Deals:['Deals','Programme'], Potentials:['Potentials','Programme'] },
+    Contacts_more:{ Employment:['Employment','Contact'] }
   };
+  RELATED.Accounts.Plan_Players = ['Plan_Players','Account_Name'];
+  RELATED.Accounts.Plan_Actions = ['Plan_Actions','Account_Name'];
+  RELATED.Accounts.Service_Matrix = ['Service_Matrix','Account_Name'];
+  RELATED.Contacts.Employment = ['Employment','Contact'];
   const PICKLISTS = {
     Meetings:{ Meeting_Status:['Booked','Held','Declined'] },
     Event_Contacts:{ Attending_Status:['Investigating','Yes','No'],
       Meeting_Status:['Open','Contacted','Meeting booked','Meeting held','Meeting declined'],
       Priority:['P1','P2','P3'] },
-    Deals:{ Stage:['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost'] }
+    Deals:{ Stage:['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost'] },
+    Plan_Players:{ Player_Role:['Sponsor','Strategic coach','Neutral','Anti-sponsor'] },
+    Plan_Actions:{ Status:['Not started','In progress','Done','At risk'] },
+    Employment:{ Status:['Current','Past'] }
   };
   const MANDATORY = { Meetings:['Name'], Accounts:['Account_Name'], Contacts:['Last_Name'] };
   const PAGE_MAX = 200;                      // the platform ceiling, reproduced on purpose

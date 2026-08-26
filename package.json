@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node data/generate.mjs",
     "build": "npm run generate && node build.mjs",
-    "test": "node smoke.mjs && node smoke-event.mjs && node smoke-pages.mjs && node smoke-board.mjs",
+    "test": "node smoke.mjs && node smoke-event.mjs && node smoke-pages.mjs && node smoke-board.mjs && node smoke-w2.mjs",
     "verify": "npm run build && npm test",
     "serve": "node -e \"import('node:http').then(({default:h})=>import('node:fs').then(({readFileSync})=>h.createServer((q,s)=>{s.setHeader('content-type','text/html');s.end(readFileSync('dist/index.html'))}).listen(8080,()=>console.log('http://localhost:8080'))))\""
   },
