@@ -57,9 +57,26 @@ for (let i=0;i<62;i++){
     Owner:pick(users).full_name, Created_Time:iso(new Date(2023, int(0,11), int(1,28)))
   });
 }
-// hierarchy: one holding with three subsidiaries
+// hierarchy: a holding three levels deep, so the tree has something to draw
 const holding = accounts[0];
-for (let i=1;i<=3;i++){ accounts[i].Main_Parent_Account = holding.id; accounts[i].Account_Name = `${holding.Account_Name.split(' ')[0]} ${pick(A2)}`; }
+const stem = holding.Account_Name.split(' ')[0];
+holding.Hierarchy_Level = 'Group';
+const tier1 = [1,2,3], tier2 = [4,5,6,7,8];
+tier1.forEach((i,k) => { const a = accounts[i];
+  a.Parent_Account = holding.id; a.Main_Parent_Account = holding.id;
+  a.Account_Name = `${stem} ${['Devices','Systems','Labs'][k]}`; a.Hierarchy_Level = 'Division'; });
+tier2.forEach((i,k) => { const a = accounts[i];
+  const parent = accounts[tier1[k % tier1.length]];
+  a.Parent_Account = parent.id; a.Main_Parent_Account = holding.id;
+  a.Account_Name = `${parent.Account_Name.split(' ')[1]} ${['Nordic','Iberia','Benelux','Baltics','Alpine'][k]}`;
+  a.Hierarchy_Level = 'Operating company'; });
+[holding, ...tier1.map(i=>accounts[i]), ...tier2.map(i=>accounts[i])].forEach((a,i) => {
+  a.Cooperation_Status = ['Key client','Client','Key prospect','Prospect','Seed prospect'][i % 5];
+  a.Platforms = pick(['Handheld, wearable','Industrial, medical','Consumer audio','Automotive, industrial','Medical']);
+  a.Co_Owner = pick(users).full_name;
+  if (!a.Total_Revenue) a.Total_Revenue = int(90,4200)*1000;
+  a.Revenue_Last_12M = Math.round(a.Total_Revenue * (0.12 + rnd()*0.5));
+});
 // near-duplicate pair (deliberate defect for dedup screens)
 accounts[7].Account_Name = accounts[6].Account_Name + ' GmbH';
 accounts.forEach(a => { if (a.Total_Revenue) a.Revenue_Last_12M = Math.round(a.Total_Revenue * (0.15 + rnd()*0.55)); });
@@ -387,6 +404,38 @@ const org = { functions:orgFunctions, rules:orgRules, connections:orgConnections
   scanned: { deluge:orgFunctions.length, widgets:78, rules:orgRules.length, buttons:203, views:126,
              blueprints:10, schedules:14, webhooks:13, modules:250 } };
 
+
+/* ---------- operational pipeline for the management dashboard ---------- */
+const AGREEMENT_KINDS = ['NDA','MSA','Exhibit','Amendment'];
+const AGR_STATUS = ['Draft with legal','Sent to client','Client review','Signature pending','Blocked'];
+const TASK_KINDS = ['Reach out','Follow up','Proposal due','Portfolio request','Reference check'];
+const agreements = [], reachTasks = [], portfolioReqs = [];
+const daysFromNow = d => { const x = new Date(2026,7,26); x.setDate(x.getDate()+d); return iso(x); };
+for (let i=0;i<34;i++){
+  const dl = deals[int(0, deals.length-1)];
+  agreements.push({ id:id(), Kind:pick(AGREEMENT_KINDS), Name:`${AGREEMENT_KINDS[i%4]} — ${dl.Deal_Name.split('—')[0].trim()}`,
+    Account_Name:dl.Account_Name, Deal:dl.id, Status:pick(AGR_STATUS),
+    Issue_Key:'NBE-'+int(2000,4999), Issue_Status:pick(['To do','In progress','Waiting','Review']),
+    Owner:pick(users).full_name, Raised:daysFromNow(-int(3,90)), Due:daysFromNow(int(-20,45)) });
+}
+for (let i=0;i<42;i++){
+  const dl = deals[int(0, deals.length-1)];
+  reachTasks.push({ id:id(), Task:pick(TASK_KINDS)+' — '+dl.Deal_Name.split('—').pop().trim(),
+    Kind:pick(TASK_KINDS), Account_Name:dl.Account_Name, Deal: chance(.65) ? dl.id : null,
+    Owner:pick(users).full_name, Due:daysFromNow(int(-25,40)),
+    Status:pick(['Open','Open','In progress','Done']), Priority:pick(['P1','P2','P3']) });
+}
+for (let i=0;i<12;i++){
+  const a = accounts[int(0, accounts.length-1)];
+  portfolioReqs.push({ id:id(), Account_Name:a.id, Request:pick(['Reference cases for medical','Certification track record','Cost model for tooling','Team CVs for firmware']),
+    Owner:pick(users).full_name, Raised:daysFromNow(-int(1,40)), Due:daysFromNow(int(-10,25)),
+    Status:pick(['Open','Open','In progress','Delivered']) });
+}
+// a methodology artefact recommended by rule, present on some deals
+deals.forEach(d => { const big = d.Amount > 200000 && !['4. Won','5. Lost'].includes(d.Stage);
+  d.Account_Plan_Link = big && chance(.4) ? 'plan/'+d.id : null;
+  d.Plan_Recommended = big; });
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -396,7 +445,7 @@ const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', 
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
   Meetings:meetings, Messages:messages, Enrichment:enrichment,
-  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org };
+  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));

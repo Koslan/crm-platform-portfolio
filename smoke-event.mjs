@@ -48,7 +48,8 @@ await p.click('.ecp .acts button[data-a="meeting"]');
 await p.waitForSelector('.ecp-mod', {timeout:5000});
 say('wizard opens blocked', await p.locator('#w-next').isDisabled());
 say('blocker names the reason', /account/i.test(await p.locator('#w-msg').textContent()));
-await p.fill('#w-acc','No');
+const seed = await p.evaluate(()=>window.__DATA__.Accounts.find(a=>!a.Parent_Account).Account_Name.slice(0,3));
+await p.fill('#w-acc', seed);
 await p.waitForTimeout(300);
 const hits = await p.locator('#w-hits .room').count();
 say('account search returns hits ('+hits+')', hits>0);
@@ -93,7 +94,7 @@ say('new meeting appears in the tab', +(await p.locator('#m-all').textContent())
 // 15-min grid path + blocked reasons
 await p.click('.ecp .acts button[data-a="meeting"]');
 await p.waitForSelector('.ecp-mod');
-await p.fill('#w-acc','No'); await p.waitForTimeout(300);
+await p.fill('#w-acc', seed); await p.waitForTimeout(300);
 await p.locator('#w-hits .room').first().click(); await p.click('#w-next');
 await p.waitForSelector('#w-roles'); await p.waitForTimeout(500);
 await p.locator('.ecp .role input').first().fill('a'); await p.waitForTimeout(300);

@@ -21,12 +21,18 @@
     Plan_Players:{ Account_Name:'Accounts', Contact:'Contacts' },
     Plan_Actions:{ Account_Name:'Accounts' },
     Service_Matrix:{ Account_Name:'Accounts' },
-    Employment:{ Contact:'Contacts', Account_Name:'Accounts' }
+    Employment:{ Contact:'Contacts', Account_Name:'Accounts' },
+    Agreements:{ Account_Name:'Accounts', Deal:'Deals' },
+    Tasks:{ Account_Name:'Accounts', Deal:'Deals' },
+    Portfolio_Requests:{ Account_Name:'Accounts' },
+    Accounts_tree:{ Parent_Account:'Accounts' }
   };
+  LOOKUPS.Accounts.Parent_Account = 'Accounts';
   const DISPLAY = { Accounts:'Account_Name', Contacts:'Full_Name', Deals:'Deal_Name',
     Programmes:'Name', Campaigns:'Name', Meetings:'Name', Service_Catalog:'Name',
     Event_Contacts:'id', Messages:'Thread_Topic', Users:'full_name', Potentials:'Solutions',
-    Plan_Players:'Name', Plan_Actions:'Task', Service_Matrix:'Service', Employment:'Company' };
+    Plan_Players:'Name', Plan_Actions:'Task', Service_Matrix:'Service', Employment:'Company',
+    Agreements:'Name', Tasks:'Task', Portfolio_Requests:'Request' };
   const RELATED = {
     Accounts:{ Contacts:['Contacts','Account_Name'], Deals:['Deals','Account_Name'] },
     Campaigns:{ Event_Contacts:['Event_Contacts','Campaign'], Meetings:['Meetings','Campaign'] },

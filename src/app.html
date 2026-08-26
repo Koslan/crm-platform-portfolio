@@ -220,6 +220,7 @@ if(window.mockZoho&&window.__DATA__){mockZoho.load(window.__DATA__);
 <script>/*__BOARD__*/</script>
 <script>/*__WIDGETS2__*/</script>
 <script>/*__ORGHEALTH__*/</script>
+<script>/*__WIDGETS3__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -739,6 +740,32 @@ function viewOrgHealth(){
    + '</ul></section>';
 }
 
+
+function viewCockpit(){
+  return '<div class="pagehead"><h1>Sales cockpit</h1>'
+   + '<p class="sub">Not a record — a team. Ten tables across three tabs, scoped to everyone, to you, or to one person, '
+   + 'with the rules that decide what lands in each written on the screen rather than in somebody’s head.</p>'
+   + '<div class="metarow"><span class="chip live">Live demo</span><span class="chip plain">Emulated CRM shell</span>'
+   + '<span class="chip plain">Role-scoped</span></div></div>'
+   + '<section class="block"><h2>The screen</h2><div id="ck-host"></div></section>'
+   + '<section class="block"><h2>What to try</h2><ul>'
+   + '<li>Switch the scope in the header. Every table and every headline number recomputes — this is the same code '
+   + 'serving a manager who sees the team and a salesperson who sees only their own work.</li>'
+   + '<li>Look at the row colours under <b>Overdue</b> and <b>Closing within a week</b>: a closing date in the past, '
+   + 'or one inside seven days. One line each, printed under the table, so nobody argues about who belongs on the list.</li>'
+   + '<li>Open <b>Legal</b>. Each row carries a stage from the CRM and a status from the tracker legal actually works in. '
+   + 'Two systems, one row, and their disagreement is visible instead of being argued about in a meeting.</li>'
+   + '<li>Open <b>Methodology</b>. "Recommended" is a rule computed in the browser — open, above a value threshold, '
+   + 'no plan linked. It is on the screen because a rule you cannot read is a rule you cannot trust.</li>'
+   + '</ul></section>'
+   + '<section class="block"><h2>Why it was not straightforward</h2>'
+   + '<p>The awkward part is scope. A manager needs the team, a salesperson needs themselves, and the platform will '
+   + 'not take twenty owners in one query criterion. So the user list is fetched, filtered by role, and the records '
+   + 'are narrowed again after retrieval — which also means paging through everything first rather than letting the '
+   + 'server filter. The other awkward part is that nothing here belongs to one module: deals, tasks, portfolio '
+   + 'requests and four kinds of legal document, each with its own shape, on one screen that has to stay readable.</p></section>';
+}
+
 /* ---------------- rendering ---------------- */
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const chip = k => '<span class="chip '+KIND[k][0]+'">'+KIND[k][1]+'</span>';
@@ -751,6 +778,7 @@ function buildNav(){
      + '<a class="navlink" href="#/orghealth"><span class="dot live"></span>Org health report</a>'
      + '<a class="navlink" href="#/how"><span class="dot note"></span>How this site works</a></div>';
   h += '<div class="navgroup"><h4>Live demos</h4>'
+     + '<a class="navlink" href="#/cockpit"><span class="dot live"></span>Sales cockpit</a>'
      + '<a class="navlink" href="#/event"><span class="dot live"></span>Event campaign page</a>'
      + REC.map(r=>'<a class="navlink" href="#/rec/'+r.id+'"><span class="dot live"></span>'+esc(r.t)+'</a>').join('')
      + DEMOS.filter(d=>!PROMOTED.has(d.id)).map(d=>'<a class="navlink" href="#/demo/'+d.id+'"><span class="dot live"></span>'+esc(d.t)+'</a>').join('')
@@ -797,7 +825,11 @@ function viewOverview(){
    + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">Generated org</span></div></a></div></section>'
 
    + '<section class="block"><h2>A CRM record page, with its widgets on it</h2>'
-   + '<div class="grid"><a class="tile" href="#/event"><h3>Event campaign page</h3>'
+   + '<div class="grid"><a class="tile" href="#/cockpit"><h3>Sales cockpit</h3>'
+   + '<p>The screen a head of sales lives in: overdue deals under a traffic light, tasks past due, legal documents '
+   + 'seen from both the CRM and the tracker, and a methodology rule anyone can read off the page.</p>'
+   + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">3 tabs</span></div></a>'
+   + '<a class="tile" href="#/event"><h3>Event campaign page</h3>'
    + '<p>The record page an event runs from: campaign header, tabbed widgets for the target list and the '
    + 'meeting schedule, and the five-step booking wizard with free-slot search. All of it live.</p>'
    + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">3 widgets + wizard</span></div></a></div></section>'
@@ -865,6 +897,7 @@ function route(){
   else if (kind==='event'){ body = viewEventPage(); crumb = 'live demo / event campaign page'; }
   else if (kind==='rec'){ const r = REC.find(x=>x.id===id);
     body = r ? viewRecord(r) : viewOverview(); crumb = 'live demo / '+id; }
+  else if (kind==='cockpit'){ body = viewCockpit(); crumb = 'live demo / sales cockpit'; }
   else if (kind==='orghealth'){ body = viewOrgHealth(); crumb = 'org health report'; }
   else if (kind==='platform'){ body = viewPlatform(); crumb = 'platform emulator'; }
   else if (kind==='how'){ body = viewAbout(); crumb = 'about / how this site works'; }
@@ -881,9 +914,10 @@ function route(){
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
   const recNarrow = kind==='rec' && (REC.find(x=>x.id===id)||{}).phone;
-  document.getElementById('view').classList.toggle('wide', kind==='event' || kind==='orghealth' || (kind==='rec' && !recNarrow));
+  document.getElementById('view').classList.toggle('wide', kind==='event' || kind==='orghealth' || kind==='cockpit' || (kind==='rec' && !recNarrow));
   if (kind==='platform') wirePlatform();
   if (kind==='orghealth' && window.OrgHealth) OrgHealth.mount(document.getElementById('oh-host'));
+  if (kind==='cockpit' && window.CRMWidgets3) CRMWidgets3.Cockpit.mount(document.getElementById('ck-host'));
   if (kind==='event') wireEventPage();
   if (kind==='rec'){ const r = REC.find(x=>x.id===id); if (r) wireRecord(r); }
   window.scrollTo(0,0);
