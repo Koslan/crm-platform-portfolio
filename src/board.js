@@ -244,6 +244,7 @@ const Board = {
       const st = document.createElement('style'); st.id = 'ecp-css4'; st.textContent = CSS4; document.head.appendChild(st);
     }
     this.log = [];
+    host.classList.add('ecp');            // the phone shows the CRM's own palette, not the site's
     const c = (await ZOHO.CRM.API.getRecord({ Entity:'Campaigns', RecordID:campaignId })).data[0];
     this.c = c;
     const days = []; for (let d = new Date(c.Start), e = new Date(c.End); d <= e; d.setDate(d.getDate()+1)) days.push(new Date(d));

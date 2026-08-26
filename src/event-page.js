@@ -7,6 +7,25 @@
 'use strict';
 
 const CSS = `
+/* The CRM is a light product with a blue accent. The widgets have to look like
+   they do inside it, not like the site around them — so this block redefines the
+   tokens for everything under .ecp and stops inheriting the site's theme. */
+.ecp{
+  --ground:#f3f6f8; --surface:#ffffff; --surface-2:#eef2f6; --line:#dde5ec; --line-strong:#c2cfda;
+  --ink:#1b2733; --ink-2:#48596a; --ink-3:#7b8b9a;
+  --accent:#1f7fc4; --accent-ink:#155e93; --accent-soft:#e3f0fb;
+  --ok:#1c8a4d; --warn:#b0701c; --crit:#bf3a2b; --idle:#8a99a6;
+  --ok-bg:#e3f4ea; --warn-bg:#fbf1de; --crit-bg:#fbe7e4; --idle-bg:#eef2f6;
+  --shadow:0 1px 2px rgba(27,39,51,.07), 0 10px 26px -18px rgba(27,39,51,.35);
+  color:var(--ink);
+  /* form controls take their chrome from the UA; without this the browser paints
+     buttons and selects in the visitor's dark scheme inside a light product */
+  color-scheme:light;
+}
+.ecp a{color:var(--accent)}
+.ecp .link{color:var(--accent);cursor:pointer}
+.ecp .link:hover{text-decoration:underline}
+
 .ecp{--h:#1b5f8f;--h2:#1d5c4a;--b:var(--line);--r:8px;font-size:14px}
 .ecp *{box-sizing:border-box}
 .ecp .bar{background:linear-gradient(100deg,#1f6fa8 0%,#1d5c4a 100%);color:#fff;border-radius:var(--r) var(--r) 0 0;padding:18px 22px;display:grid;grid-template-columns:1.15fr .95fr auto;gap:18px}
@@ -39,12 +58,24 @@ const CSS = `
 .ecp .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:500}
 .ecp .grow{flex:1}
 .ecp input.search{border:1px solid var(--b);border-radius:6px;padding:7px 11px;font:400 12.5px/1 "IBM Plex Sans",sans-serif;min-width:230px;background:var(--surface);color:var(--ink)}
-.ecp .ver{font:400 10.5px/1 "IBM Plex Mono",monospace;color:var(--ink-3);border:1px solid var(--b);border-radius:4px;padding:4px 6px;cursor:pointer}
+.ecp .ver{font:400 10.5px/1 "IBM Plex Mono",monospace;color:var(--ink-3);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:4px 6px;cursor:pointer}
+.ecp .ver:hover{border-color:var(--line-strong);color:var(--ink-2)}
 .ecp .tw{overflow:auto;max-height:520px;border:1px solid var(--b);border-radius:6px;background:var(--surface)}
 .ecp table.d{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
 .ecp table.d th{position:sticky;top:0;z-index:2;background:var(--surface-2);font:500 10px/1.3 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:9px 10px;border-bottom:1px solid var(--b);white-space:nowrap}
 .ecp table.d td{padding:7px 10px;border-bottom:1px solid var(--b);vertical-align:middle;white-space:nowrap}
 .ecp table.d tr:hover td{background:var(--surface-2)}
+.ecp table.d thead tr.fr th{position:sticky;top:31px;z-index:2;background:var(--surface);padding:4px 6px;border-bottom:1px solid var(--b)}
+.ecp table.d thead tr.fr input,.ecp table.d thead tr.fr select{
+  width:100%;min-width:70px;border:1px solid var(--line);border-radius:4px;padding:4px 6px;
+  font:400 11.5px/1.2 "IBM Plex Sans",sans-serif;background:var(--surface);color:var(--ink)}
+.ecp table.d thead tr.fr input:focus,.ecp table.d thead tr.fr select:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+.ecp table.d th.sortable{cursor:pointer;user-select:none}
+.ecp table.d th.sortable::after{content:'\\2195';opacity:.3;margin-left:5px;font-size:9px}
+.ecp table.d th.sortable[data-dir="asc"]::after{content:'\\2191';opacity:.9}
+.ecp table.d th.sortable[data-dir="desc"]::after{content:'\\2193';opacity:.9}
+.ecp .tfoot{display:flex;align-items:center;gap:10px;padding:7px 10px;border-top:1px solid var(--b);
+  font:400 11.5px/1 "IBM Plex Mono",monospace;color:var(--ink-3);background:var(--surface-2)}
 .ecp table.d td.wrap{white-space:normal;min-width:180px}
 .ecp .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:11px;border:1px solid transparent;white-space:nowrap}
 .ecp .pill.ok{background:var(--ok-bg);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 32%,transparent)}
@@ -78,7 +109,19 @@ const CSS = `
 .ecp-mod .ft{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:1px solid var(--b);background:var(--surface-2)}
 .ecp-mod .ft .msg{font-size:12.5px;color:var(--warn)}
 .ecp-mod .ft .sp{flex:1}
-.ecp .btn{font:500 13px/1 "IBM Plex Sans",sans-serif;padding:10px 18px;border-radius:6px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff}
+.ecp .btn{font:500 13px/1 "IBM Plex Sans",sans-serif;padding:11px 18px;border-radius:6px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff}
+.ecp-mod .ft #w-next{flex:1;justify-content:center}
+.ecp .roles{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.ecp .role .rl{font:500 10.5px/1 "IBM Plex Mono",monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
+.ecp .role .box{border:1px solid var(--line);border-radius:6px;padding:6px;background:var(--surface);min-height:42px}
+.ecp .role input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font:400 13px/1.4 "IBM Plex Sans",sans-serif;padding:4px 5px}
+.ecp .role .sel{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.ecp .role .sel span{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent-ink);border-radius:999px;padding:3px 9px;font-size:12px}
+.ecp .role .sel span b{cursor:pointer;font-weight:600;opacity:.65}
+.ecp .role .sug{border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;max-height:150px;overflow:auto;background:var(--surface)}
+.ecp .role .sug div{padding:7px 10px;cursor:pointer;font-size:12.5px}
+.ecp .role .sug div:hover{background:var(--accent-soft)}
+.ecp .ghost2{font:400 11px/1 "IBM Plex Sans",sans-serif;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:5px;padding:4px 8px;cursor:pointer}
 .ecp .btn[disabled]{opacity:.45;cursor:not-allowed}
 .ecp .btn.sec{background:var(--surface);color:var(--ink-2);border-color:var(--b)}
 .ecp .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
@@ -126,6 +169,69 @@ async function coqlAll(query, cap = 1200) {
     if (!r.info.more_records || out.length >= cap) return { rows: out, total: r.info.total };
     offset += 200;
   }
+}
+
+
+/* ---------- data table: sticky head, a filter under every column, sorting ----------
+   The platform's own tables work this way, so a demo that filters only by chips
+   feels wrong the moment anyone tries a column. */
+function dataTable(container, cols, rows, opts) {
+  opts = opts || {};
+  const st = { f: {}, sort: opts.sort || null, dir: opts.dir || 'asc', cap: opts.cap || 300 };
+  const textOf = (c, r) => c.text ? String(c.text(r) ?? '') : String(r[c.k] ?? '');
+  const htmlOf = (c, r) => c.html ? c.html(r) : E(textOf(c, r));
+
+  function options(c) {
+    return [...new Set(rows.map(r => textOf(c, r)).filter(Boolean))].sort();
+  }
+  function pass(r) {
+    return cols.every(c => {
+      const v = (st.f[c.k] || '').trim().toLowerCase();
+      if (!v) return true;
+      const t = textOf(c, r).toLowerCase();
+      if (c.filter === 'select') return t === v;
+      if (c.filter === 'min') return (parseFloat(textOf(c, r)) || 0) >= parseFloat(v);
+      return t.includes(v);
+    });
+  }
+  function draw() {
+    let list = rows.filter(pass);
+    if (st.sort) {
+      const c = cols.find(x => x.k === st.sort), s = st.dir === 'desc' ? -1 : 1;
+      list = list.slice().sort((a, b) => {
+        const x = c.sortVal ? c.sortVal(a) : textOf(c, a), y = c.sortVal ? c.sortVal(b) : textOf(c, b);
+        return (x > y ? 1 : x < y ? -1 : 0) * s;
+      });
+    }
+    const shown = list.slice(0, st.cap);
+    container.innerHTML = `<table class="d"><thead>
+      <tr>${cols.map(c => `<th class="${c.filter === 'none' ? '' : 'sortable'}" data-s="${c.k}"
+            ${st.sort === c.k ? `data-dir="${st.dir}"` : ''}>${E(c.label)}</th>`).join('')}</tr>
+      <tr class="fr">${cols.map(c => {
+        if (c.filter === 'none') return '<th></th>';
+        if (c.filter === 'select') return `<th><select data-f="${c.k}"><option value="">All</option>${
+          options(c).map(o => `<option ${st.f[c.k] === o ? 'selected' : ''}>${E(o)}</option>`).join('')}</select></th>`;
+        return `<th><input data-f="${c.k}" value="${E(st.f[c.k] || '')}" placeholder="${c.filter === 'min' ? '≥ n' : ''}"></th>`;
+      }).join('')}</tr></thead>
+      <tbody>${shown.map(r => `<tr>${cols.map(c => `<td class="${c.cls || ''}">${htmlOf(c, r)}</td>`).join('')}</tr>`).join('')
+        || `<tr><td colspan="${cols.length}" class="none">Nothing matches these filters.</td></tr>`}</tbody></table>
+      <div class="tfoot"><span>${list.length} of ${rows.length} rows</span>
+        ${list.length > st.cap ? `<span>· showing the first ${st.cap}</span>` : ''}
+        <span style="flex:1"></span>${Object.values(st.f).some(v => v) ? '<button class="ghost2" data-clear>clear filters</button>' : ''}</div>`;
+    if (opts.onDraw) opts.onDraw(list);
+  }
+  container.addEventListener('input', e => { const i = e.target.closest('[data-f]'); if (!i) return;
+    st.f[i.dataset.f] = i.value; const k = i.dataset.f, pos = i.selectionStart; draw();
+    const again = container.querySelector(`[data-f="${k}"]`); if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (_) {} } });
+  container.addEventListener('change', e => { const sel = e.target.closest('select[data-f]'); if (!sel) return;
+    st.f[sel.dataset.f] = sel.value; draw(); });
+  container.addEventListener('click', e => {
+    if (e.target.closest('[data-clear]')) { st.f = {}; draw(); return; }
+    const th = e.target.closest('th.sortable[data-s]'); if (!th) return;
+    if (st.sort === th.dataset.s) st.dir = st.dir === 'asc' ? 'desc' : 'asc'; else { st.sort = th.dataset.s; st.dir = 'asc'; }
+    draw(); });
+  draw();
+  return { redraw: draw, state: st };
 }
 
 /* ---------- page ---------- */
@@ -319,36 +425,36 @@ const Contacts = {
     q(b,'#c-b').textContent     = n(r => r.Meeting_Status === 'Meeting booked');
     q(b,'#c-o').textContent     = n(r => r.Meeting_Status === 'Open');
 
-    const full = S.view === 'full', old = S.view === 'old';
+    const full = S.view === 'full';
     const pill = v => v === 'Meeting held' ? `<span class="pill ok">held</span>`
       : v === 'Meeting booked' ? `<span class="pill book">booked</span>`
       : v === 'Meeting declined' ? `<span class="pill no">declined</span>`
       : v === 'Contacted' ? `<span class="pill info">contacted</span>` : `<span class="pill ghost">open</span>`;
-    const cols = ['','Contact','Title','Account','Country','Attending','Meeting status','Priority','Source']
-      .concat(full ? ['Added by','Comment'] : []);
-    const head = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
-    const body = list.slice(0, 300).map(r => `<tr>
-      <td>${r.Is_Target ? '<span class="pill info">target</span>' : '<span style="color:var(--ink-3)">—</span>'}</td>
-      <td>${E(r['Origin_Contact.Full_Name'])}</td>
-      <td class="wrap">${E(r['Origin_Contact.Title'])}</td>
-      <td class="wrap">${E(r['Account_Name.Account_Name'])}</td>
-      <td>${E(r['Account_Name.Country'])}</td>
-      <td>${E(r.Attending_Status)}</td>
-      <td>${pill(r.Meeting_Status)}<span class="lock" title="Set from meetings — not editable here">&#128274;</span></td>
-      <td>${r.Priority ? `<span class="prio ${r.Priority}">${r.Priority}</span>` : '<span style="color:var(--ink-3)">—</span>'}</td>
-      <td>${r.Source ? E(r.Source) : '<span style="color:var(--ink-3)">—</span>'}</td>
-      ${full ? `<td>${E(r.Added_By)}</td><td class="wrap">${E(r.BD_Comment || '—')}</td>` : ''}
-    </tr>`).join('');
+    const yn = v => v ? '<span class="pill ok">yes</span>' : '<span style="color:var(--ink-3)">&mdash;</span>';
 
-    q(b,'#c-tw').innerHTML = list.length
-      ? `<table class="d" ${old ? 'style="font-size:11.5px"' : ''}><thead>${head}</thead><tbody>${body}</tbody></table>`
-        + (list.length > 300 ? `<div class="none">Showing the first 300 of ${list.length} matching rows.</div>` : '')
-      : `<div class="none">${S.filters.size || S.search
-          ? 'Nothing matches these filters. <a href="#" id="c-clear">Clear them</a>'
-          : 'No contacts are linked to this campaign yet.'}</div>`;
-    const cl = q(b,'#c-clear');
-    if (cl) cl.onclick = e => { e.preventDefault(); S.filters.clear(); S.search = '';
-      q(b,'#c-search').value = ''; qa(b,'#c-chips button').forEach(y=>y.setAttribute('aria-pressed','false')); this.draw(b); };
+    const cols = [
+      { k:'met',  label:'Met last year', filter:'select', text:r=>r.Met_Last_Year?'yes':'no', html:r=>yn(r.Met_Last_Year) },
+      { k:'tgt',  label:'Target',        filter:'select', text:r=>r.Is_Target?'yes':'no',
+        html:r=>r.Is_Target?'<span class="pill info">target</span>':'<span style="color:var(--ink-3)">&mdash;</span>' },
+      { k:'src',  label:'Source',        filter:'select', text:r=>r.Source || '' },
+      { k:'acc',  label:'Account',       filter:'text',   cls:'wrap', text:r=>r['Account_Name.Account_Name'],
+        html:r=>`<span class="link">${E(r['Account_Name.Account_Name'])}</span>` },
+      { k:'ct',   label:'Contact name',  filter:'text',   text:r=>r['Origin_Contact.Full_Name'],
+        html:r=>`<span class="link">${E(r['Origin_Contact.Full_Name'])}</span>` },
+      { k:'cty',  label:'Country',       filter:'select', text:r=>r['Account_Name.Country'] || '' },
+      { k:'tt',   label:'Title',         filter:'text',   cls:'wrap', text:r=>r['Origin_Contact.Title'] || '' },
+      { k:'att',  label:'Attending',     filter:'select', text:r=>r.Attending_Status || '' },
+      { k:'ms',   label:'Meeting status',filter:'select', text:r=>r.Meeting_Status || '',
+        html:r=>`${pill(r.Meeting_Status)}<span class="lock" title="Set from meetings — not editable here">&#128274;</span>` },
+      { k:'pr',   label:'Priority',      filter:'select', text:r=>r.Priority || '',
+        html:r=>r.Priority?`<span class="prio ${r.Priority}">${r.Priority}</span>`:'<span style="color:var(--ink-3)">&mdash;</span>' }
+    ];
+    if (full) cols.push(
+      { k:'by',  label:'Added by',  filter:'select', text:r=>r.Added_By || '' },
+      { k:'when',label:'Date added',filter:'text',   text:r=>r.Created_Time || '' },
+      { k:'cm',  label:'Comment',   filter:'text',   cls:'wrap', text:r=>r.BD_Comment || '' });
+
+    S.applied = ECPShared.dataTable(q(b,'#c-tw'), cols, list, { cap:300 });
   }
 };
 
@@ -430,28 +536,37 @@ const Meetings = {
     q(b,'#m-hl').textContent    = list.filter(r=>r.Meeting_Status==='Held').length;
     q(b,'#m-hrs').textContent   = Math.round(mins/60);
 
-    const sync = s => s==='in_sync' ? '<span class="pill ok">in sync</span>'
-      : s==='outdated' ? '<span class="pill info">outdated</span>'
-      : s==='incorrect' ? '<span class="pill no">incorrect</span>'
-      : s==='not_in_crm' ? '<span class="pill ghost">not in calendar</span>'
+    const sync = s2 => s2==='in_sync' ? '<span class="pill ok">in sync</span>'
+      : s2==='outdated' ? '<span class="pill info">outdated</span>'
+      : s2==='incorrect' ? '<span class="pill no">incorrect</span>'
+      : s2==='not_in_crm' ? '<span class="pill ghost">not in calendar</span>'
       : '<span class="pill ghost">no dates</span>';
-    q(b,'#m-tw').innerHTML = list.length ? `<table class="d">
-      <thead><tr><th>Date</th><th>Recap</th><th>Account</th><th>Meeting</th><th>Priority</th><th>Status</th>
-      <th>Owner</th><th>Min</th><th>Room</th><th>Spot</th><th>Calendar</th><th>Team</th></tr></thead>
-      <tbody>${list.map(r => { const p = parseDT(r.Meeting_DateTime_String); return `<tr>
-        <td>${p ? `${p.day.slice(0,5)} <span style="color:var(--ink-3)">${hhmm(p.min)}</span>` : '<span style="color:var(--ink-3)">—</span>'}</td>
-        <td>${r.Recap ? '<span class="pill ok">&#10003;</span>' : '<span style="color:var(--ink-3)">—</span>'}</td>
-        <td class="wrap">${E(r['Account_Name.Account_Name'])}</td>
-        <td class="wrap">${E(r.Meeting_Type)}</td>
-        <td>${r.Target_Priority ? `<span class="prio ${r.Target_Priority}">${r.Target_Priority}</span>` : '<span style="color:var(--ink-3)">—</span>'}</td>
-        <td>${r.Meeting_Status === 'Held' ? '<span class="pill ok">held</span>'
-             : r.Meeting_Status === 'Declined' ? '<span class="pill no">declined</span>' : '<span class="pill book">booked</span>'}</td>
-        <td>${E(r.Owner)}</td><td>${r.Meeting_Duration}</td>
-        <td>${r.Meeting_Room ? E(r.Meeting_Room) : '<span style="color:var(--ink-3)">—</span>'}</td>
-        <td>${r.Spot ? E(r.Spot) : '<span style="color:var(--ink-3)">—</span>'}</td>
-        <td>${sync(r.Sync_State)}</td>
-        <td class="wrap">${E(r.Attendees_String)}</td></tr>`; }).join('')}</tbody></table>`
-      : `<div class="none">No meetings match these filters.</div>`;
+    const cols = [
+      { k:'date', label:'Date', filter:'text', sortVal:r=>{const v=r.Meeting_DateTime_String||'';
+          return v.length<16?'￿':v.slice(6,10)+v.slice(3,5)+v.slice(0,2)+v.slice(11,16);},
+        text:r=>r.Meeting_DateTime_String || '',
+        html:r=>{const p=parseDT(r.Meeting_DateTime_String);
+          return p?`${p.day.slice(0,5)} <span style="color:var(--ink-3)">${hhmm(p.min)}</span>`:'<span style="color:var(--ink-3)">&mdash;</span>';} },
+      { k:'rec',  label:'Recap', filter:'select', text:r=>r.Recap?'yes':'no',
+        html:r=>r.Recap?'<span class="pill ok">&#10003;</span>':'<span style="color:var(--ink-3)">&mdash;</span>' },
+      { k:'acc',  label:'Account', filter:'text', cls:'wrap', text:r=>r['Account_Name.Account_Name'],
+        html:r=>`<span class="link">${E(r['Account_Name.Account_Name'])}</span>` },
+      { k:'type', label:'Meeting', filter:'select', text:r=>r.Meeting_Type || '' },
+      { k:'pr',   label:'Priority', filter:'select', text:r=>r.Target_Priority || '',
+        html:r=>r.Target_Priority?`<span class="prio ${r.Target_Priority}">${r.Target_Priority}</span>`:'<span style="color:var(--ink-3)">&mdash;</span>' },
+      { k:'st',   label:'Status', filter:'select', text:r=>r.Meeting_Status,
+        html:r=>r.Meeting_Status==='Held'?'<span class="pill ok">held</span>'
+             :r.Meeting_Status==='Declined'?'<span class="pill no">declined</span>':'<span class="pill book">booked</span>' },
+      { k:'own',  label:'Owner', filter:'select', text:r=>r.Owner || '' },
+      { k:'min',  label:'Min', filter:'min', text:r=>String(r.Meeting_Duration), sortVal:r=>+r.Meeting_Duration },
+      { k:'room', label:'Room', filter:'select', text:r=>r.Meeting_Room || '',
+        html:r=>r.Meeting_Room?E(r.Meeting_Room):'<span style="color:var(--ink-3)">&mdash;</span>' },
+      { k:'spot', label:'Spot', filter:'text', text:r=>r.Spot || '',
+        html:r=>r.Spot?E(r.Spot):'<span style="color:var(--ink-3)">&mdash;</span>' },
+      { k:'sync', label:'Calendar', filter:'select', text:r=>String(r.Sync_State||'').replace(/_/g,' '), html:r=>sync(r.Sync_State) },
+      { k:'team', label:'Team', filter:'text', cls:'wrap', text:r=>r.Attendees_String || '' }
+    ];
+    ECPShared.dataTable(q(b,'#m-tw'), cols, list, { cap:300, sort:'date', dir:'asc' });
   }
 };
 
@@ -542,35 +657,68 @@ const Wizard = {
 
   async step2(pane) {
     const s = this.s, P = this.P;
-    pane.innerHTML = `<div class="two">
-      <div><span class="lab">Purpose of the meeting</span>
-        <textarea class="ta" rows="3" id="w-purpose" placeholder="What are we trying to achieve?">${E(s.purpose)}</textarea>
-        <div class="hint" id="w-left"></div>
-        <span class="lab" style="margin-top:18px">Buyers — from ${E(s.account.name)}</span>
-        <div id="w-buyers" class="peep"><span class="hint">Loading contacts…</span></div></div>
-      <div><span class="lab">Our side</span><div id="w-team" class="peep"></div>
-        <div class="hint">Everyone listed on the campaign record.</div></div></div>`;
+    const ROLES = [['Economic Buyer','Economic buyer'],['Technical Buyer','Technical buyer'],
+                   ['User Buyer','User buyer'],['Coach','Coach']];
+    pane.innerHTML = `
+      <span class="lab">Purpose of the meeting</span>
+      <textarea class="ta" rows="2" id="w-purpose" placeholder="What are we trying to achieve?">${E(s.purpose)}</textarea>
+      <div class="hint" id="w-left"></div>
+      <div style="height:1px;background:var(--line);margin:18px 0"></div>
+      <span class="lab">Buyers <span style="text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-3)">— from ${E(s.account.name)}</span></span>
+      <div class="roles" id="w-roles">
+        ${ROLES.map(([k,l])=>`<div class="role" data-role="${E(k)}">
+          <span class="rl">${E(l)}</span>
+          <div class="box"><div class="sel"></div><input placeholder="Search contacts…" autocomplete="off"></div>
+          <div class="sug" hidden></div></div>`).join('')}
+      </div>
+      <div style="height:1px;background:var(--line);margin:18px 0"></div>
+      <span class="lab">Our side <span style="text-transform:none;letter-spacing:0;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-3)">— <b id="w-tn">0</b> selected</span></span>
+      <div id="w-team" class="peep"></div>`;
+
     const ta = q(pane,'#w-purpose'), left = q(pane,'#w-left');
     const count = () => left.textContent = `${255 - ta.value.length} characters left`;
     ta.oninput = () => { s.purpose = ta.value.slice(0,255); count(); }; count();
 
     const { rows } = await coqlAll(
       `select id, Full_Name, Title from Contacts where Account_Name = '${esc(s.account.id)}' and Contact_Status = 'Working'`, 200);
-    const bx = q(pane,'#w-buyers');
-    bx.innerHTML = rows.length
-      ? rows.slice(0,40).map(c => `<button data-id="${c.id}" data-n="${E(c.Full_Name)}" aria-pressed="${s.buyers.some(b=>b.id===c.id)}">${E(c.Full_Name)} <span style="opacity:.6">· ${E(c.Title)}</span></button>`).join('')
-      : `<span class="hint">This account has no active contacts. Add one on the account record first.</span>`;
-    bx.onclick = e => { const b = e.target.closest('button[data-id]'); if (!b) return;
-      const i = s.buyers.findIndex(x => x.id === b.dataset.id);
-      i < 0 ? s.buyers.push({ id:b.dataset.id, name:b.dataset.n }) : s.buyers.splice(i,1);
-      b.setAttribute('aria-pressed', String(i < 0)); this.refreshBlocker(); };
+
+    const paint = () => {
+      qa(pane,'.role').forEach(box => {
+        const role = box.dataset.role;
+        q(box,'.sel').innerHTML = s.buyers.filter(x => x.role === role)
+          .map(x => `<span>${E(x.name)}<b data-drop="${E(x.id)}">&times;</b></span>`).join('');
+      });
+      this.refreshBlocker();
+    };
+    q(pane,'#w-roles').addEventListener('input', e => {
+      const inp = e.target.closest('input'); if (!inp) return;
+      const box = inp.closest('.role'), sug = q(box,'.sug'), v = inp.value.trim().toLowerCase();
+      if (v.length < 1) { sug.hidden = true; return; }
+      const hits = rows.filter(c => (c.Full_Name + ' ' + (c.Title||'')).toLowerCase().includes(v))
+        .filter(c => !s.buyers.some(x => x.id === c.id)).slice(0, 8);
+      sug.innerHTML = hits.length ? hits.map(c => `<div data-add="${c.id}" data-n="${E(c.Full_Name)}">${E(c.Full_Name)}
+        <span style="color:var(--ink-3)">· ${E(c.Title||'')}</span></div>`).join('')
+        : `<div style="color:var(--ink-3);cursor:default">No active contact matches “${E(inp.value)}”.</div>`;
+      sug.hidden = false;
+    });
+    q(pane,'#w-roles').addEventListener('click', e => {
+      const add = e.target.closest('[data-add]');
+      if (add) { const box = add.closest('.role');
+        s.buyers.push({ id:add.dataset.add, name:add.dataset.n, role:box.dataset.role });
+        q(box,'input').value = ''; q(box,'.sug').hidden = true; paint(); return; }
+      const drop = e.target.closest('[data-drop]');
+      if (drop) { const i = s.buyers.findIndex(x => x.id === drop.dataset.drop);
+        if (i >= 0) s.buyers.splice(i,1); paint(); }
+    });
 
     const tx = q(pane,'#w-team');
+    const tcount = () => q(pane,'#w-tn').textContent = s.team.length;
     tx.innerHTML = P.c.attendees.map(a => `<button data-n="${E(a.Name1)}" aria-pressed="${s.team.includes(a.Name1)}">${E(a.Name1)} <span style="opacity:.6">· ${E(a.Functions)}</span></button>`).join('');
-    tx.onclick = e => { const b = e.target.closest('button[data-n]'); if (!b) return;
-      const n = b.dataset.n, i = s.team.indexOf(n);
+    tx.onclick = e => { const b2 = e.target.closest('button[data-n]'); if (!b2) return;
+      const n = b2.dataset.n, i = s.team.indexOf(n);
       i < 0 ? s.team.push(n) : s.team.splice(i,1);
-      b.setAttribute('aria-pressed', String(i < 0)); this.refreshBlocker(); };
+      b2.setAttribute('aria-pressed', String(i < 0)); tcount(); this.refreshBlocker(); };
+    paint(); tcount();
   },
 
   step3(pane) {
@@ -705,5 +853,5 @@ const Wizard = {
 };
 
 window.EventCampaignPage = Page;
-window.ECPShared = { ensureCss, E, el, q, qa, coqlAll, pad2, dmy, parseDT, hhmm, esc, DOW };
+window.ECPShared = { ensureCss, dataTable, E, el, q, qa, coqlAll, pad2, dmy, parseDT, hhmm, esc, DOW };
 })();
