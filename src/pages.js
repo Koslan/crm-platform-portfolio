@@ -245,10 +245,11 @@ const Enrichment = {
               ['Employees', a.Employees], ['Revenue', money(a.Total_Revenue)], ['Last 12 months', money(a.Revenue_Last_12M)],
               ['Parent', a.Main_Parent_Account ? a.Main_Parent_Account.name : '—']],
       actions:[['enrich','Enrich contacts'],['hier','Hierarchy'],['export','Export']],
-      tabs:['At a glance','Group structure','Development plan','Contact enrichment'], ghostTabs:['Deals','Meetings'],
+      tabs:['At a glance','Group structure','Development plan','Contact enrichment','Provider link'], ghostTabs:['Deals'],
       onTab:(t,b)=> t === 'At a glance' ? window.CRMWidgets2.Glance.render(b, a)
                   : t === 'Group structure' ? window.CRMWidgets3.Hierarchy.render(b, a)
                   : t === 'Development plan' ? window.CRMWidgets2.Plan.render(b, a)
+                  : t === 'Provider link' ? window.CRMApollo.OrgMatch.render(b, a)
                   : this.render(b) });
   },
 

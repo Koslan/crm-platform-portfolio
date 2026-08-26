@@ -199,7 +199,7 @@ for (const c of campaigns){
       Sync_State: sync,
       External_Modified: sync==='outdated' ? iso(new Date(2026, int(0,4), int(1,28))) : null,
       Recap: chance(.35) ? 'Reviewed the enclosure tolerances and agreed to re-scope the thermal work.' : null,
-      Attendees_String: Array.from({length:int(1,4)},()=>pick(users).full_name).join(', '),
+      Attendees_String: [...new Set(Array.from({length:int(1,3)},()=>pick(c.attendees).Name1))].join(', '),
       participants: Array.from({length:int(1,4)},()=>{
         const ct = pick(contacts.filter(x=>x.Account_Name===acc.id)) || pick(contacts);
         return { Name1:ct.Full_Name, Position:ct.Title, Type:pick(ROLES), Email:ct.Email, Group:'External' };
@@ -210,9 +210,10 @@ for (const c of campaigns){
 // deliberate clash + travel pair on day one of the first campaign
 if (meetings.length > 4){
   const c = campaigns[0], d0 = dstr(new Date(c.Start));
-  meetings[0] = {...meetings[0], Meeting_DateTime_String:`${d0} 11:00`, Meeting_Duration:60, Meeting_Room:'Room Alpha',  Attendees_String:'D. Meier, K. Sandberg', Sync_State:'in_sync', Campaign:c.id};
-  meetings[1] = {...meetings[1], Meeting_DateTime_String:`${d0} 11:30`, Meeting_Duration:45, Meeting_Room:'Lounge B',    Attendees_String:'D. Meier',              Sync_State:'incorrect', Campaign:c.id};
-  meetings[2] = {...meetings[2], Meeting_DateTime_String:`${d0} 12:20`, Meeting_Duration:30, Meeting_Room:'Room Alpha 2',Attendees_String:'K. Sandberg',           Sync_State:'outdated',  Campaign:c.id};
+  const p1 = c.attendees[0].Name1, p2 = c.attendees[1].Name1;
+  meetings[0] = {...meetings[0], Meeting_DateTime_String:`${d0} 11:00`, Meeting_Duration:60, Meeting_Room:'Room Alpha',  Attendees_String:`${p1}, ${p2}`, Sync_State:'in_sync',  Campaign:c.id};
+  meetings[1] = {...meetings[1], Meeting_DateTime_String:`${d0} 11:30`, Meeting_Duration:45, Meeting_Room:'Lounge B',    Attendees_String:p1,             Sync_State:'incorrect', Campaign:c.id};
+  meetings[2] = {...meetings[2], Meeting_DateTime_String:`${d0} 12:20`, Meeting_Duration:30, Meeting_Room:'Room Alpha 2',Attendees_String:p2,             Sync_State:'outdated',  Campaign:c.id};
 }
 
 /* ---------- conversation threads ---------- */
@@ -436,6 +437,25 @@ deals.forEach(d => { const big = d.Amount > 200000 && !['4. Won','5. Lost'].incl
   d.Account_Plan_Link = big && chance(.4) ? 'plan/'+d.id : null;
   d.Plan_Recommended = big; });
 
+
+/* ---------- provider organisations, for the two-panel matcher ---------- */
+const SUFFIX = ['Ltd','GmbH','AB','Oy','B.V.','S.A.','A/S','SpA'];
+const providerOrgs = [];
+accounts.slice(0, 34).forEach((a,i) => {
+  const linked = i < 12;                       // some are already matched, most are not
+  if (linked) a.Provider_Org_Id = 'ORG'+id().slice(-7);
+  providerOrgs.push({ id: linked ? a.Provider_Org_Id : 'ORG'+id().slice(-7),
+    Name: i % 5 === 0 ? `${a.Account_Name} ${pick(SUFFIX)}` : a.Account_Name,
+    Domain: a.Website.replace('https://www.',''),
+    City: a.State || a.Country, Country: a.Country, Industry: a.Industry,
+    Headcount: a.Employees, Linked_Account: linked ? a.id : null });
+});
+// a handful the CRM has never heard of
+for (let i=0;i<9;i++){ const nm = `${pick(A1)} ${pick(A2)}`;
+  providerOrgs.push({ id:'ORG'+id().slice(-7), Name:nm, Domain:slug(nm)+'.example',
+    City:pick(CITY)[1], Country:pick(CITY)[0], Industry:pick(['Consumer Hardware','Medical Devices','Industrial IoT']),
+    Headcount:int(30,900), Linked_Account:null }); }
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -445,7 +465,7 @@ const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', 
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
   Meetings:meetings, Messages:messages, Enrichment:enrichment,
-  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs };
+  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs, Provider_Orgs:providerOrgs };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));

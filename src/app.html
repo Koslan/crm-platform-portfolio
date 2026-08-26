@@ -221,6 +221,7 @@ if(window.mockZoho&&window.__DATA__){mockZoho.load(window.__DATA__);
 <script>/*__WIDGETS2__*/</script>
 <script>/*__ORGHEALTH__*/</script>
 <script>/*__WIDGETS3__*/</script>
+<script>/*__APOLLO__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -669,6 +670,13 @@ const REC = [
         'Open a meeting, write a recap, and press Rephrase. The rewrite happens server-side, so no key is ever in this page; press again to undo.',
         'Tap the version badge in the header. That is the on-screen console — the only way to read an error on a phone inside the CRM app.'],
    why:'Nothing here comes from a component library: the timeline, the lane layout for overlapping meetings, the sheet and the console are hand-built. Two alerts exist that the platform has no concept of — a person in two meetings at once, and a move between places with under fifteen minutes to make it.'},
+  {id:'newcontact',t:'Create from a provider',  host:'__NEWCONTACT__',arg:()=>null,
+   sub:'Two lanes side by side — what the CRM already has, and what the enrichment provider returns — with the duplicate count worked out before anything is written.',
+   try:['Type a surname. The left lane searches the CRM as you type; the right one waits, because provider calls cost credits.',
+        'Press Search provider. Cards come back with counters: red is an exact profile-URL match already in the CRM, amber is the same name on a different profile.',
+        'Try to create somebody whose card is red — the button is disabled, and opening the card explains why.',
+        'Create one that is clean, and watch it appear in the left lane a second later.'],
+   why:'The order is the whole point: look, then write. Profile URLs are normalised before comparison — trailing slashes, protocol, an appended numeric suffix — because the same person is written four different ways across two systems. Name matches are shown but never block, since two people genuinely do share a name.'},
   {id:'tracker',   t:'Chat to issue tracker',  host:'__TRACKER__',   arg:()=>null,
    sub:'A thread in chat, the deal it resolves to, and the issue it ends up on — three panes, with the trace of every call beside them.',
    try:['Read the first message: the block between the markers is the whole mapping mechanism. People will type; they will not leave the chat to fill in a form.',
@@ -708,6 +716,7 @@ function wireRecord(r){
   if (r.host === '__BOARD__') { if (window.MobileBoard) MobileBoard.mount(host, r.arg(window.__DATA__)); return; }
   if (r.host === '__HISTORY__') { if (window.CRMWidgets2) CRMWidgets2.History.mount(host, r.arg(window.__DATA__)); return; }
   if (r.host === '__TRACKER__') { if (window.TrackerFlow) TrackerFlow.mount(host); return; }
+  if (r.host === '__NEWCONTACT__') { if (window.CRMApollo) CRMApollo.ContactNew.mount(host); return; }
   const P = window.CRMPages && window.CRMPages[r.host];
   if (P) P.mount(host, r.arg(window.__DATA__));
 }

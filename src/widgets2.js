@@ -429,8 +429,9 @@ const History = {
               ['Main account', c.Account_Name ? c.Account_Name.name : '—'], ['Profile', c.Linkedin ? 'on file' : '—'],
               ['Added', c.Created_Time], ['Records', '—']],
       actions:[['add','Add employment'],['merge','Find duplicates'],['export','Export']],
-      tabs:['Employment history'], ghostTabs:['Meetings','Emails','Notes'],
-      onTab:(t,b)=>this.render(b), onAction:a => { if (a === 'add') this.add(); } });
+      tabs:['Employment history','Provider sync'], ghostTabs:['Meetings','Emails'],
+      onTab:(t,b)=> t === 'Provider sync' ? window.CRMApollo.PersonSync.render(b, c) : this.render(b),
+      onAction:a => { if (a === 'add') this.add(); } });
   },
 
   async render(b) {

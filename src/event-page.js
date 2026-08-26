@@ -253,7 +253,7 @@ const Page = {
     host.innerHTML = `
       ${this.banner(c)}
       <div class="tabs" role="tablist">
-        ${['Overview','Contacts','Meetings','Room schedule','Calendar sync'].map((t,i)=>`<button role="tab" data-t="${t}" aria-selected="${i===0}">${t}</button>`).join('')}
+        ${['Overview','Contacts','Meetings','Room schedule','Calendar sync','At a glance'].map((t,i)=>`<button role="tab" data-t="${t}" aria-selected="${i===0}">${t}</button>`).join('')}
         ${['Timeline'].map(t=>`<button role="tab" disabled style="opacity:.4;cursor:default">${t}</button>`).join('')}
       </div>
       <div class="body" id="ecp-body"></div>`;
@@ -304,6 +304,7 @@ const Page = {
     if (name === 'Meetings')  return Meetings.render(b, this);
     if (name === 'Room schedule') return window.RoomSchedule.render(b, this);
     if (name === 'Calendar sync') return window.CRMWidgets2.Reconcile.render(b, this);
+    if (name === 'At a glance') return window.CRMApollo.EventMatrix.render(b, this);
   },
 
   async refreshHeader() {

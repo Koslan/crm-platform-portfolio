@@ -18,6 +18,7 @@ const brd  = readFileSync('src/board.js','utf8');
 const w2   = readFileSync('src/widgets2.js','utf8');
 const oh   = readFileSync('src/orghealth.js','utf8');
 const w3   = readFileSync('src/widgets3.js','utf8');
+const ap   = readFileSync('src/apollo.js','utf8');
 
 const body = tpl
   .replace('/*__MOCKZOHO__*/',   () => mock)
@@ -28,7 +29,8 @@ const body = tpl
   .replace('/*__BOARD__*/',      () => brd)
   .replace('/*__WIDGETS2__*/',   () => w2)
   .replace('/*__ORGHEALTH__*/',  () => oh)
-  .replace('/*__WIDGETS3__*/',   () => w3);
+  .replace('/*__WIDGETS3__*/',   () => w3)
+  .replace('/*__APOLLO__*/',     () => ap);
 
 const title = (/<title>([^<]*)<\/title>/.exec(body) || [,'CRM platform field notes'])[1];
 const doc = `<!doctype html>
