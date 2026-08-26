@@ -219,6 +219,7 @@ if(window.mockZoho&&window.__DATA__){mockZoho.load(window.__DATA__);
 <script>/*__TEAMS__*/</script>
 <script>/*__BOARD__*/</script>
 <script>/*__WIDGETS2__*/</script>
+<script>/*__ORGHEALTH__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -387,6 +388,55 @@ const CASES = {
       ['The constraint','Three problems kill the naive version. Speech recognition mangles mixed-language technical vocabulary and company names. An agent granted write access can be wrong and nobody would know which record it touched — the built-in audit log exports only through the interface and is no control loop. And a command from a chat arrives with no context about which record is meant.'],
       ['What was built','A speech layer with a domain vocabulary supplied as an initial prompt. An intent layer that must return a structured intent — module, record, fields, operation — validated against the live field list, refusing rather than guessing. Entity resolution that reuses the priority chain from the meeting work and asks again when the answer is ambiguous. Execution through the CRM’s own tool interface, with one hard condition: every action writes to a journal module — time, channel, the original utterance, the parsed intent, the target record, a before/after diff, the result. And a confirmation screen showing that diff for anything above a risk threshold.'],
       ['The trade','The journal duplicates what the record already holds. Taken deliberately: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement call — crude, but predictable and explainable.']]}],
+  'Data and identity':[
+    {id:'authority-meeting', t:'One field, two systems, and a rule about who wins',
+     sub:'A meeting is held, or declined, or still booked. Both the calendar and the CRM think they know.',
+     body:[
+      ['The trap','Deciding it from the calendar means asking the calendar about every meeting, every hour — impossible at any real volume. Deciding it from the CRM alone means never learning about cancellations, because a cancellation happens in the calendar and the CRM row simply becomes a past meeting that looks attended.'],
+      ['The split','Two processes, each authoritative over exactly one thing. The hourly one works only from CRM data: it computes an end time from the start plus the duration, with two fallbacks, and moves the row from booked to held. It never touches a declined row, because that is a final state. The second and much more expensive one is authoritative over one question only — was this cancelled — and it asks the calendar about rows already marked held. A cancelled flag or a missing event both mean declined.'],
+      ['The cost, taken deliberately','The expensive process walks one month per run, capped at a few hundred rows, so a full year takes twelve passes and a cancelled meeting can sit mislabelled for a while. That is the price of not calling the calendar hourly for everything, and it is the right trade at this volume. The month is a constant in the code rather than a parameter — crude, but the run is then perfectly reproducible.'],
+      ['The part nobody warns you about','The write result comes back in three different shapes depending on the path taken, so success is checked three ways in sequence. And a row locked by a state machine refuses the write with a marker buried inside the response body rather than a status code — those are counted as skipped, not as failures, because they are neither.']]},
+
+    {id:'roles-survive', t:'Keeping what a human typed through an automatic resync',
+     sub:'The classification is the whole value. The sync that refreshes the data would erase it every time.',
+     body:[
+      ['The setup','Every time a meeting updates from the calendar, its participant list is rebuilt: internal people matched against the staff directory, external ones against the account’s contacts. But the calendar knows nothing about buyer roles — economic, technical, user, coach — and those are exactly what somebody sat down and worked out.'],
+      ['The mechanism','Existing participants are read first and indexed by a composite key of address and role. For each external address the rebuild checks all four roles for an existing key before assigning anything, and restores the role it finds. Only a genuinely new person gets a default.'],
+      ['The migration nobody planned for','Historic rows carry the old spelling of those roles, from before the picklist was renamed. A second pass maps the old values onto the new ones, so a resync does not quietly drop the classification on every record created before the rename.'],
+      ['The risk that remains','The write goes into a subform, and a subform is replaced wholesale rather than patched row by row. Anything not in the array being sent stops existing. The role-restoring logic makes the content correct; it does nothing about that write path, which stays a place to be careful. Saying so is more useful than implying the problem is solved.']]},
+
+    {id:'buckets', t:'Sorting a conference export into buckets instead of matching it',
+     sub:'Several hundred rows, no shared key with anything, and half the company names in the file are wrong.',
+     body:[
+      ['Why matching fails','There is no single identifier. Profile URLs are written differently on each side — canonicalised slugs, trailing slashes, an appended hash. Email is missing for a good share of people. The company column is filled in by whoever exported it and is regularly wrong. And names arriving from enrichment are sometimes mangled, with event tags ending up inside a surname.'],
+      ['The shape of the answer','Not a match — a classification. Every row lands in exactly one bucket: matched by profile, matched but the account disagrees, matched by email or name, needs enrichment, created from enrichment, ambiguous, unresolved. Each bucket is then loaded independently, and the ambiguous and unresolved ones are worked by a person. The tool deliberately does not push for full automation.'],
+      ['The searches underneath','Profile lookup is done on the slug with a path anchor rather than the whole URL, so an extended slug and a trailing slash both still hit, while the anchor stops a slug matching in the middle of somebody else’s address. Where several candidates come back, tie-breakers run in a fixed order — account first, then email — and if none resolves it, the row goes to ambiguous with the candidates attached rather than taking the first.'],
+      ['The write rules that keep it safe','A name is corrected only when the surname differs, because otherwise every Alex becomes an Alexander. Title and email are filled only into an empty field and never over a live value. Everything else that merely differs is reported for a human to look at. Those three rules are what make the tool safe to run twice.']]},
+
+    {id:'token-boundary', t:'Two credentials, and a line drawn between them',
+     sub:'One kind of key can call a function. A different kind can touch records. Neither can do both.',
+     body:[
+      ['The constraint','The simple key that lets an outside script invoke a server-side function does not work for reading or writing records, or for running a query — those need a full authorisation flow. Wrapping every record operation in its own function to get around that means a new function for every operation, forever.'],
+      ['Where the line goes','It follows the secret, not the convenience. Anything needing a third-party credential stays inside a server-side function and is invoked with the simple key, so the credential never leaves the platform. Everything else — create, update, delete, query — goes directly over the full flow from the tool, with the token cached and refreshed a minute before it expires.'],
+      ['Transport details that earn their keep','A single request path with retries, where an authorisation failure clears the cached token and retries rather than failing, and a rate-limit response respects the interval the server asks for, falling back to a linear backoff with a ceiling. Batch sizes follow the platform’s own limits — a hundred for deletes, ninety for writes, pages of two hundred for reads, and no more than a hundred values in a single set membership test.'],
+      ['The switch worth knowing about','Bulk loads pass an empty trigger list, which suppresses every rule and state machine for the duration. Without it, two hundred records fire the whole automation estate and the run becomes unpredictable. The cost is that legitimate automation has to be caught up separately afterwards, and that is a decision to make consciously rather than discover.']]},
+
+    {id:'external-inventory', t:'Counting every way an org reaches outside',
+     sub:'Thirty-five services, thousands of call sites, and no list of any of it.',
+     body:[
+      ['Why the platform cannot tell you','A connection is referenced by a literal string inside the body of a function. There is no index, no usage view, and nothing that notices when a connection stops authenticating while code keeps calling it.'],
+      ['What was built','A sweep across every function and every widget script, normalising each call into a URL pattern, attaching it to the connection it uses and, where one exists, to the rule that triggers it. The result is a table with a row per service: call volume, distinct files, methods, connections, and the share of calls wrapped in error handling.'],
+      ['The findings that changed behaviour','A large share of connections turned out never to be used at all. A handful were no longer authenticating and were still being called from hundreds of places, which meant those calls had been failing silently. Error-handling coverage across the busiest services was close to zero, which explains a whole class of "the workflow just stopped" reports. And a single shared credential appeared inline in hundreds of files, making rotation a refactor rather than a setting.'],
+      ['Why it is in this portfolio as a generated report','The real output is a portrait of somebody else’s security posture. The instrument is what matters, so it is shown running against an invented org of the same shape — see the org health report.']]},
+
+    {id:'agent-journal', t:'An agent allowed to write, and a journal that keeps it honest',
+     sub:'Designed and built for this portfolio, not run in production. Said plainly, because it would come out anyway.',
+     body:[
+      ['The three problems','Speech recognition mangles mixed-language technical vocabulary and company names. An agent given write access can be wrong, and the built-in audit trail exports only through the interface, so it is no control loop. And a command typed into a chat arrives with no indication of which record it means.'],
+      ['The layers','Recognition is given a domain vocabulary as an initial prompt, which is what lifts the accuracy on names. The model then has to return a structured intent — module, record, fields, operation — validated against the live field list, and refuse rather than guess. Resolving which record reuses the priority chain from the meeting work: one match proceeds, several ask.'],
+      ['The part that makes it publishable','Every action writes to a journal module: the time, the channel, the original utterance, the parsed intent, the target record, a before-and-after diff, and the result. Not a log file — a module, so the history is a screen with filters. Above a risk threshold, the diff is shown and the agent waits for a person.'],
+      ['The trade','The journal duplicates what the record already holds. Taken knowingly: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement the model makes — crude, predictable, and explainable to the person who has to trust it.']]}
+  ],
   'Teams and orchestration':[
     {id:'teams-sync', t:'Getting a chat platform into the CRM without a bot',
      sub:'Conversations decide things. None of it reaches the record, and nobody is going to retype it.',
@@ -661,6 +711,34 @@ function wireRecord(r){
   if (P) P.mount(host, r.arg(window.__DATA__));
 }
 
+
+function viewOrgHealth(){
+  return '<div class="pagehead"><h1>Org health report</h1>'
+   + '<p class="sub">A CRM of any age accumulates automation nobody can account for. The platform keeps no reverse '
+   + 'references, so “is this function still used?” has no direct answer — this is the answer, assembled by checking '
+   + 'five entry channels for every one of them.</p>'
+   + '<div class="metarow"><span class="chip live">Live demo</span><span class="chip plain">Generated org, 1,240 functions</span>'
+   + '<span class="chip plain">No employer configuration</span></div></div>'
+   + '<section class="block"><h2>The report</h2><div id="oh-host"></div></section>'
+   + '<section class="block"><h2>Why it is generated, and not real</h2>'
+   + '<p>The instrument is the point, not the org it was run against. A real report is a portrait of somebody else’s '
+   + 'security posture — how many credentials sit inline, how many integrations have no error handling — and that is '
+   + 'not mine to publish, cleaned or otherwise. So the tooling is pointed at an invented org of a realistic size and '
+   + 'shape instead. What it proves is the same: that the five channels can be reconciled at all, that the dead code '
+   + 'can be named with a reason rather than a guess, and that the method knows where it is blind.</p></section>'
+   + '<section class="block"><h2>What each panel is actually claiming</h2><ul>'
+   + '<li><b>Reachability</b> — a function is called dead only when a workflow rule, a schedule, a button, a widget '
+   + 'and every other function all come back empty. Click a slice to see the list, with the entry points each one does have.</li>'
+   + '<li><b>Guarded calls</b> — the share of outbound calls wrapped in error handling. On an estate this size the '
+   + 'number is usually single digits, and it is the reason a transient failure takes a whole rule down with it.</li>'
+   + '<li><b>Broken connections</b> — the platform records that a connection stopped authenticating and keeps letting '
+   + 'code call it. Nothing links the two facts together until something like this does.</li>'
+   + '<li><b>Rules that never fired</b> — active, wired, and executed exactly never, usually because a criterion still '
+   + 'names a field that was renamed.</li>'
+   + '<li><b>The warning at the bottom</b> — the class of function this method cannot see. It is stated first, not last.</li>'
+   + '</ul></section>';
+}
+
 /* ---------------- rendering ---------------- */
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const chip = k => '<span class="chip '+KIND[k][0]+'">'+KIND[k][1]+'</span>';
@@ -670,6 +748,7 @@ function buildNav(){
   h += '<div class="navgroup"><h4>Start</h4>'
      + '<a class="navlink" href="#/"><span class="dot note"></span>Overview</a>'
      + '<a class="navlink" href="#/platform"><span class="dot live"></span>Platform emulator</a>'
+     + '<a class="navlink" href="#/orghealth"><span class="dot live"></span>Org health report</a>'
      + '<a class="navlink" href="#/how"><span class="dot note"></span>How this site works</a></div>';
   h += '<div class="navgroup"><h4>Live demos</h4>'
      + '<a class="navlink" href="#/event"><span class="dot live"></span>Event campaign page</a>'
@@ -711,7 +790,11 @@ function viewOverview(){
    + '<div class="grid"><a class="tile" href="#/platform"><h3>Platform emulator</h3>'
    + '<p>A query console over the generated dataset, with the platform\u2019s own paging ceiling, '
    + 'error envelopes and a failure switch. Type a query and run it.</p>'
-   + '<div class="foot"><span class="chip live">Live demo</span></div></a></div></section>'
+   + '<div class="foot"><span class="chip live">Live demo</span></div></a>'
+   + '<a class="tile" href="#/orghealth"><h3>Org health report</h3>'
+   + '<p>What the extraction tooling produces when it is pointed at an org: every function placed against five entry '
+   + 'channels, every rule with when it last fired, every connection with whether it still authenticates.</p>'
+   + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">Generated org</span></div></a></div></section>'
 
    + '<section class="block"><h2>A CRM record page, with its widgets on it</h2>'
    + '<div class="grid"><a class="tile" href="#/event"><h3>Event campaign page</h3>'
@@ -782,6 +865,7 @@ function route(){
   else if (kind==='event'){ body = viewEventPage(); crumb = 'live demo / event campaign page'; }
   else if (kind==='rec'){ const r = REC.find(x=>x.id===id);
     body = r ? viewRecord(r) : viewOverview(); crumb = 'live demo / '+id; }
+  else if (kind==='orghealth'){ body = viewOrgHealth(); crumb = 'org health report'; }
   else if (kind==='platform'){ body = viewPlatform(); crumb = 'platform emulator'; }
   else if (kind==='how'){ body = viewAbout(); crumb = 'about / how this site works'; }
   else if (kind==='demo'){ const it = DEMOS.find(d=>d.id===id);
@@ -797,8 +881,9 @@ function route(){
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
   const recNarrow = kind==='rec' && (REC.find(x=>x.id===id)||{}).phone;
-  document.getElementById('view').classList.toggle('wide', kind==='event' || (kind==='rec' && !recNarrow));
+  document.getElementById('view').classList.toggle('wide', kind==='event' || kind==='orghealth' || (kind==='rec' && !recNarrow));
   if (kind==='platform') wirePlatform();
+  if (kind==='orghealth' && window.OrgHealth) OrgHealth.mount(document.getElementById('oh-host'));
   if (kind==='event') wireEventPage();
   if (kind==='rec'){ const r = REC.find(x=>x.id===id); if (r) wireRecord(r); }
   window.scrollTo(0,0);

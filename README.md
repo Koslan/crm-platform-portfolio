@@ -35,6 +35,7 @@ npm test                            # 107 headless checks
 | `src/teams.js` | Emulated chat client and the two-card recap flow. |
 | `src/board.js` | Room schedule with lane layout, and the mobile meeting board with its on-screen console. |
 | `src/widgets2.js` | Calendar reconciliation, account snapshot, development plan, employment history. |
+| `src/orghealth.js` | Org health report — function reachability, connections, rules, dependency graph. |
 | `build.mjs` | Inlines the emulator, the dataset and the page modules into `dist/index.html`. |
 | `smoke*.mjs` | Headless checks. `test/browser.mjs` finds playwright wherever it is installed. |
 

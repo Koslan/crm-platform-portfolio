@@ -320,6 +320,73 @@ contacts.slice(0, 120).forEach(c => {
   }
 });
 
+
+/* ---------- synthetic org configuration ----------
+   What the extraction tooling produces when it is pointed at an org: every
+   function with its entry points, every rule with when it last fired, every
+   connection with whether it still authenticates. Generated, so the numbers
+   belong to Northbeam and to nobody real. */
+const FN_CAT = ['Automation','Button','Standalone','Scheduler','Related list'];
+const FN_STATUS = [['LIVE',0.14],['DORMANT',0.11],['ORPHAN_BUT_LIVE',0.62],['EMPTY_STUB',0.07],['REALLY_DEAD',0.04],['MISSING_FROM_SNAPSHOT',0.02]];
+const EXT_SERVICES = ['Issue tracker','Analytics','Spreadsheets','Chat','CRM','Directory','Automation platform','Email','Enrichment','Other'];
+const MODULES_FN = ['Accounts','Contacts','Deals','Meetings','Campaigns','Event_Contacts','Programmes','Shared'];
+const pickW = w => { let r = rnd(); for (const [v,p] of w) { if ((r -= p) <= 0) return v; } return w[w.length-1][0]; };
+const orgFunctions = [], orgRules = [], orgConnections = [], orgCalls = [];
+for (let i=0;i<1240;i++){
+  const cat = pick(FN_CAT), st = pickW(FN_STATUS), mod = pick(MODULES_FN);
+  const verbs = ['sync','update','create','notify','build','resolve','post','fetch','recalc','archive','link','validate'];
+  const nouns = ['meeting','account','deal','contact','recap','summary','status','owner','schedule','invite','report','tag'];
+  // The verdict has to follow from the evidence, not sit beside it: a function
+  // labelled dead with a visible entry point is the first thing a reader spots.
+  const f = { id:'F'+(5511000000000+i), api_name:`${pick(verbs)}_${pick(nouns)}_${mod.toLowerCase()}${i%7?'':'_v2'}`,
+    category:cat, module:mod, status:st, lines:int(12, 640),
+    last_modified: iso(new Date(int(2023,2026), int(0,11), int(1,28))),
+    entry_workflow:false, entry_button:false, entry_widget:false, entry_scheduler:false,
+    called_by:0, calls_out:int(0,6), has_try:chance(.09),
+    hardcoded_secret:chance(.21), debug_left:chance(.06) };
+  if (st === 'LIVE') {
+    f.entry_workflow  = cat === 'Automation' || chance(.45);
+    f.entry_button    = cat === 'Button';
+    f.entry_scheduler = cat === 'Scheduler';
+    f.entry_widget    = chance(.12);
+    if (!f.entry_workflow && !f.entry_button && !f.entry_scheduler && !f.entry_widget) f.entry_workflow = true;
+    f.called_by = int(0,3);
+  } else if (st === 'DORMANT') {
+    f.entry_workflow  = cat === 'Automation' || cat === 'Related list';
+    f.entry_button    = cat === 'Button';
+    f.entry_scheduler = cat === 'Scheduler';
+    if (!f.entry_workflow && !f.entry_button && !f.entry_scheduler) f.entry_workflow = true;
+    f.last_modified = iso(new Date(int(2023,2024), int(0,11), int(1,28)));
+  } else if (st === 'ORPHAN_BUT_LIVE') {
+    f.called_by = int(1,4);                       // reached only from other code
+  } else if (st === 'MISSING_FROM_SNAPSHOT') {
+    f.category = 'Scheduler'; f.entry_scheduler = true; f.lines = 0;
+  } else if (st === 'EMPTY_STUB') {
+    f.lines = int(1,3); f.calls_out = 0; f.hardcoded_secret = false;
+  }                                               // REALLY_DEAD keeps every channel empty
+  orgFunctions.push(f);
+}
+for (let i=0;i<284;i++){
+  const active = chance(.78);
+  const never = active && chance(.05);
+  orgRules.push({ id:'R'+(6149600000000+i), name:`${pick(['On create','On edit','On stage change','On close','Daily'])} — ${pick(MODULES_FN)} ${pick(['notify','sync','recalc','assign'])}`,
+    module:pick(MODULES_FN), trigger:pick(['create','edit','field_update','date_time']), active,
+    last_executed: never ? null : (active ? iso(new Date(2026, int(0,7), int(1,28))) : iso(new Date(int(2023,2025), int(0,11), int(1,28)))),
+    criteria_count:int(0,4), actions:int(1,3), duplicate_group: chance(.15) ? 'G'+int(1,18) : null });
+}
+for (let i=0;i<74;i++){
+  const uses = chance(.42) ? 0 : int(1,340);
+  orgConnections.push({ id:'C'+i, name:`${pick(['tracker','analytics','sheets','chat','directory','crm','mail','enrich'])}_${pick(['main','alt','app','legacy','user','v2'])}${i%9?'':'_typo'}`,
+    service:pick(EXT_SERVICES), auth_ok: uses>0 ? chance(.93) : chance(.6), uses,
+    scope:pick(['read','read/write','write']), owner: chance(.3) ? pick(users).full_name : null });
+}
+EXT_SERVICES.forEach(sv => { const calls = int(20, 780); orgCalls.push({ id:'S'+sv, service:sv, calls,
+  files:int(8, Math.max(9, Math.round(calls*0.55))), guarded: Math.round(calls * (rnd()*0.12)),
+  methods:{ GET:Math.round(calls*0.6), POST:Math.round(calls*0.3), PUT:Math.round(calls*0.1) } }); });
+const org = { functions:orgFunctions, rules:orgRules, connections:orgConnections, calls:orgCalls,
+  scanned: { deluge:orgFunctions.length, widgets:78, rules:orgRules.length, buttons:203, views:126,
+             blueprints:10, schedules:14, webhooks:13, modules:250 } };
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -329,7 +396,7 @@ const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', 
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
   Meetings:meetings, Messages:messages, Enrichment:enrichment,
-  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment };
+  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));
