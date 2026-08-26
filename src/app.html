@@ -1,0 +1,632 @@
+<title>Zoho Platform Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F1; --surface:#FFFFFF; --surface-2:#E9EDE9; --line:#D3DBD6; --line-strong:#B6C2BC;
+  --ink:#141D19; --ink-2:#3D4A45; --ink-3:#6B7A74;
+  --accent:#1F6F5C; --accent-ink:#12463A; --accent-soft:#DCEAE5;
+  --ok:#2F7D4F; --warn:#A9662B; --crit:#9E3A2E; --idle:#7B8A84;
+  --ok-bg:#DFEEE4; --warn-bg:#F5E7D8; --crit-bg:#F3DEDA; --idle-bg:#E7EBE9;
+  --shadow:0 1px 2px rgba(20,29,25,.06), 0 8px 24px -16px rgba(20,29,25,.28);
+  --rail:264px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1512; --surface:#151E1A; --surface-2:#1C2723; --line:#28352F; --line-strong:#3A4A43;
+    --ink:#E3EBE7; --ink-2:#AEBCB6; --ink-3:#7E8E87;
+    --accent:#4FB39A; --accent-ink:#8FD6C4; --accent-soft:#1B322C;
+    --ok:#5FBE85; --warn:#D2954F; --crit:#D9705F; --idle:#8A9A93;
+    --ok-bg:#16301F; --warn-bg:#33261A; --crit-bg:#331D1A; --idle-bg:#1E2825;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1512; --surface:#151E1A; --surface-2:#1C2723; --line:#28352F; --line-strong:#3A4A43;
+  --ink:#E3EBE7; --ink-2:#AEBCB6; --ink-3:#7E8E87;
+  --accent:#4FB39A; --accent-ink:#8FD6C4; --accent-soft:#1B322C;
+  --ok:#5FBE85; --warn:#D2954F; --crit:#D9705F; --idle:#8A9A93;
+  --ok-bg:#16301F; --warn-bg:#33261A; --crit-bg:#331D1A; --idle-bg:#1E2825;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; text-wrap:balance; margin:0}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ---------- shell ---------- */
+.app{display:grid; grid-template-columns:var(--rail) minmax(0,1fr); min-height:100vh}
+.rail{
+  border-right:1px solid var(--line); background:var(--surface);
+  position:sticky; top:0; height:100vh; overflow-y:auto; padding:22px 0 40px;
+}
+.brand{padding:0 20px 20px; border-bottom:1px solid var(--line); margin-bottom:16px}
+.brand .name{font-family:"IBM Plex Serif",serif; font-size:17px; font-weight:600; letter-spacing:-.01em}
+.brand .role{font-size:12.5px; color:var(--ink-3); margin-top:3px}
+.navgroup{padding:0 12px; margin-bottom:20px}
+.navgroup h4{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+  margin:0 0 7px; padding:0 8px;
+}
+.navlink{
+  display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:5px;
+  color:var(--ink-2); font-size:13.5px; cursor:pointer; border-left:2px solid transparent;
+}
+.navlink:hover{background:var(--surface-2); color:var(--ink); text-decoration:none}
+.navlink.on{background:var(--accent-soft); color:var(--accent-ink); border-left-color:var(--accent); font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;background:var(--idle)}
+.dot.live{background:var(--ok)} .dot.emul{background:var(--warn)} .dot.note{background:var(--line-strong)}
+
+/* ---------- main ---------- */
+main{padding:0 0 80px; min-width:0}
+.wrap{max-width:900px; padding:0 44px}
+.topbar{
+  border-bottom:1px solid var(--line); background:var(--surface);
+  padding:14px 44px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  position:sticky; top:0; z-index:5;
+}
+.crumb{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); letter-spacing:.04em}
+.spacer{flex:1}
+.chip{
+  display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  border:1px solid transparent; white-space:nowrap;
+}
+.chip.live{background:var(--ok-bg); color:var(--ok); border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.chip.emul{background:var(--warn-bg); color:var(--warn); border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.chip.note{background:var(--idle-bg); color:var(--ink-3); border-color:var(--line)}
+.chip.plain{background:var(--surface-2); color:var(--ink-2); border-color:var(--line)}
+
+.pagehead{padding:38px 0 0}
+.pagehead h1{font-size:31px; letter-spacing:-.015em; line-height:1.2}
+.pagehead .sub{color:var(--ink-2); font-size:16px; margin-top:10px; max-width:62ch}
+.metarow{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px}
+
+section.block{margin-top:34px}
+section.block > h2{
+  font-size:12px; font-family:"IBM Plex Mono",monospace; font-weight:500;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3);
+  padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:16px;
+}
+section.block p{margin:0 0 12px; max-width:66ch; color:var(--ink-2)}
+section.block p strong{color:var(--ink); font-weight:600}
+section.block ul{margin:0 0 12px; padding-left:20px; max-width:66ch; color:var(--ink-2)}
+section.block li{margin-bottom:6px}
+section.block li::marker{color:var(--line-strong)}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:9px; box-shadow:var(--shadow)}
+.stage{
+  border:1px dashed var(--line-strong); border-radius:9px; background:var(--surface-2);
+  min-height:280px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; text-align:center; padding:38px 24px; color:var(--ink-3);
+}
+.stage .lbl{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase}
+.stage .hint{font-size:13.5px; max-width:44ch}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(268px,1fr)); gap:14px}
+.tile{
+  display:block; padding:16px 17px; border-radius:9px; border:1px solid var(--line);
+  background:var(--surface); cursor:pointer; color:inherit;
+}
+.tile:hover{border-color:var(--line-strong); text-decoration:none; box-shadow:var(--shadow)}
+.tile h3{font-size:16px; margin-bottom:5px; letter-spacing:-.01em}
+.tile p{font-size:13.5px; color:var(--ink-3); margin:0 0 11px; line-height:1.5}
+.tile .foot{display:flex; gap:6px; flex-wrap:wrap}
+
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+   text-transform:uppercase; color:var(--ink-3); font-weight:500}
+td.num{font-variant-numeric:tabular-nums; text-align:right}
+.scroll{overflow-x:auto; border:1px solid var(--line); border-radius:9px; background:var(--surface)}
+
+.callout{
+  border-left:3px solid var(--warn); background:var(--warn-bg); color:var(--ink);
+  padding:13px 16px; border-radius:0 7px 7px 0; font-size:14px; max-width:66ch;
+}
+.callout.acc{border-left-color:var(--accent); background:var(--accent-soft)}
+.callout p:last-child{margin-bottom:0}
+.callout .k{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; display:block; margin-bottom:5px; color:var(--ink-2)}
+
+.kv{display:grid; grid-template-columns:150px minmax(0,1fr); gap:2px 18px; font-size:14px}
+.kv dt{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--ink-3); padding-top:4px}
+.kv dd{margin:0 0 10px; color:var(--ink-2)}
+
+
+/* ---------- platform console ---------- */
+.console{display:grid; gap:12px}
+.qbox{
+  width:100%; min-height:96px; resize:vertical; padding:12px 14px; border-radius:8px;
+  border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  font-family:"IBM Plex Mono",monospace; font-size:13px; line-height:1.6;
+}
+.qbox:focus{outline:2px solid var(--accent); outline-offset:1px}
+.btnrow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+button.act{
+  font:500 13px/1 "IBM Plex Sans",sans-serif; padding:9px 15px; border-radius:7px; cursor:pointer;
+  border:1px solid var(--accent); background:var(--accent); color:#fff;
+}
+button.act:hover{filter:brightness(1.08)}
+button.ghost{
+  font:400 12.5px/1 "IBM Plex Mono",monospace; padding:7px 11px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+}
+button.ghost:hover{border-color:var(--line-strong); color:var(--ink)}
+button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink)}
+.result{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); letter-spacing:.03em}
+.errbox{
+  border-left:3px solid var(--crit); background:var(--crit-bg); color:var(--ink);
+  padding:11px 14px; border-radius:0 7px 7px 0; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+}
+.counters{display:flex; flex-wrap:wrap; gap:7px}
+.counter{
+  border:1px solid var(--line); border-radius:7px; background:var(--surface); padding:7px 11px; min-width:96px;
+}
+.counter b{display:block; font-family:"IBM Plex Mono",monospace; font-size:16px; font-variant-numeric:tabular-nums}
+.counter span{font-size:10.5px; color:var(--ink-3); letter-spacing:.05em; text-transform:uppercase}
+
+@media (max-width:880px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line)}
+  .wrap,.topbar{padding-left:20px; padding-right:20px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="app">
+  <nav class="rail">
+    <div class="brand">
+      <div class="name">Zoho Platform Field Notes</div>
+      <div class="role">CRM platform engineering &middot; interfaces, integrations, org tooling</div>
+    </div>
+    <div id="nav"></div>
+  </nav>
+  <main>
+    <div class="topbar">
+      <span class="crumb" id="crumb">overview</span>
+      <span class="spacer"></span>
+      <span class="chip plain">Synthetic data</span>
+      <span class="chip plain">No client records</span>
+    </div>
+    <div class="wrap" id="view"></div>
+  </main>
+</div>
+
+<script>/*__MOCKZOHO__*/</script>
+<script>window.__DATA__=/*__DATASET__*/null;
+if(window.mockZoho&&window.__DATA__)mockZoho.load(window.__DATA__);</script>
+<script>
+const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
+
+const CO = {
+  name:'Northbeam Engineering',
+  what:'a contract product-engineering firm — industrial design, mechanical, electronics, firmware, test &amp; certification',
+  unit:'business unit', product:'programme'
+};
+
+const DEMOS = [
+  {id:'solution-map', t:'Solution Map', kind:'live',
+   sub:'A colour-coded matrix of service lines against '+CO.unit+'s for one client programme, with revenue rolled up per cell.',
+   see:'A grid where every cell is a service line for one '+CO.unit+', filled by deal state — won, lost, in proposal, or an unworked opportunity flagged by analytics. Column headers roll up revenue and counts. Hovering a cell floats the underlying deals; the header button opens a guided create form.',
+   does:['Hover any cell to read the deals behind the number','Open a deal from the hover card',
+         'Create a new opportunity from a '+CO.unit+' header, with linked stage/sub-stage pickers',
+         'Toggle the built-in field guide that explains every colour and rollup rule'],
+   why:['Nothing in the platform draws a matrix — the grid, the cell gradients and the hover card are all hand-built',
+        'Deal amounts are split proportionally when one deal covers several service lines',
+        'Deals are matched to '+CO.unit+'s by keyword across two free-text fields, because the link was never modelled',
+        'Rows sort in three tiers: by booked revenue, then by unworked pipeline, then alphabetically for the rest'],
+   stack:'Vanilla JS, CSS gradients, COQL, analytics report via a server-side function'},
+
+  {id:'event-contacts', t:'Event Contact Desk', kind:'live',
+   sub:'Several hundred target contacts for one trade show, filtered and edited in place.',
+   see:'A dense table under a strip of nine counters and a row of filter chips. Status is a coloured pill; pills the system owns carry a padlock. The table loads behind a skeleton that names each real stage of the load.',
+   does:['Filter by chips — OR inside a group, AND across groups','Edit status, priority and attendance directly in the cell',
+         'Leave a comment and @-mention a colleague','Filter a column by a date range or a "at least N" threshold',
+         'Switch between the old and the current interface theme, live'],
+   why:['Two complete visual themes ship in one bundle and swap instantly — a before/after in a single click',
+        'The loading state names the actual stages instead of spinning',
+        'Statuses derived from meetings are locked with an explanation, not silently overwritten',
+        'A second horizontal scrollbar sits above the table, synchronised with the body'],
+   stack:'Tabulator, COQL with manual paging, mention engine, custom header-filter editors'},
+
+  {id:'meeting-board', t:'Meeting Board (mobile)', kind:'live',
+   sub:'A phone-sized schedule of trade-show meetings by room, by person and by list.',
+   see:'A phone frame. A room-by-room timeline with meetings drawn as blocks whose height is their duration, overlapping meetings split into lanes, and a red now-line. A team tab shows load per person; tapping a meeting raises a brief sheet with the account snapshot, deals, notes and recap.',
+   does:['Switch between room grid, team load and meeting list','Filter by day, room and state',
+         'Tap a clash or travel counter to see only the affected meetings','Open the brief sheet and add a note',
+         'Run the five-step booking wizard, including free-slot search'],
+   why:['The calendar grid, the lane layout for overlaps and the now-line are all hand-built',
+        'Two alerts the platform has no concept of: a person double-booked, and a room change with under fifteen minutes to travel',
+        'Free/busy is computed from CRM records because personal calendars are unreachable from a browser widget — and the interface says so out loud',
+        'An on-screen console with a 400-line ring buffer, because a phone has no devtools'],
+   stack:'Vanilla JS, no runtime dependencies, Canvas mobile detail view'},
+
+  {id:'deal-conversations', t:'Deal Conversations', kind:'live',
+   sub:'Chat threads and issue-tracker comments for one deal, in one pane.',
+   see:'A message view inside the deal record: threads with a context badge, channel name and issue key; messages with colour-coded avatars, attachments and a review flag. A second tab shows tracker comments with a translation badge and a composer.',
+   does:['Collapse and expand threads, search across text and authors',
+         'Push a single message to the issue tracker — the button locks once it has been sent',
+         'Translate a comment and switch back to the original','Write a comment with an @-mention and post it'],
+   why:['A flat record list is rebuilt into a thread tree, with collapse state preserved',
+        'Push is made idempotent by a hidden marker inside the comment body, so a ten-minute sync never duplicates',
+        'A whitelist sanitiser renders the original rich text safely',
+        'When the tracker is unreachable the tab says so plainly instead of showing an empty list'],
+   stack:'COQL paging, custom sanitiser, mention engine, tracker REST via server-side functions'},
+
+  {id:'contact-enrichment', t:'Contact Enrichment', kind:'live',
+   sub:'People pulled from an enrichment provider, matched against the CRM before anything is written.',
+   see:'A filter card over a table of people with avatars and match state, above a statistics strip that counts direct matches, matches found through the account hierarchy, and matches recovered by profile URL. Clicking a name opens a profile with a career timeline.',
+   does:['Set title, seniority and location filters, then load in pages',
+         'Sort and filter every column, including "already in CRM" and last sync date',
+         'Select people and import them','Open a profile and read the employment timeline'],
+   why:['Duplicates are caught by four keys in sequence, the last being a normalised profile URL',
+        'Existing contacts are gathered through the account hierarchy, not just the account itself',
+        'The URL search is chunked to fourteen conditions because that is the platform ceiling',
+        'Provider quota is respected by batching, with three retry steps'],
+   stack:'Vanilla JS, provider fixtures, COQL, server-side functions'}
+];
+
+const FLOWS = [
+  {id:'chat-recap', t:'Meeting Recap from Chat', kind:'emul',
+   sub:'A two-card wizard inside a chat client that writes a structured recap into the CRM.',
+   see:'The chat shell on the left, the CRM record on the right. Picking a message raises card one — choose the account. Card two collects the recap, the opportunity and the buyers. Submitting writes the record, and the CRM pane updates.',
+   does:['Start from a message in the meeting chat','Search accounts inside the card and pick one',
+         'Fill the recap, choose an opportunity, tag buyers','Submit and watch the record appear in the CRM pane',
+         'Open the trace panel to see every call the flow made'],
+   why:['No step ever holds a synchronous request open while a person thinks — the cards are callback subscriptions',
+        'Cards have no state, so a loop around the card re-issues it with fresh search results',
+        'The transcript pipeline starts the moment the account is picked, so the recap is ready two steps later',
+        'When the linked opportunity belongs to a different account, a sentinel value carries "chosen deliberately" through a control that can only return one string'],
+   stack:'Emulated chat shell, adaptive cards, orchestration trace'},
+
+  {id:'chat-tracker', t:'Chat to Tracker, through the CRM', kind:'emul',
+   sub:'A thread in chat becomes a linked, deduplicated comment on an issue.',
+   see:'Three panes: the chat thread, the CRM record it resolves to, and the issue. The metadata block at the top of the thread drives the match; the trace panel shows which key matched and how confident it was.',
+   does:['Read a thread that carries a metadata block','Watch it resolve to a deal, with match source and confidence',
+         'Send a message to the tracker and see the comment appear','Attach a file and see it arrive as a link, not an upload',
+         'Switch to the thread with no metadata block and watch it park for review instead of guessing'],
+   why:['A text contract in the first message of a thread is the mapping mechanism — people will type, they will not leave the chat',
+        'The channel registry lives on the deal record, so adding a channel is a field edit, not a deploy',
+        'Attachments travel as links because the proxy in front of the tracker drops multipart bodies — and because the tracker cannot restrict a file to a role',
+        'Conflicting metadata parks the thread for review rather than trusting the newest value'],
+   stack:'Emulated chat and tracker shells, orchestration trace'},
+
+  {id:'event-cycle', t:'Event Lifecycle', kind:'emul',
+   sub:'From a target list to a booked meeting to a reconciled calendar.',
+   see:'Four stages linked end to end: the contact desk, the booking wizard, the room schedule, and a reconciliation table with five sync states and a three-way diff.',
+   does:['Filter the target list down to accounts with no meeting yet','Book a meeting and watch free-slot search rule out rooms and people',
+         'See it land on the room schedule','Open the reconciliation table and repair a record that drifted',
+         'Turn on failure mode and watch the recovery path'],
+   why:['Free/busy is computed from CRM records, paged, merged and intersected',
+        'Reconciliation shows a third column — the expected value — not just the two sources',
+        'Create and update semantics are separated so a sync never overwrites a human edit',
+        'Failure mode is a switch, so the recovery story is clicked rather than told'],
+   stack:'Widgets plus emulated calendar, orchestration trace'}
+];
+
+const CASES = {
+  'Integration and sync':[
+    {id:'delta-sync', t:'Delta sync with a checkpoint per page',
+     sub:'Seventeen mailboxes, no background workers, no persistent storage, and a hard function timeout.',
+     body:[
+      ['The constraint','A full re-read every run means thousands of events and a guaranteed timeout. The calendar API offers a delta link, but there is nowhere to keep it: a scheduled function has no state between runs, and the scripting language has no supported way to write an organisation variable.'],
+      ['What was built','One variable per mailbox, written through a connector call. Paging is a walk over a pre-built list of page numbers with a completion flag, because the language has no while loop. The checkpoint is written on every page, not at the end, so a break on page forty does not undo the work. Three error classes get three different reactions: an invalid sync token clears the variable and falls back to a full delta in the same run; throttling stops the mailbox but deliberately leaves the checkpoint alone; a missing item marks the mailbox skipped. Once a month a forced full resync clears the drift that deltas accumulate.'],
+      ['The trade','Events deleted upstream are counted and logged but not removed, so history attached to deals survives. Page size is lower than the default: slower runs, but heavy calendars stopped failing. A hundred-page ceiling per mailbox means a run can end unfinished — the status and the saved checkpoint guarantee the next one continues.']]},
+    {id:'transcript-match', t:'Matching transcripts by score, not by key',
+     sub:'No shared identifier, overlapping meetings, and durations that never agree.',
+     body:[
+      ['The constraint','A transcript arrives with its own identifier, its own clock and its own attendee list. Time is the only shared signal, and it is weak: a sixty-minute meeting may have run twenty-two, so "same time" becomes an overlap problem between intervals of different length.'],
+      ['What was built','A score rather than a boolean. Overlap is measured as two coverage ratios; the larger is taken so a meeting nested inside another still scores full, and a penalty proportional to the duration gap is subtracted. Modifiers follow: a service hint, e-mail addresses lifted out of the transcript body and intersected with the attendee list, a penalty when a transcript already exists. The strongest modifier is the recording owner — a bonus when they are present, a penalty when the attendee list is populated and they are not. Above the score sits a gate: if the owner is known and the best candidate does not contain them, a second pass runs, and if nothing qualifies the automatic link is refused outright.'],
+      ['The trade','Two thresholds instead of one. The link is written above forty; the transcript text is only copied into the meeting above sixty. "I think this is the meeting" and "I am willing to write data into it" are deliberately different decisions, and every candidate is kept with its score for a human to review.']]},
+    {id:'webhook-repair', t:'A receiver that repairs its own payload',
+     sub:'Six event types, out-of-order delivery, and a rejection means the event is gone.',
+     body:[
+      ['The constraint','Events are not re-sent. A rejected write is a lost event, and the reason is unknown in advance: a date format, a length, a missing mandatory field, or a duplicate rule.'],
+      ['What was built','A five-attempt loop that reads the field name out of the CRM error and rewrites the payload between attempts. A missing mandatory field gets a marked placeholder; any other named field is dropped and the attempt repeats; a duplicate error carrying a record id switches the operation from create to update. When the culprit cannot be identified the loop stops on purpose instead of spinning. Everything dropped or substituted comes back in the response, so the record is saved degraded but visible. Idempotency is separate: a rolling journal of processed event ids on the record itself.'],
+      ['The trade','The rolling journal means a very old event could in theory be processed twice — the alternative was a record and an API call per event. A placeholder in a mandatory field puts marked rubbish in the data, which still beats a missing record.']]},
+    {id:'attachments', t:'Attachments as links, after proving the proxy was the problem',
+     sub:'A 200 with an empty body, and a platform that cannot restrict a file to a role.',
+     body:[
+      ['The constraint','Three at once. The tracker is only reachable through a corporate proxy. The proxy answers the upload endpoint with 200 and an empty body, and no attachment appears. And the tracker itself cannot limit a file by visibility — a comment can be closed to a role, a file is visible to everyone who can see the issue. The files that needed closing were the ones with rates in them.'],
+      ['What was built','First, localisation by experiment rather than guesswork: downloading from storage works; building a multipart body works and 160 KB takes 0.88 seconds, so the bytes really do leave; JSON endpoints through the same proxy answer with content, including validation errors. Conclusion: the multipart body is what is lost. The fix is not a file but a remote link — a JSON call carrying a stable global id. JSON passes the proxy, the global id makes a ten-minute sync idempotent, and the link inherits the permissions of the storage it points at, which solves the third problem too.'],
+      ['The trade','The file is not physically in the tracker; someone without access to the folder hits a login. Accepted deliberately, because the alternative hands rates to everyone who can open the issue.']]}],
+  'Platform and tooling':[
+    {id:'code-extraction', t:'Extracting org code the platform will not export',
+     sub:'No API returns the list of functions. Not one.',
+     body:[
+      ['The constraint','Without a list there is no way to download even the functions whose per-id endpoint works. The documented parameter rejects every value; the CLI exports metadata and widgets, never automation.'],
+      ['What was built','A negative result first, recorded rather than hidden: fifty-five parameter values and roughly a hundred and fifty combinations of endpoint, API version and headers, across production, sandbox and the interface domain. Then four routes in order — ids harvested from a captured session, a console script running under session cookies, a function deployed inside the org that calls the closed endpoint from the inside where authorisation differs, and finally the interface’s own internal call. Fifteen hundred functions in ten to fifteen minutes.'],
+      ['The trade','The route depends on a browser session that expires in about half an hour and on an internal object the vendor may rename. So it is written up as a reproducible procedure with its failure points named, not as a one-off trick.']]},
+    {id:'org-snapshot', t:'A config snapshot in git, standing in for the change history the platform lacks',
+     sub:'Who changed which rule, and when, is not a question the platform answers.',
+     body:[
+      ['The constraint','Half the configuration is not exposed to the documented API at all — schedules, client scripts, buttons, webhooks, connections, approvals, pipelines. Those live behind the interface domain and a session token, and every setting sits on its own API version with no way to predict it.'],
+      ['What was built','A twenty-five minute refresh covering modules and layouts, rules, buttons, views, blueprints, schedules, webhooks, connections, roles and profiles. Versions were found empirically and pinned; response diagnostics are written to their own file so it is visible which endpoints answered at all. The snapshot lives in git, and the diff between commits does the job the missing change history would have done.'],
+      ['The trade','An explicit list of what is not covered and needs a manual export. The gaps are declared up front rather than discovered later.']]},
+    {id:'org-audit', t:'Classifying fifteen hundred functions across five entry points',
+     sub:'The platform keeps no reverse references, so "is this dead" has no direct answer.',
+     body:[
+      ['The constraint','A function can be reached from a rule, a schedule, a button, a widget, or another function. Five channels, five different places to look, and none of them linked.'],
+      ['What was built','One index across all five, so every function judged dead carries an explicit trail — not found in the rule map, not in schedules, not on a button, not in the widget grep, not called by another function — plus a cycle check among the orphans. Alongside it: buttons deleted without their functions, rules sharing identical criteria, and rules marked active that had never once run because their criteria referenced a renamed field.'],
+      ['The trade','And the point of the whole exercise. One class of function was unreachable by the same method — a different identifier namespace, with a name match rate of one in twenty-two. Rather than omitting it, the report opens with a completeness section stating plainly that anything called only from there is misclassified, and listing three ways to close the gap. An audit that names the limit of its own method is worth more than one that reads clean.']]}],
+  'AI in the CRM':[
+    {id:'loss-analysis', t:'Loss analysis in two stages, with the taxonomy in the prompt',
+     sub:'A free-text answer is useless for reporting. It has to land in the company’s own categories.',
+     role:'Prototyped the direction and contributed to the design; another engineer implemented and owned it.',
+     body:[
+      ['The constraint','The evidence is spread across the CRM, the issue tracker and analytics; the function time limit does not allow gathering it and reasoning about it in one call; and an unconstrained answer cannot be compared between deals.'],
+      ['What was built','Roughly ten times more code gathering evidence than calling the model. Six sources, plus derived behavioural signals that exist nowhere as fields — how many times the start date moved, which stage the deal stalled in, whether this client had ever been won before. Tracker comments are filtered by author so the model reads the outside voice, not the CRM’s own echo. Then two stages: the first is explicitly forbidden to analyse and must list the holes in the data; its output is materialised as a record; the second reads that and does one thing — place the case in a seven-kilobyte taxonomy of thirty-eight causes with rules for choosing between them. A human can correct the middle and re-run only the second stage.'],
+      ['The trade, said out loud','No structured output anywhere: the answer is parsed by markdown anchors and substring checks. Stop reasons are not inspected, so a truncated answer is indistinguishable from a complete one. And the category is never written to a structured field — the assignment is commented out — so the very reporting the pipeline exists for cannot be built. A schema, validation against the taxonomy, and a picklist field are the obvious repairs.']]},
+    {id:'agent-journal', t:'A CRM agent with an action journal',
+     sub:'Designed for this site, not run in production. Said plainly, because it would come out in the first question.',
+     body:[
+      ['The constraint','Three problems kill the naive version. Speech recognition mangles mixed-language technical vocabulary and company names. An agent granted write access can be wrong and nobody would know which record it touched — the built-in audit log exports only through the interface and is no control loop. And a command from a chat arrives with no context about which record is meant.'],
+      ['What was built','A speech layer with a domain vocabulary supplied as an initial prompt. An intent layer that must return a structured intent — module, record, fields, operation — validated against the live field list, refusing rather than guessing. Entity resolution that reuses the priority chain from the meeting work and asks again when the answer is ambiguous. Execution through the CRM’s own tool interface, with one hard condition: every action writes to a journal module — time, channel, the original utterance, the parsed intent, the target record, a before/after diff, the result. And a confirmation screen showing that diff for anything above a risk threshold.'],
+      ['The trade','The journal duplicates what the record already holds. Taken deliberately: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement call — crude, but predictable and explainable.']]}],
+  'Interfaces':[
+    {id:'reconciliation', t:'Reconciliation with a third column',
+     sub:'"Sixty minutes here, forty-five there" does not tell anyone what it should be.',
+     body:[
+      ['The constraint','Two columns are not enough to act on, and matching records across the two systems is itself ambiguous — the external identifier is missing on some of them.'],
+      ['What was built','Three levels of matching with four in-memory indexes and constant-time updates after a single edit. A third column — the expected value — beside the two sources, and a diff view with a six-state legend. A status column with five states, bulk operations with progress and a per-row error log.'],
+      ['The trade','Create and update semantics are deliberately separate in the payload builder: two fields are never written because of length ceilings, one is truncated, the meeting type is never overwritten from outside, and several fields are written only on creation so a sync cannot erase a human edit. Every exclusion carries the reason next to it.']]},
+    {id:'time-model', t:'Two kinds of time on one screen',
+     sub:'The platform accepts a valid-but-wrong timestamp without a word.',
+     body:[
+      ['The constraint','System fields are absolute instants; the business fields are wall-clock time in the event’s zone, stored as text. A browser helper silently substitutes the device zone, and the write succeeds.'],
+      ['What was built','One rule: time follows the event, not the device. The offset is derived for the specific date, so daylight saving is included, and the string is assembled by hand. Wall-clock text round-trips untouched. A priority chain resolves the zone, and when the last fallback fires the interface says so. For the calendar API, a forty-zone dictionary translates Windows zone names — and an unknown name yields null rather than a silent UTC, because the silent version moved times by hours with no message anywhere.'],
+      ['The cost that produced it','A zone was recalculated from country and state on every save, and an empty state returned an east-coast default. For a campaign on the west coast, all thirteen meetings created went out three hours wrong. The fix pins the zone once, keeps the lookup as a warned fallback, and surfaces the conflict. Verified across six device zones.']]}]
+};
+
+const ABOUT = {id:'how', t:'How this site works', kind:'note',
+  sub:'Everything here runs in your browser against generated data. Nothing connects to a live system.',
+  body:[
+   ['The company is invented','All records belong to '+CO.name+', '+CO.what+'. Accounts, people, deals, meetings and conversations are generated. No client record, endpoint, credential or internal name from any employer appears anywhere on this site.'],
+   ['The platform is emulated','The widgets are the real thing — the same code that runs inside the CRM, loaded in a frame exactly as the platform loads it. What sits underneath is a stand-in for the platform SDK: record reads and writes, a query interpreter with paging at the platform’s own ceiling, server-side function calls, and connection calls, all served from the generated dataset and held in memory. Edits persist for your session; Reset restores them.'],
+   ['This layer already existed','It began as an offline test harness — stubs plus a headless browser — built because a widget cannot run outside the CRM and nobody wants to verify a change by deploying it to production. This site is that harness promoted to a product.'],
+   ['Failure is a switch, not a story','A control turns on latency, rate limiting, rejected writes and expired tokens. Recovery paths are meant to be clicked, not described.'],
+   ['The other systems are drawn, not cloned','Chat, tracker and calendar shells are simplified interfaces built for this site. They carry no third-party branding and are labelled as emulations. They exist so a flow that crosses four systems can be walked end to end.']]};
+
+
+const SAMPLE_QUERIES = [
+  ["Clients by name",
+   "select id, Account_Name, Country, Cooperation_Status\nfrom Accounts\nwhere Cooperation_Status = 'Client'\norder by Account_Name asc\nlimit 20"],
+  ["Dotted lookup across modules",
+   "select id, Full_Name, Title, Account_Name.Account_Name\nfrom Contacts\nwhere Account_Name.Country = 'Poland'\nlimit 25"],
+  ["Paging ceiling",
+   "select id, Meeting_Status from Event_Contacts limit 500"],
+  ["Deliberate data defects",
+   "select id, Full_Name, Title from Contacts where Email is null limit 25"],
+  ["Records that drifted from the calendar",
+   "select id, Name, Sync_State, Meeting_Duration\nfrom Meetings\nwhere Sync_State in ('outdated','incorrect','not_in_crm')\nlimit 30"],
+  ["Won and lost above a threshold",
+   "select id, Deal_Name, Stage, Amount\nfrom Deals\nwhere Stage in ('4. Won','5. Lost') and Amount > 150000\norder by Amount desc\nlimit 20"]
+];
+const CHAOS_MODES = [["off","Healthy"],["slow","Latency"],["throttle","Rate limited"],["expired","Expired token"],["reject","Rejected writes"]];
+
+function viewPlatform(){
+  const counts = window.mockZoho ? window.mockZoho.counts() : {};
+  const order = ['Accounts','Contacts','Deals','Meetings','Event_Contacts','Messages','Programmes','Service_Catalog'];
+  return '<div class="pagehead"><h1>Platform emulator</h1>'
+   + '<p class="sub">The stand-in that lets widget code run outside the CRM. It answers queries from generated data, '
+   + 'stops at the platform’s own two-hundred-record ceiling, returns lookups the way the platform does, and refuses '
+   + 'writes for the same reasons the platform refuses them.</p>'
+   + '<div class="metarow"><span class="chip live">Live demo</span><span class="chip plain">Query console</span>'
+   + '<span class="chip plain">Failure switch</span></div></div>'
+
+   + '<section class="block"><h2>Dataset in memory</h2><div class="counters">'
+   + order.filter(k=>counts[k]).map(k=>'<div class="counter"><b>'+counts[k]+'</b><span>'+k.replace(/_/g," ")+'</span></div>').join('')
+   + '</div></section>'
+
+   + '<section class="block"><h2>Run a query</h2><div class="console">'
+   + '<div class="btnrow" id="samples">'
+   + SAMPLE_QUERIES.map((q,i)=>'<button class="ghost" data-q="'+i+'">'+esc(q[0])+'</button>').join('')
+   + '</div>'
+   + '<textarea class="qbox" id="q" spellcheck="false"></textarea>'
+   + '<div class="btnrow"><button class="act" id="run">Run query</button>'
+   + '<span class="result" id="meta"></span></div>'
+   + '<div id="out"></div></div></section>'
+
+   + '<section class="block"><h2>Failure switch</h2>'
+   + '<p>Recovery paths are worth clicking, not describing. Turn a failure on and run the query again — '
+   + 'the console shows exactly what the widget code receives.</p>'
+   + '<div class="btnrow" id="chaos">'
+   + CHAOS_MODES.map(([m,l])=>'<button class="ghost" data-m="'+m+'" aria-pressed="'+(m==='off')+'">'+l+'</button>').join('')
+   + '<button class="ghost" id="reset" style="margin-left:auto">Reset data</button></div></section>'
+
+   + '<section class="block"><h2>What this is actually proving</h2><ul>'
+   + '<li>Widget code is portable because the platform surface it depends on is small and can be stood up elsewhere.</li>'
+   + '<li>The ceiling on a single query is reproduced, so paging behaviour is visible rather than assumed.</li>'
+   + '<li>Lookup fields come back as an id and a name, exactly as the platform returns them.</li>'
+   + '<li>A write is refused for a missing mandatory field or a value outside a picklist — the two rejections that break naive integrations.</li>'
+   + '<li>A call to a function that does not exist answers with an envelope rather than throwing, which is how widgets end up reporting an empty result instead of a broken call.</li>'
+   + '</ul></section>';
+}
+
+function renderRows(res){
+  if (!res.data.length) return '<p class="result">No rows.</p>';
+  const cols = Object.keys(res.data[0]);
+  const cell = v => v == null ? '<span style="color:var(--ink-3)">null</span>'
+    : (typeof v === 'object' ? esc(v.name ?? '') + ' <span style="color:var(--ink-3)">#' + esc(v.id) + '</span>' : esc(String(v)));
+  return '<div class="scroll"><table><thead><tr>' + cols.map(c=>'<th>'+esc(c)+'</th>').join('')
+    + '</tr></thead><tbody>' + res.data.slice(0,60).map(r=>'<tr>'
+    + cols.map(c=>'<td'+(typeof r[c]==='number'?' class="num"':'')+'>'+cell(r[c])+'</td>').join('')
+    + '</tr>').join('') + '</tbody></table></div>'
+    + (res.data.length > 60 ? '<p class="result">Showing the first 60 of '+res.data.length+' returned rows.</p>' : '');
+}
+
+function wirePlatform(){
+  const q = document.getElementById('q'), out = document.getElementById('out'), meta = document.getElementById('meta');
+  if (!q) return;
+  q.value = SAMPLE_QUERIES[0][1];
+  const run = async () => {
+    out.innerHTML = ''; meta.textContent = 'running…';
+    const t0 = performance.now();
+    try {
+      const res = await ZOHO.CRM.API.coql({ select_query: q.value.replace(/\s+/g,' ').trim() });
+      const ms = Math.round(performance.now() - t0);
+      meta.textContent = res.info.count + ' of ' + res.info.total + ' matching · more_records=' + res.info.more_records + ' · ' + ms + ' ms';
+      out.innerHTML = renderRows(res);
+    } catch (e) {
+      meta.textContent = '';
+      out.innerHTML = '<div class="errbox"><b>' + esc(e.code || 'ERROR') + '</b> — ' + esc(e.message)
+        + (e.details && Object.keys(e.details).length ? '<br>details: ' + esc(JSON.stringify(e.details)) : '') + '</div>';
+    }
+  };
+  document.getElementById('run').onclick = run;
+  q.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') run(); });
+  document.getElementById('samples').onclick = e => {
+    const b = e.target.closest('button[data-q]'); if (!b) return;
+    q.value = SAMPLE_QUERIES[+b.dataset.q][1]; run();
+  };
+  document.getElementById('chaos').onclick = e => {
+    const b = e.target.closest('button[data-m]'); if (!b) return;
+    mockZoho.chaos.mode = b.dataset.m;
+    document.querySelectorAll('#chaos button[data-m]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    run();
+  };
+  document.getElementById('reset').onclick = () => { mockZoho.reset(); meta.textContent = 'data reset'; out.innerHTML = ''; };
+  run();
+}
+
+/* ---------------- rendering ---------------- */
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const chip = k => '<span class="chip '+KIND[k][0]+'">'+KIND[k][1]+'</span>';
+
+function buildNav(){
+  let h = '';
+  h += '<div class="navgroup"><h4>Start</h4>'
+     + '<a class="navlink" href="#/"><span class="dot note"></span>Overview</a>'
+     + '<a class="navlink" href="#/platform"><span class="dot live"></span>Platform emulator</a>'
+     + '<a class="navlink" href="#/how"><span class="dot note"></span>How this site works</a></div>';
+  h += '<div class="navgroup"><h4>Live demos</h4>'
+     + DEMOS.map(d=>'<a class="navlink" href="#/demo/'+d.id+'"><span class="dot live"></span>'+esc(d.t)+'</a>').join('')
+     + '</div>';
+  h += '<div class="navgroup"><h4>Emulated flows</h4>'
+     + FLOWS.map(d=>'<a class="navlink" href="#/flow/'+d.id+'"><span class="dot emul"></span>'+esc(d.t)+'</a>').join('')
+     + '</div>';
+  for (const [group, items] of Object.entries(CASES)){
+    h += '<div class="navgroup"><h4>'+esc(group)+'</h4>'
+       + items.map(c=>'<a class="navlink" href="#/case/'+c.id+'"><span class="dot note"></span>'+esc(c.t)+'</a>').join('')
+       + '</div>';
+  }
+  document.getElementById('nav').innerHTML = h;
+}
+
+function tile(item, route){
+  return '<a class="tile" href="#/'+route+'/'+item.id+'"><h3>'+esc(item.t)+'</h3>'
+       + '<p>'+item.sub+'</p><div class="foot">'+chip(item.kind)+'</div></a>';
+}
+
+function viewOverview(){
+  const caseCount = Object.values(CASES).flat().length;
+  return '<div class="pagehead"><h1>Six years of CRM platform work, arranged so you can click it</h1>'
+   + '<p class="sub">Interfaces built inside a CRM, integrations that had to survive real failure, and tooling for orgs that '
+   + 'do not export themselves. The widgets below are the production code, running here against invented data.</p>'
+   + '<div class="metarow"><span class="chip live">'+DEMOS.length+' live demos</span>'
+   + '<span class="chip emul">'+FLOWS.length+' emulated flows</span>'
+   + '<span class="chip note">'+caseCount+' write-ups</span></div></div>'
+
+   + '<section class="block"><h2>Start here</h2>'
+   + '<div class="callout acc"><span class="k">Before you click</span>'
+   + '<p>Every record belongs to an invented company. The platform underneath the widgets is emulated in your browser, '
+   + 'and a switch turns on latency, rate limits and rejected writes so the recovery paths can be clicked rather than described. '
+   + '<a href="#/how">How this site works &rarr;</a></p></div></section>'
+
+   + '<section class="block"><h2>The layer everything else sits on</h2>'
+   + '<div class="grid"><a class="tile" href="#/platform"><h3>Platform emulator</h3>'
+   + '<p>A query console over the generated dataset, with the platform\u2019s own paging ceiling, '
+   + 'error envelopes and a failure switch. Type a query and run it.</p>'
+   + '<div class="foot"><span class="chip live">Live demo</span></div></a></div></section>'
+
+   + '<section class="block"><h2>Live demos</h2><div class="grid">'
+   + DEMOS.map(d=>tile(d,'demo')).join('') + '</div></section>'
+
+   + '<section class="block"><h2>Emulated flows</h2>'
+   + '<p>Four systems, walked end to end: a chat client, an orchestration layer, the CRM, and an issue tracker. '
+   + 'A trace panel shows every call as it happens.</p><div class="grid">'
+   + FLOWS.map(d=>tile(d,'flow')).join('') + '</div></section>'
+
+   + Object.entries(CASES).map(([g,items]) =>
+       '<section class="block"><h2>'+esc(g)+'</h2><div class="grid">'
+       + items.map(c=>tile({...c,kind:'note'},'case')).join('') + '</div></section>').join('');
+}
+
+function viewDemo(item, routeLabel){
+  return '<div class="pagehead"><h1>'+esc(item.t)+'</h1><p class="sub">'+item.sub+'</p>'
+   + '<div class="metarow">'+chip(item.kind)+'<span class="chip plain">'+esc(item.stack)+'</span></div></div>'
+
+   + '<section class="block"><h2>Try it</h2>'
+   + '<div class="stage"><span class="lbl">'+routeLabel+'</span>'
+   + '<span class="hint">The interactive build is wired in here. Until then, this page carries the full description of '
+   + 'what the screen shows and what it does.</span></div></section>'
+
+   + '<section class="block"><h2>What you are looking at</h2><p>'+item.see+'</p></section>'
+
+   + '<section class="block"><h2>What you can do</h2><ul>'
+   + item.does.map(x=>'<li>'+x+'</li>').join('') + '</ul></section>'
+
+   + '<section class="block"><h2>Why it was not straightforward</h2><ul>'
+   + item.why.map(x=>'<li>'+x+'</li>').join('') + '</ul></section>';
+}
+
+function viewCase(item){
+  let h = '<div class="pagehead"><h1>'+esc(item.t)+'</h1><p class="sub">'+item.sub+'</p>'
+        + '<div class="metarow">'+chip('note')+'</div></div>';
+  if (item.role){
+    h += '<section class="block"><div class="callout"><span class="k">My role on this one</span><p>'+item.role+'</p></div></section>';
+  }
+  h += item.body.map(([head,text]) =>
+        '<section class="block"><h2>'+esc(head)+'</h2><p>'+text+'</p></section>').join('');
+  return h;
+}
+
+function viewAbout(){
+  return '<div class="pagehead"><h1>'+esc(ABOUT.t)+'</h1><p class="sub">'+ABOUT.sub+'</p></div>'
+   + ABOUT.body.map(([h,t])=>'<section class="block"><h2>'+esc(h)+'</h2><p>'+t+'</p></section>').join('')
+   + '<section class="block"><h2>Legend</h2><dl class="kv">'
+   + '<dt>Company</dt><dd>'+CO.name+'</dd>'
+   + '<dt>Business</dt><dd>'+CO.what+'</dd>'
+   + '<dt>Why this one</dt><dd>It needs the same shapes the work needs — accounts and people, a service catalogue sold '
+   + 'across '+CO.unit+'s, programmes tracked in an issue tracker, and a sales team that meets clients at trade shows — '
+   + 'without resembling any employer of mine.</dd></dl></section>';
+}
+
+function route(){
+  const h = location.hash.replace(/^#\/?/,'');
+  const [kind,id] = h.split('/');
+  let body, crumb;
+  if (!kind){ body = viewOverview(); crumb = 'overview'; }
+  else if (kind==='platform'){ body = viewPlatform(); crumb = 'platform emulator'; }
+  else if (kind==='how'){ body = viewAbout(); crumb = 'about / how this site works'; }
+  else if (kind==='demo'){ const it = DEMOS.find(d=>d.id===id);
+    body = it ? viewDemo(it,'live demo') : viewOverview(); crumb = 'live demo / '+id; }
+  else if (kind==='flow'){ const it = FLOWS.find(d=>d.id===id);
+    body = it ? viewDemo(it,'emulated flow') : viewOverview(); crumb = 'emulated flow / '+id; }
+  else if (kind==='case'){ const it = Object.values(CASES).flat().find(d=>d.id===id);
+    body = it ? viewCase(it) : viewOverview(); crumb = 'write-up / '+id; }
+  else { body = viewOverview(); crumb = 'overview'; }
+
+  document.getElementById('view').innerHTML = body;
+  document.getElementById('crumb').textContent = crumb;
+  document.querySelectorAll('.navlink').forEach(a =>
+    a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
+  if (kind==='platform') wirePlatform();
+  window.scrollTo(0,0);
+}
+
+buildNav();
+addEventListener('hashchange', route);
+route();
+</script>
