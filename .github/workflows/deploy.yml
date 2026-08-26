@@ -1,0 +1,82 @@
+name: build, verify, publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: build and smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Build the single-file site
+        run: npm run build
+      - name: Refuse to ship a dataset that is not referentially whole
+        run: |
+          node -e "
+          const d = require('./data/dataset.slim.json');
+          const ids = m => new Set(d[m].map(r => r.id));
+          const acc = ids('Accounts'), con = ids('Contacts'), dea = ids('Deals'), cam = ids('Campaigns');
+          const bad =
+            d.Event_Contacts.filter(e => !con.has(e.Origin_Contact) || !acc.has(e.Account_Name)).length +
+            d.Meetings.filter(m => !acc.has(m.Account_Name) || !cam.has(m.Campaign)).length +
+            d.Messages.filter(m => !dea.has(m.Deal)).length;
+          if (bad) { console.error(bad + ' dangling references in the slim dataset'); process.exit(1); }
+          console.log('dataset is referentially whole');
+          "
+      - name: Refuse to ship anything that looks like a real identifier
+        run: |
+          if grep -rniE '(room8|roomeight|zcrm\.zoho|crm\.zoho\.eu/crm/org|sk-ant-|xoxb-|refresh_token|client_secret|@room8group)' \
+               --include='*.js' --include='*.html' --include='*.json' --include='*.mjs' \
+               src data platform build.mjs; then
+            echo "::error::found something that looks like a real identifier or secret"; exit 1
+          fi
+          echo "clean"
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist/
+          retention-days: 7
+
+  publish:
+    name: publish to GitHub Pages
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: touch dist/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deploy
+        uses: actions/deploy-pages@v4

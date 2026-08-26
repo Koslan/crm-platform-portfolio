@@ -129,11 +129,14 @@ async function coqlAll(query, cap = 1200) {
 }
 
 /* ---------- page ---------- */
+function ensureCss() {
+  if (document.getElementById('ecp-css')) return;
+  const st = document.createElement('style'); st.id = 'ecp-css'; st.textContent = CSS; document.head.appendChild(st);
+}
 const Page = {
+  ensureCss,
   async mount(host, campaignId) {
-    if (!document.getElementById('ecp-css')) {
-      const st = document.createElement('style'); st.id = 'ecp-css'; st.textContent = CSS; document.head.appendChild(st);
-    }
+    ensureCss();
     const c = (await ZOHO.CRM.API.getRecord({ Entity:'Campaigns', RecordID:campaignId })).data[0];
     this.c = c;
     const days = [];
@@ -701,4 +704,5 @@ const Wizard = {
 };
 
 window.EventCampaignPage = Page;
+window.ECPShared = { ensureCss, E, el, q, qa, coqlAll, pad2, dmy, parseDT, hhmm, esc, DOW };
 })();

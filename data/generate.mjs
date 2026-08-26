@@ -223,6 +223,46 @@ for (const dl of deals.filter(d=>d.Stage!=='5. Lost').slice(0,14)){
   }
 }
 
+
+/* ---------- enrichment provider fixtures ----------
+   People as an external enrichment provider would return them: some already in
+   the CRM (directly or via the parent account), some findable only by profile
+   URL, some genuinely new. This is what the dedup screens are built against. */
+const enrichAccount = accounts[0];                       // the holding, so hierarchy matters
+const family = [enrichAccount.id, ...accounts.filter(a=>a.Main_Parent_Account===enrichAccount.id).map(a=>a.id)];
+const known = contacts.filter(c => family.includes(c.Account_Name));
+const providerPeople = [];
+known.slice(0, 14).forEach((c, i) => {
+  const viaHierarchy = c.Account_Name !== enrichAccount.id;
+  const urlOnly = i % 4 === 3 && c.Linkedin;             // matched only by normalised profile URL
+  providerPeople.push({
+    id:'PP'+id().slice(-8), Full_Name:c.Full_Name, Title:c.Title, Seniority:c.Seniority,
+    Email: urlOnly ? null : c.Email,
+    Linkedin: c.Linkedin ? c.Linkedin + (i % 3 === 0 ? '/' : '') : null,   // trailing slash on purpose
+    Company: accounts.find(a=>a.id===c.Account_Name).Account_Name,
+    Photo: null, Match:'crm', Match_Path: urlOnly ? 'profile_url' : (viaHierarchy ? 'hierarchy' : 'direct'),
+    Crm_Contact_Id: c.id,
+    Last_Sync: i % 3 === 0 ? iso(new Date(2026, int(0,6), int(1,28))) : null,
+    History: Array.from({length:int(1,3)},(_,k)=>({
+      Company: pick(A1)+' '+pick(A2), Title: pick(TITLES)[0],
+      From: iso(new Date(2016+k*3, int(0,11), 1)), To: k===0 ? null : iso(new Date(2019+k*3, int(0,11), 1)) }))
+  });
+});
+for (let i=0;i<18;i++){
+  const fn = pick(FN), ln = pick(LN), [title,sen] = pick(TITLES);
+  providerPeople.push({
+    id:'PP'+id().slice(-8), Full_Name:`${fn} ${ln}`, Title:title, Seniority:sen,
+    Email: chance(.7) ? `${fn[0].toLowerCase()}.${slug(ln)}@${slug(enrichAccount.Account_Name)}.example` : null,
+    Linkedin: chance(.8) ? `https://www.linkedin.com/in/${slug(fn+'-'+ln)}-${int(10,99)}` : null,
+    Company: enrichAccount.Account_Name, Photo:null, Match:'new', Match_Path:null,
+    Crm_Contact_Id:null, Last_Sync:null,
+    History: Array.from({length:int(1,3)},(_,k)=>({
+      Company: pick(A1)+' '+pick(A2), Title: pick(TITLES)[0],
+      From: iso(new Date(2015+k*3, int(0,11), 1)), To: k===0 ? null : iso(new Date(2018+k*3, int(0,11), 1)) }))
+  });
+}
+const enrichment = { Account: enrichAccount.id, People: providerPeople };
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -231,7 +271,7 @@ campaigns.forEach(c => c.attendees.forEach(a => {
 const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', seed:20260826 },
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
-  Meetings:meetings, Messages:messages };
+  Meetings:meetings, Messages:messages, Enrichment:enrichment };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));

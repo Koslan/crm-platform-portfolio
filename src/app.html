@@ -208,6 +208,8 @@ button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:va
 <script>window.__DATA__=/*__DATASET__*/null;
 if(window.mockZoho&&window.__DATA__)mockZoho.load(window.__DATA__);</script>
 <script>/*__EVENTPAGE__*/</script>
+<script>/*__PAGES__*/</script>
+<script>/*__TEAMS__*/</script>
 <script>
 const KIND = {live:['live','Live demo'], emul:['emul','Emulated flow'], note:['note','Write-up']};
 
@@ -535,6 +537,57 @@ function wireEventPage(){
   if (c) EventCampaignPage.mount(host, c.id);
 }
 
+
+/* Entries that graduated from a placeholder to a working page live in REC now;
+   their old stubs stay in DEMOS/FLOWS as copy but are filtered out of the UI. */
+const PROMOTED = new Set(['solution-map','deal-conversations','contact-enrichment','chat-recap']);
+const REC = [
+  {id:'solution',  t:'Solution map',           host:'SolutionMap',   arg:d=>{
+     // pick the programme with the richest spread of states, so the matrix is not one colour
+     const score = p => { const ds = d.Deals.filter(x=>x.Programme===p.id);
+       return ds.length + new Set(ds.map(x=>x.Stage)).size*3 + (ds.some(x=>x.Stage==='4. Won')?12:0); };
+     return d.Programmes.slice().sort((a,b)=>score(b)-score(a))[0].id; },
+   sub:'A programme record, and the matrix its account plan is read from: service lines against business units, coloured by deal state, with unworked pipeline from analytics in pale blue.',
+   try:['Hover a cell — the deals behind the number float above it.',
+        'Open the field guide from the header. The colour rule, the split-amount rule and the row order are documented in the product, not in a wiki nobody opens.',
+        'Create an opportunity from a business-unit header. It is written through the emulator and the matrix redraws with it.'],
+   why:'Nothing in the platform draws a matrix. The grid, the gradients, the hover card and the reveal are hand-built, and an amount is split between service lines when one deal covers several — otherwise the column totals lie.'},
+  {id:'enrich',    t:'Contact enrichment',     host:'Enrichment',    arg:d=>d.Enrichment.Account,
+   sub:'An account record with an enrichment provider attached. The interesting part is not the import — it is refusing to create people who are already there under a different key.',
+   try:['Load a page of people. The provider answers in batches, and the counter says how many per request.',
+        'Read the statistics strip: direct matches, matches found through the parent account, and matches recovered only by a normalised profile URL.',
+        'Select a few of the new people and import them. They are written to the CRM and the row turns green.',
+        'Open a name for the profile and the career timeline.'],
+   why:'Duplicates are caught by four keys in sequence, and existing contacts are gathered through the account hierarchy rather than the single account — a holding keeps its people on the subsidiaries. The screen also carries an honest note about the preview step that is missing.'},
+  {id:'deal',      t:'Deal conversations',     host:'Conversations', arg:d=>{const m=d.Messages[0];return m?m.Deal:d.Deals[0].id;},
+   sub:'Chat threads and issue-tracker comments for one deal, inside the deal record.',
+   try:['Open a thread — a flat list of records is rebuilt into a tree, replies indented under their root.',
+        'Push one message to the tracker. The button locks, because a repeat would duplicate the comment.',
+        'Switch to the tracker tab, translate the comments, and write one with an @-mention.'],
+   why:'Push is made idempotent by a hidden marker inside the comment body, so a sync running every ten minutes never posts the same message twice. Avatar colour is derived from the name, so one person is the same colour everywhere without a lookup table.'},
+  {id:'teams',     t:'Meeting recap from chat',host:'__TEAMS__',     arg:()=>null,
+   sub:'The chat client on the left, the CRM record on the right, and a two-card flow between them. A trace panel shows every call as it is made.',
+   try:['Pick the first chat and send the message to the CRM. The account is already resolved, and the card says which key resolved it.',
+        'Pick the third chat instead: two accounts appear among the participants, so nothing is chosen for you.',
+        'Try to save a three-word recap. The card refuses and says why.',
+        'Watch the trace — the transcript pipeline starts on card one, so the recap is ready two steps later.'],
+   why:'No step holds a synchronous request open while a person thinks; each card is a callback. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only return one string.'}
+];
+function viewRecord(r){
+  return '<div class="pagehead"><h1>'+esc(r.t)+'</h1><p class="sub">'+r.sub+'</p>'
+   + '<div class="metarow"><span class="chip live">Live demo</span><span class="chip plain">Emulated CRM shell</span></div></div>'
+   + '<section class="block"><h2>The record</h2><div id="rec-host"></div></section>'
+   + '<section class="block"><h2>What to try</h2><ul>'+r.try.map(x=>'<li>'+x+'</li>').join('')+'</ul></section>'
+   + '<section class="block"><h2>Why it was not straightforward</h2><p>'+r.why+'</p></section>';
+}
+function wireRecord(r){
+  const host = document.getElementById('rec-host');
+  if (!host || !window.__DATA__) return;
+  if (r.host === '__TEAMS__') { if (window.TeamsFlow) TeamsFlow.mount(host); return; }
+  const P = window.CRMPages && window.CRMPages[r.host];
+  if (P) P.mount(host, r.arg(window.__DATA__));
+}
+
 /* ---------------- rendering ---------------- */
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const chip = k => '<span class="chip '+KIND[k][0]+'">'+KIND[k][1]+'</span>';
@@ -547,10 +600,11 @@ function buildNav(){
      + '<a class="navlink" href="#/how"><span class="dot note"></span>How this site works</a></div>';
   h += '<div class="navgroup"><h4>Live demos</h4>'
      + '<a class="navlink" href="#/event"><span class="dot live"></span>Event campaign page</a>'
-     + DEMOS.map(d=>'<a class="navlink" href="#/demo/'+d.id+'"><span class="dot live"></span>'+esc(d.t)+'</a>').join('')
+     + REC.map(r=>'<a class="navlink" href="#/rec/'+r.id+'"><span class="dot live"></span>'+esc(r.t)+'</a>').join('')
+     + DEMOS.filter(d=>!PROMOTED.has(d.id)).map(d=>'<a class="navlink" href="#/demo/'+d.id+'"><span class="dot live"></span>'+esc(d.t)+'</a>').join('')
      + '</div>';
   h += '<div class="navgroup"><h4>Emulated flows</h4>'
-     + FLOWS.map(d=>'<a class="navlink" href="#/flow/'+d.id+'"><span class="dot emul"></span>'+esc(d.t)+'</a>').join('')
+     + FLOWS.filter(d=>!PROMOTED.has(d.id)).map(d=>'<a class="navlink" href="#/flow/'+d.id+'"><span class="dot emul"></span>'+esc(d.t)+'</a>').join('')
      + '</div>';
   for (const [group, items] of Object.entries(CASES)){
     h += '<div class="navgroup"><h4>'+esc(group)+'</h4>'
@@ -593,12 +647,14 @@ function viewOverview(){
    + '<div class="foot"><span class="chip live">Live demo</span><span class="chip plain">3 widgets + wizard</span></div></a></div></section>'
 
    + '<section class="block"><h2>Live demos</h2><div class="grid">'
-   + DEMOS.map(d=>tile(d,'demo')).join('') + '</div></section>'
+   + REC.map(r=>'<a class="tile" href="#/rec/'+r.id+'"><h3>'+esc(r.t)+'</h3><p>'+r.sub+'</p>'
+       + '<div class="foot"><span class="chip live">Live demo</span></div></a>').join('')
+   + DEMOS.filter(d=>!PROMOTED.has(d.id)).map(d=>tile(d,'demo')).join('') + '</div></section>'
 
    + '<section class="block"><h2>Emulated flows</h2>'
    + '<p>Four systems, walked end to end: a chat client, an orchestration layer, the CRM, and an issue tracker. '
    + 'A trace panel shows every call as it happens.</p><div class="grid">'
-   + FLOWS.map(d=>tile(d,'flow')).join('') + '</div></section>'
+   + FLOWS.filter(d=>!PROMOTED.has(d.id)).map(d=>tile(d,'flow')).join('') + '</div></section>'
 
    + Object.entries(CASES).map(([g,items]) =>
        '<section class="block"><h2>'+esc(g)+'</h2><div class="grid">'
@@ -651,6 +707,8 @@ function route(){
   let body, crumb;
   if (!kind){ body = viewOverview(); crumb = 'overview'; }
   else if (kind==='event'){ body = viewEventPage(); crumb = 'live demo / event campaign page'; }
+  else if (kind==='rec'){ const r = REC.find(x=>x.id===id);
+    body = r ? viewRecord(r) : viewOverview(); crumb = 'live demo / '+id; }
   else if (kind==='platform'){ body = viewPlatform(); crumb = 'platform emulator'; }
   else if (kind==='how'){ body = viewAbout(); crumb = 'about / how this site works'; }
   else if (kind==='demo'){ const it = DEMOS.find(d=>d.id===id);
@@ -665,9 +723,10 @@ function route(){
   document.getElementById('crumb').textContent = crumb;
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
-  document.getElementById('view').classList.toggle('wide', kind==='event');
+  document.getElementById('view').classList.toggle('wide', kind==='event' || kind==='rec');
   if (kind==='platform') wirePlatform();
   if (kind==='event') wireEventPage();
+  if (kind==='rec'){ const r = REC.find(x=>x.id===id); if (r) wireRecord(r); }
   window.scrollTo(0,0);
 }
 

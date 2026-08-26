@@ -1,6 +1,5 @@
-import pw from '/home/claude/.npm-global/lib/node_modules/playwright/index.js';
-const { chromium } = pw;
-const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium' });
+import { chromium, launchOpts } from './test/browser.mjs';
+const b = await chromium.launch({ ...launchOpts });
 const p = await b.newPage({ viewport:{ width:1500, height:1000 } });
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message));
 p.on('console',m=>{ if(m.type()==='error' && !/ERR_TUNNEL|fonts.googleapis/.test(m.text())) errs.push(m.text()); });
