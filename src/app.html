@@ -1058,10 +1058,46 @@ const STORY={
   "r": "Answers that carry the query behind them — which is also why the audits here state their own blind spots."
  },
  "business analysis": {
-  "w": "Room 8, SoftServe · part of delivery",
-  "t": "Requirements rarely arrive as requirements. They arrive as a complaint about a screen, or a process nobody has written down.",
-  "b": "The parts of the discipline delivery actually needs, done myself: discovery sessions with stakeholders, mapping the current process against the one people describe, writing acceptance criteria, and taking some pieces of work end to end from the first conversation to the released change — at SoftServe directly with client stakeholders. Not my trade: on larger scopes I work alongside a business analyst rather than in place of one.",
-  "r": "Fewer builds of the wrong thing, and requirements that survive contact with the org they describe."
+  "w": "Room 8, SoftServe · since 2021",
+  "t": "Requests arrive as “add a field” — the real constraint is almost always a process nobody has mapped.",
+  "b": "Lead discovery with Sales, BD, Operations and Support: map the current process, find the actual constraint behind the request, define acceptance criteria, and turn the result into a functional design covering data model, access, automation, integration and reporting. Choose deliberately between native configuration, Deluge, a widget, Creator or an external service. Not my trade: on a larger scope I work alongside a business analyst rather than in place of one.",
+  "r": "Decisions with named trade-offs instead of accumulated customisation — and a platform that stays explainable."
+ },
+ "CRM administration": {
+  "w": "Room 8 · 2023—now · daily",
+  "t": "A multi-country CRM where access, layouts and automation drift into chaos unless someone owns the operating model.",
+  "b": "Own it end to end: user lifecycle, role hierarchy, least-privilege profiles, module and field permissions, record ownership, sharing rules, layouts, workflows, Blueprints and validation. Access changes are treated as governed platform changes — with their effect on automation, reporting and integrations — not one-off exceptions.",
+  "r": "An access model that survives reorgs and audits, and an admin surface a successor could take over from the docs."
+ },
+ "UAT & adoption": {
+  "w": "Room 8, SoftServe · since 2021",
+  "t": "A deployed change that users route around is a failure with extra steps.",
+  "b": "Take changes through acceptance, not just deployment: UAT scenarios defined with process owners, representative test data, coordinated sign-off, release notes and user guidance, training sessions, and hands-on support after launch. Recurring questions feed back into the backlog.",
+  "r": "Features that get used — and a platform that becomes easier to operate instead of accumulating workarounds."
+ },
+ "governance & controlled change": {
+  "w": "Room 8 · 2023—now",
+  "t": "A CRM serving live sales operations cannot absorb uncontrolled change — and cannot freeze either.",
+  "b": "Run the change model: intake, prioritisation against business impact and capacity, review gates, traceable releases, rollback paths and post-release verification. Least-privilege access, secrets out of client code and logs, audit trail by design — the same habits that passed AppExchange Security Review.",
+  "r": "“No change reaches production unreviewed” as an enforced operating rule — and readiness for regulated environments without claiming compliance projects I have not done."
+ },
+ "reports & dashboards": {
+  "w": "Room 8 · 2023—now",
+  "t": "Commercial teams need numbers they can argue with — one explainable version of them.",
+  "b": "Native CRM reports and dashboards maintained as part of platform administration; the analytical layer in Zoho Analytics where questions cross modules or systems — synced sources, prepared datasets, transformations, analytical SQL, scheduled delivery.",
+  "r": "Weekly management decisions run off one number with a traceable path from source to dashboard."
+ },
+ "documentation": {
+  "w": "Room 8, Noltic · since 2022",
+  "t": "Undocumented platforms die with their author — and consulting work is judged on the paper trail as much as the build.",
+  "b": "Documentation at the level the change requires: functional designs and acceptance criteria before build; data maps, field dictionaries and sequence diagrams for integrations; test evidence, release notes, runbooks and rollback steps before production; user guidance after. Versioned with the implementation.",
+  "r": "A platform a successor could operate from the docs — which is the honest test of documentation."
+ },
+ "stakeholder ownership": {
+  "w": "Room 8 · 2023—now",
+  "t": "One engineer, many masters: sales ops, BD, finance, regional teams — all with urgent requests.",
+  "b": "Own the delivery queue from intake to production: gather demand, clarify business impact and dependencies, estimate, prioritise against capacity and risk, sequence releases, communicate status, verify outcomes after launch.",
+  "r": "Stakeholders who trust the queue because it is visible, argued and predictable — and a roadmap that survives contact with Q4."
  }
 };
 
@@ -1207,12 +1243,10 @@ const MATRIX=[
    "code review",
    "release management",
    "data quality",
-   "pagination",
-   "data analysis"
+   "pagination"
   ],
   "l3": [
-   "Azure DevOps",
-   "business analysis"
+   "Azure DevOps"
   ]
  },
  {
@@ -1247,6 +1281,22 @@ const MATRIX=[
   "l3": [
    "Zoho native AI"
   ]
+ },
+ {
+  "dom": "Platform ownership",
+  "l1": [
+   "business analysis",
+   "CRM administration",
+   "UAT & adoption",
+   "governance & controlled change"
+  ],
+  "l2": [
+   "reports & dashboards",
+   "data analysis",
+   "documentation",
+   "stakeholder ownership"
+  ],
+  "l3": []
  }
 ];
 const mxc=(n,l)=>'<span class="mxc l'+l+'" data-s="'+esc(n)+'" tabindex="0">'+esc(n)+'</span>';
