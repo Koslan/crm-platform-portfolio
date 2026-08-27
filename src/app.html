@@ -183,6 +183,29 @@ button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:va
   .wrap,.topbar{padding-left:20px; padding-right:20px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ---------- pager + sitemap (redesign step: navigation between siblings) ---------- */
+.pager{display:flex; gap:12px; margin:26px 0 6px; flex-wrap:wrap}
+.pager a{
+  flex:1 1 240px; min-width:0; display:block; padding:12px 14px;
+  border:1px solid var(--line); border-radius:12px; background:var(--surface);
+  color:var(--ink); text-decoration:none;
+}
+.pager a:hover{border-color:var(--line-strong); text-decoration:none}
+.pager .dir{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:3px;
+}
+.pager .to{font-size:14px; font-weight:500}
+.pager .next{text-align:right}
+.sitemap{border-top:1px solid var(--line); margin-top:44px; padding:26px 0 40px}
+.sitemap h4{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); margin:0 0 8px;
+}
+.sitemap .cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:22px}
+.sitemap .navlink{padding:3px 0; font-size:13px; border-radius:0; background:none}
+.sitemap .navlink.on{background:none; color:var(--accent); font-weight:500}
 </style>
 
 <div class="app">
@@ -201,6 +224,7 @@ button.ghost[aria-pressed="true"]{background:var(--accent-soft); border-color:va
       <span class="chip plain">No client records</span>
     </div>
     <div class="wrap" id="view"></div>
+    <div class="wrap" id="sitemap"></div>
   </main>
 </div>
 
@@ -385,12 +409,13 @@ const CASES = {
       ['The constraint','The evidence is spread across the CRM, the issue tracker and analytics; the function time limit does not allow gathering it and reasoning about it in one call; and an unconstrained answer cannot be compared between deals.'],
       ['What was built','Roughly ten times more code gathering evidence than calling the model. Six sources, plus derived behavioural signals that exist nowhere as fields — how many times the start date moved, which stage the deal stalled in, whether this client had ever been won before. Tracker comments are filtered by author so the model reads the outside voice, not the CRM’s own echo. Then two stages: the first is explicitly forbidden to analyse and must list the holes in the data; its output is materialised as a record; the second reads that and does one thing — place the case in a seven-kilobyte taxonomy of thirty-eight causes with rules for choosing between them. A human can correct the middle and re-run only the second stage.'],
       ['The trade, said out loud','No structured output anywhere: the answer is parsed by markdown anchors and substring checks. Stop reasons are not inspected, so a truncated answer is indistinguishable from a complete one. And the category is never written to a structured field — the assignment is commented out — so the very reporting the pipeline exists for cannot be built. A schema, validation against the taxonomy, and a picklist field are the obvious repairs.']]},
-    {id:'agent-journal', t:'A CRM agent with an action journal',
-     sub:'Designed for this site, not run in production. Said plainly, because it would come out in the first question.',
+    {id:'agent-journal', t:'An agent allowed to write, and a journal that keeps it honest',
+     sub:'Designed and built for this portfolio, not run in production. Said plainly, because it would come out anyway.',
      body:[
-      ['The constraint','Three problems kill the naive version. Speech recognition mangles mixed-language technical vocabulary and company names. An agent granted write access can be wrong and nobody would know which record it touched — the built-in audit log exports only through the interface and is no control loop. And a command from a chat arrives with no context about which record is meant.'],
-      ['What was built','A speech layer with a domain vocabulary supplied as an initial prompt. An intent layer that must return a structured intent — module, record, fields, operation — validated against the live field list, refusing rather than guessing. Entity resolution that reuses the priority chain from the meeting work and asks again when the answer is ambiguous. Execution through the CRM’s own tool interface, with one hard condition: every action writes to a journal module — time, channel, the original utterance, the parsed intent, the target record, a before/after diff, the result. And a confirmation screen showing that diff for anything above a risk threshold.'],
-      ['The trade','The journal duplicates what the record already holds. Taken deliberately: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement call — crude, but predictable and explainable.']]}],
+      ['The three problems','Speech recognition mangles mixed-language technical vocabulary and company names. An agent given write access can be wrong, and the built-in audit trail exports only through the interface, so it is no control loop. And a command typed into a chat arrives with no indication of which record it means.'],
+      ['The layers','Recognition is given a domain vocabulary as an initial prompt, which is what lifts the accuracy on names. The model then has to return a structured intent — module, record, fields, operation — validated against the live field list, and refuse rather than guess. Resolving which record reuses the priority chain from the meeting work: one match proceeds, several ask.'],
+      ['The part that makes it publishable','Every action writes to a journal module: the time, the channel, the original utterance, the parsed intent, the target record, a before-and-after diff, and the result. Not a log file — a module, so the history is a screen with filters. Above a risk threshold, the diff is shown and the agent waits for a person.'],
+      ['The trade','The journal duplicates what the record already holds. Taken knowingly: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement the model makes — crude, predictable, and explainable to the person who has to trust it.']]}],
   'Data and identity':[
     {id:'authority-meeting', t:'One field, two systems, and a rule about who wins',
      sub:'A meeting is held, or declined, or still booked. Both the calendar and the CRM think they know.',
@@ -431,14 +456,6 @@ const CASES = {
       ['What was built','A sweep across every function and every widget script, normalising each call into a URL pattern, attaching it to the connection it uses and, where one exists, to the rule that triggers it. The result is a table with a row per service: call volume, distinct files, methods, connections, and the share of calls wrapped in error handling.'],
       ['The findings that changed behaviour','A large share of connections turned out never to be used at all. A handful were no longer authenticating and were still being called from hundreds of places, which meant those calls had been failing silently. Error-handling coverage across the busiest services was close to zero, which explains a whole class of "the workflow just stopped" reports. And a single shared credential appeared inline in hundreds of files, making rotation a refactor rather than a setting.'],
       ['Why it is in this portfolio as a generated report','The real output is a portrait of somebody else’s security posture. The instrument is what matters, so it is shown running against an invented org of the same shape — see the org health report.']]},
-
-    {id:'agent-journal', t:'An agent allowed to write, and a journal that keeps it honest',
-     sub:'Designed and built for this portfolio, not run in production. Said plainly, because it would come out anyway.',
-     body:[
-      ['The three problems','Speech recognition mangles mixed-language technical vocabulary and company names. An agent given write access can be wrong, and the built-in audit trail exports only through the interface, so it is no control loop. And a command typed into a chat arrives with no indication of which record it means.'],
-      ['The layers','Recognition is given a domain vocabulary as an initial prompt, which is what lifts the accuracy on names. The model then has to return a structured intent — module, record, fields, operation — validated against the live field list, and refuse rather than guess. Resolving which record reuses the priority chain from the meeting work: one match proceeds, several ask.'],
-      ['The part that makes it publishable','Every action writes to a journal module: the time, the channel, the original utterance, the parsed intent, the target record, a before-and-after diff, and the result. Not a log file — a module, so the history is a screen with filters. Above a risk threshold, the diff is shown and the agent waits for a person.'],
-      ['The trade','The journal duplicates what the record already holds. Taken knowingly: without it the agent is opaque, and an opaque agent does not survive its first disputed edit. The risk threshold is a list of fields rather than a judgement the model makes — crude, predictable, and explainable to the person who has to trust it.']]}
   ],
   'Teams and orchestration':[
     {id:'teams-sync', t:'Getting a chat platform into the CRM without a bot',
@@ -899,6 +916,49 @@ function viewAbout(){
    + 'without resembling any employer of mine.</dd></dl></section>';
 }
 
+/* Siblings of the page you are on, in the order the site lists them, so a
+   reader can walk a group without going back to the index every time. */
+function siblings(kind, id){
+  if (kind==='case'){
+    for (const [g,items] of Object.entries(CASES))
+      if (items.some(c=>c.id===id)) return [g, items.map(c=>({id:c.id,t:c.t,route:'case'}))];
+    return [null,[]];
+  }
+  if (kind==='rec')  return ['Live demos', REC.map(r=>({id:r.id,t:r.t,route:'rec'}))];
+  if (kind==='demo') return ['Live demos', DEMOS.map(d=>({id:d.id,t:d.t,route:'demo'}))];
+  if (kind==='flow') return ['Emulated flows', FLOWS.map(d=>({id:d.id,t:d.t,route:'flow'}))];
+  return [null,[]];
+}
+function pager(kind, id){
+  const [group, list] = siblings(kind, id);
+  const i = list.findIndex(x=>x.id===id);
+  if (i < 0 || list.length < 2) return '';
+  const prev = list[i-1], next = list[i+1];
+  const cell = (it,dir,label) => it
+    ? '<a class="'+dir+'" href="#/'+it.route+'/'+it.id+'"><span class="dir">'+label
+      +(group?' &middot; '+esc(group):'')+'</span><span class="to">'+esc(it.t)+'</span></a>'
+    : '';
+  return '<nav class="pager">'+cell(prev,'prev','Previous')+cell(next,'next','Next')+'</nav>';
+}
+
+/* Every route, once, at the foot of every page: the tab nav cannot hold forty-two
+   links, and a reader who got here from a search engine has no other way across. */
+function buildSitemap(){
+  const col = (title, links) => '<div><h4>'+esc(title)+'</h4>'
+    + links.map(([href,label])=>'<a class="navlink" href="'+href+'">'+esc(label)+'</a>').join('') + '</div>';
+  let h = '<div class="cols">';
+  h += col('Start', [['#/','Overview'],['#/platform','Platform emulator'],
+                     ['#/orghealth','Org health report'],['#/how','How this site works']]);
+  h += col('Live demos', [['#/cockpit','Sales cockpit'],['#/event','Event campaign page']]
+        .concat(REC.map(r=>['#/rec/'+r.id, r.t])));
+  h += col('Described demos', DEMOS.map(d=>['#/demo/'+d.id, d.t])
+        .concat(FLOWS.map(f=>['#/flow/'+f.id, f.t])));
+  for (const [g,items] of Object.entries(CASES))
+    h += col(g, items.map(c=>['#/case/'+c.id, c.t]));
+  h += '</div>';
+  document.getElementById('sitemap').innerHTML = '<div class="sitemap">'+h+'</div>';
+}
+
 function route(){
   const h = location.hash.replace(/^#\/?/,'');
   const [kind,id] = h.split('/');
@@ -919,7 +979,8 @@ function route(){
     body = it ? viewCase(it) : viewOverview(); crumb = 'write-up / '+id; }
   else { body = viewOverview(); crumb = 'overview'; }
 
-  document.getElementById('view').innerHTML = body;
+  const pg = pager(kind, id);
+  document.getElementById('view').innerHTML = body + pg;
   document.getElementById('crumb').textContent = crumb;
   document.querySelectorAll('.navlink').forEach(a =>
     a.classList.toggle('on', a.getAttribute('href') === (location.hash || '#/')));
@@ -934,6 +995,7 @@ function route(){
 }
 
 buildNav();
+buildSitemap();
 addEventListener('hashchange', route);
 route();
 </script>

@@ -33,16 +33,34 @@ const body = tpl
   .replace('/*__APOLLO__*/',     () => ap);
 
 const title = (/<title>([^<]*)<\/title>/.exec(body) || [,'CRM platform field notes'])[1];
+const desc = 'CRM platform engineering: widgets, integrations and org tooling, running outside the CRM against generated data.';
+const site = 'https://koslan.github.io/crm-platform-portfolio/';
+const icon = 'data:image/svg+xml,'+encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+  + '<rect width="64" height="64" rx="14" fill="#5B5BD6"/>'
+  + '<text x="32" y="43" font-family="Instrument Sans,DejaVu Sans,sans-serif" font-size="30" font-weight="600" fill="#fff" text-anchor="middle">KB</text>'
+  + '</svg>');
+
 const doc = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="CRM widgets running outside the CRM, against generated data. Interfaces, integrations and org tooling.">
-<meta name="color-scheme" content="light dark">
+<title>${title}</title>
+<meta name="description" content="${desc}">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="${icon}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${title}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:url" content="${site}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
 </head>
 <body>
-${body}
+${body.replace(/<title>[^<]*<\/title>\s*/, '')}
 </body>
 </html>
 `;
