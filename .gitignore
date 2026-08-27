@@ -5,3 +5,11 @@ data/dataset.slim.json
 *.png
 *.tar.gz
 .DS_Store
+
+# scratch from a fidelity pass: backups, cut-out blocks, working notes.
+# The notes quote the original org's module and field names, so they stay on disk.
+*.bak-before-*
+_to_delete/
+docs/fidelity-accounts.md
+docs/fidelity-contacts.md
+docs/fidelity-solutionmap.md

@@ -40,9 +40,13 @@ say('create: provider lane runs on request', (await p.locator('#cn-apollo .p').c
 say('create: duplicates counted before writing', (+(await p.locator('#cn-d').textContent()) + +(await p.locator('#cn-pd').textContent()))>0);
 say('create: exact duplicates block creation', (await p.locator('#cn-apollo button[disabled]').count())>0);
 // take a handle, not a locator: the button disables itself and a locator would re-resolve elsewhere
-const free = await p.locator('#cn-apollo .p button:not([disabled])').first().elementHandle();
-if (free) { await free.click(); await p.waitForTimeout(900);
-  say('create: a clean card writes a contact', /created/.test(await free.evaluate(n=>n.textContent))); }
+const freeCount = await p.locator('#cn-apollo .p button:not([disabled])').count();
+say('create: the page offers a creatable card', freeCount>0);
+if (freeCount) {
+  const free = await p.locator('#cn-apollo .p button:not([disabled])').first().elementHandle();
+  await free.click(); await p.waitForTimeout(900);
+  say('create: a clean card writes a contact', /created/.test(await free.evaluate(n=>n.textContent)));
+}
 
 await p.goto(U+'#/rec/enrich'); await p.waitForSelector('.ecp .tabs button[data-t="Provider link"]',{timeout:8000});
 await p.click('.ecp .tabs button[data-t="Provider link"]');

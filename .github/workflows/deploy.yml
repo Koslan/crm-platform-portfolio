@@ -44,10 +44,19 @@ jobs:
           "
       - name: Refuse to ship anything that looks like a real identifier
         run: |
-          if grep -rniE '(room8|roomeight|zcrm\.zoho|crm\.zoho\.eu/crm/org|sk-ant-|xoxb-|refresh_token|client_secret|@room8group)' \
-               --include='*.js' --include='*.html' --include='*.json' --include='*.mjs' \
-               src data platform build.mjs; then
-            echo "::error::found something that looks like a real identifier or secret"; exit 1
+          # Two classes of leak. The first is obvious: credentials, hosts, org identifiers.
+          # The second is subtler and is what actually got through once — an internal
+          # abbreviation and the original org's module names, copied across during a
+          # fidelity pass and landing in a column heading on a public page.
+          PAT='(room8|roomeight|r8g|zcrm\.zoho|crmplus\.zoho|crm\.zoho\.[a-z]+/crm/org|sk-ant-|xoxb-|refresh_token|client_secret|@room8group|dragonlake)'
+          SCHEMA='(Game_Title|Studio_Solutions|Blue_?Sheet|Green_?Sheet|Miller.?Hei|CustomModule[0-9]+|61496[0-9]{6,}|5511000[0-9]{5,}|org2006[0-9]+)'
+          FOUND=$(grep -rniE "$PAT" --include='*.js' --include='*.html' --include='*.json' --include='*.mjs' \
+                  src data platform build.mjs 2>/dev/null || true)
+          FOUND2=$(grep -rniE "$SCHEMA" --include='*.js' --include='*.html' --include='*.mjs' \
+                   src data platform 2>/dev/null || true)
+          if [ -n "$FOUND$FOUND2" ]; then
+            echo "$FOUND"; echo "$FOUND2"
+            echo "::error::found an identifier, a credential or an original schema name"; exit 1
           fi
           echo "clean"
       - run: npm test

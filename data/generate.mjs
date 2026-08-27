@@ -19,16 +19,27 @@ const SERVICES = {
   'Packaging':['Retail Packaging','Protective Packaging','Sustainability Audit','Print Production']
 };
 const STAGES = ['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost'];
+// Two extra stages mirror the original widget's OPPORTUNITY_STAGES: 'Recommendation' (a deal that started life
+// as an unworked lead, before anyone owns it) and 'Duplicate' (housekeeping, same red as Lost). Both are rare
+// in a healthy pipeline, so they get their own low-weight pick rather than joining the even STAGES split.
+const RARE_STAGES = ['Recommendation','Duplicate'];
+const pickStage = () => chance(.08) ? pick(RARE_STAGES) : pick(STAGES);
 const SUBSTAGE = {'5. Lost':['5.1. Very Bad','5.2. Budget','5.3. Timing','5.4. Competitor']};
 const LOSS = ['Budget mismatch','Timeline could not be met','Lost to incumbent vendor','Programme cancelled','No decision','Capacity unavailable'];
 
 const A1 = ['Northwind','Kestrel','Aurora','Vantage','Halcyon','Meridian','Orillia','Brightwater','Cobalt','Fenwick','Ashgrove','Larkspur','Quarry','Stonebridge','Tessellate','Umbra','Vireo','Westmark','Yarrow','Zephyr','Anvil','Beacon','Cairn','Dovetail','Everline','Foxglove','Granite','Hearth','Ironwood','Juniper'];
 const A2 = ['Instruments','Devices','Labs','Systems','Technologies','Works','Industries','Dynamics','Controls','Robotics','Medical','Mobility','Audio','Optics','Sensing'];
 const CITY = [['Poland','Warsaw'],['Poland','Kraków'],['Germany','Munich'],['Germany','Hamburg'],['Netherlands','Eindhoven'],['Sweden','Gothenburg'],['Denmark','Aarhus'],['Finland','Espoo'],['Spain','Barcelona'],['Ireland','Cork'],['Czechia','Brno'],['Austria','Graz'],['France','Grenoble'],['Italy','Turin'],['Portugal','Porto'],['Estonia','Tallinn']];
+// Region shown in the Roadshow-only State column. Keyed by the country above.
+const REGION = { Poland:'Mazowieckie', Germany:'Bavaria', Netherlands:'North Brabant', Sweden:'Västra Götaland',
+  Denmark:'Central Jutland', Finland:'Uusimaa', Spain:'Catalonia', Ireland:'Munster', Czechia:'South Moravia',
+  Austria:'Styria', France:'Auvergne-Rhône-Alpes', Italy:'Piedmont', Portugal:'Norte', Estonia:'Harju' };
 const FN = ['Anna','Marek','Ingrid','Tomas','Sofia','Lukas','Elena','Jonas','Marta','Petr','Hanna','Rafal','Nora','Bastian','Iris','Emil','Klara','Viktor','Julia','Adam','Lena','Oskar','Ewa','Niels','Maja','Tobias','Alina','Henrik','Dana','Piotr','Freja','Milan','Zofia','Bo','Selma','Arne','Kaja','Ruben','Nina','Jasper'];
 const LN = ['Kowal','Lindqvist','Bergman','Novak','Marchetti','Vandenberg','Haugen','Kaminski','Ferreira','Ostrowski','Jensen','Rossi','Dubois','Aalto','Weber','Lehtinen','Sandberg','Moreau','Bakker','Zielinski','Halvorsen','Costa','Meier','Virtanen','Laurent','Kovac','Nilsson','Barros','Fischer','Rautio'];
 const TITLES = [['VP Engineering','C-Level'],['Head of Hardware','Lead'],['Programme Director','Lead'],['Procurement Lead','Senior'],['Mechanical Lead','Senior'],['Firmware Manager','Senior'],['Quality Manager','Senior'],['Product Manager','Middle'],['Design Manager','Middle'],['Test Engineer','Middle'],['Buyer','Middle'],['Sourcing Analyst','Junior'],['CTO','C-Level'],['COO','C-Level'],['Director of Operations','Lead']];
-const ROLES = ['Economic Buyer','Technical Buyer','User Buyer','Coach'];
+const ROLES = ['Economic Buyer','Technical Buyer','User Buyer','Coach Buyer'];
+// eventMeetings treats 'Our Attendee' as a separate participant type: our side of the
+// meeting, shown in its own column, never counted among the buyers.
 const OWNERS = ['D. Meier','K. Sandberg','P. Novak','L. Ferreira','A. Haugen'];
 
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
@@ -45,18 +56,28 @@ const usedNames = new Set();
 for (let i=0;i<62;i++){
   let nm; do { nm = `${pick(A1)} ${pick(A2)}`; } while (usedNames.has(nm));
   usedNames.add(nm);
-  const [country,state] = pick(CITY);
+  const [country,city] = pick(CITY);
   accounts.push({
     id:id(), Account_Name:nm, Website:`https://www.${slug(nm)}.example`,
-    Country:country, State:state, Industry:pick(['Consumer Hardware','Medical Devices','Industrial IoT','Mobility','Audio','Instrumentation']),
+    Country:country, City:city, State:REGION[country] || null, Industry:pick(['Consumer Hardware','Medical Devices','Industrial IoT','Mobility','Audio','Instrumentation']),
     Cooperation_Status:pick(['Prospect','Prospect','Client','Client','Former Client','Restricted']),
     Segment:pick(['Enterprise','Mid-market','Scale-up']),
     Employees:int(40,4200),
     Total_Revenue: chance(.55) ? int(80,5200)*1000 : null,
     Revenue_Last_12M: null, Main_Parent_Account:null,
-    Owner:pick(users).full_name, Created_Time:iso(new Date(2023, int(0,11), int(1,28)))
+    Owner:pick(users).full_name, Account_Sales:pick(users).full_name,
+    // Tags carry the campaign targeting. The accounts widget reads the priority out of
+    // the tag name, so the format matters: "Target Account P1" -> P1.
+    Tag: [], Count_of_Contacts: 0, Region:'EMEA',
+    Created_Time:iso(new Date(2023, int(0,11), int(1,28)))
   });
 }
+const ROADSHOW_TAG = 'RS Nordics 2026';
+accounts.forEach(a => {
+  if (chance(.38)) a.Tag.push(`Target Account ${pick(['P1','P2','P3'])}`);
+  if (chance(.14)) a.Tag.push(ROADSHOW_TAG);
+});
+
 // hierarchy: a holding three levels deep, so the tree has something to draw
 const holding = accounts[0];
 const stem = holding.Account_Name.split(' ')[0];
@@ -93,7 +114,7 @@ const mkContact = (acc, forceFull) => {
     Account_Name: acc.id, Contact_Status: pick(['Working','Working','Working','Left the Company','Changed Company']),
     Created_Time: iso(new Date(int(2023,2026), int(0,11), int(1,28))) };
 };
-accounts.forEach((a,idx) => { const n = idx===2 ? 141 : int(2,7); for (let i=0;i<n;i++) contacts.push(mkContact(a, i===0)); });
+accounts.forEach((a,idx) => { const n = idx===2 ? 141 : int(3,9); for (let i=0;i<n;i++) contacts.push(mkContact(a, i===0)); });
 // deliberate duplicate person across two records
 const dup = contacts[15]; contacts.push({...dup, id:id(), Email:null, Linkedin:dup.Linkedin, Title:dup.Title+' (Interim)'});
 
@@ -112,7 +133,7 @@ for (const p of programmes){
   const n = int(6,14);
   for (let i=0;i<n;i++){
     const svc = pick(catalog.filter(c=>c.Status==='Current'));
-    const stage = pick(STAGES);
+    const stage = pickStage();
     const lost = stage==='5. Lost';
     deals.push({ id:id(),
       Deal_Name:`${p.Name} — ${svc.Name}`, Account_Name:p.Account_Name, Programme:p.id,
@@ -128,6 +149,29 @@ const potentials = [];
 for (const p of programmes) for (const bu of BU) if (chance(.35))
   potentials.push({ id:id(), Programme:p.id, Business_Unit:bu, Solutions:pick(SERVICES[bu]),
     Budget:int(20,300)*1000, Contacts:`${pick(FN)} ${pick(LN)} - ${pick(TITLES)[0]}` });
+
+// Which of the account's own contacts are actually working a given business unit on this
+// programme. The original widget gets this for free from its analytics report (CRM Contacts,
+// grouped by Business Unit); the replica has no such report, so a join table stands in for it.
+// Every BU with a deal or a potential gets at least one contact tied to it, so the "contacts"
+// tag in the column header means something per-BU instead of repeating the account total.
+const buContacts = [];
+for (const p of programmes) {
+  const acctContacts = contacts.filter(c => c.Account_Name === p.Account_Name);
+  for (const bu of BU) {
+    const hasDeal = deals.some(d => d.Programme === p.id && d.Business_Unit === bu);
+    const hasPotential = potentials.some(x => x.Programme === p.id && x.Business_Unit === bu);
+    if (!hasDeal && !hasPotential) continue;
+    if (!acctContacts.length) continue;
+    const n = Math.min(acctContacts.length, int(1,3));
+    const pool = acctContacts.slice();
+    for (let i = 0; i < n; i++) {
+      const idx = int(0, pool.length - 1);
+      const c = pool.splice(idx, 1)[0];
+      buContacts.push({ id:id(), Programme:p.id, Business_Unit:bu, Contact:c.id });
+    }
+  }
+}
 
 /* ---------- campaigns, rooms, event contacts ---------- */
 const ATT_ROLES = [['Managing Director','C-Level'],['Chief Technology Officer','C-Level'],
@@ -152,18 +196,58 @@ const campaigns = [
     Benchmark:40, attendees:mkAttendees(6), rooms:[{name:'Meeting Room 1',cap:6,from:'09:00',to:'17:00'}],
     spots:['Client office','Restaurant'] }
 ];
+const BD_NOTES = ['Follow up after the demo slot.', 'Asked for the thermal deck before the event.',
+  'Prefers a short slot on day one.', 'Introduced by @K. Sandberg at the last edition.',
+  'Budget owner sits one level up — bring the sponsor.'];
+const SL_NOTES = ['Contract review still open on our side.', 'Do not discuss pricing before legal signs off.',
+  'Account is on hold until the renewal closes.'];
+/* The accounts widget reads up to three previous events off the campaign. One is enough
+   to exercise the branch: last year's edition, with its own contacts and meetings. */
+const prevCampaign = { id:id(), Name:'Hardware Summit 2025', Event_Type:'Event',
+  Start:'2025-03-11', End:'2025-03-14', Time_Zone_String:'Europe/Berlin',
+  Country:'Germany', State:null, City:'Munich', Macro_Region:'EMEA',
+  Website:'https://www.hardware-summit.example/2025', Booth:'Hall 3, stand A08', Venue:'Messe Munich',
+  Benchmark:95, attendees:mkAttendees(9),
+  rooms:[{name:'Room Alpha',cap:8,from:'09:00',to:'18:00'}], spots:['Booth C10'], Is_Previous:true };
+campaigns.push(prevCampaign);
+campaigns[0].Previous_Event_Campaigns = prevCampaign.id;
+campaigns[1].Previous_Event_Campaigns = prevCampaign.id;
+campaigns[1].Roadshow_Tag = ROADSHOW_TAG;
+
 const eventContacts = [];
 for (const c of campaigns){
   const pool = contacts.filter(x=>x.Contact_Status==='Working');
-  const n = c.Event_Type==='Event' ? 420 : 90;
+  const n = Math.min(c.Is_Previous ? 150 : c.Event_Type==='Event' ? 420 : 90, pool.length);
+  // one row per contact per event, as the CRM holds it — otherwise "contacts in work"
+  // on the accounts table can exceed the account's contact count
+  const taken = new Set();
   for (let i=0;i<n;i++){
-    const ct = pool[Math.floor(rnd()*pool.length)];
+    let ct = pool[Math.floor(rnd()*pool.length)];
+    if (taken.has(ct.id)) { ct = pool.find(x => !taken.has(x.id)); if (!ct) break; }
+    taken.add(ct.id);
+    // Source is a multi-select in the CRM: a contact can sit in both external lists at once.
+    const sources = [];
+    if (chance(.40)) sources.push('Meet to Match');
+    if (chance(.32)) sources.push('Event App');
+    const status = pick(['Open','Open','Open','Contacted','Contacted','Meeting booked','Meeting held',
+      'Meeting declined','No Reply','Not interested','Not attending',"Don't contact"]);
+    // Meeting counters are what the status is derived from, so they have to agree with it.
+    const counts = { booked:0, declined:0, held:0 };
+    if (status === 'Meeting booked')   counts.booked = int(1,2);
+    if (status === 'Meeting held')   { counts.held = int(1,2); counts.booked = counts.held; }
+    if (status === 'Meeting declined') counts.declined = int(1,2);
+    if (status !== 'Meeting declined' && chance(.06)) counts.declined += 1;
     eventContacts.push({ id:id(), Campaign:c.id, Origin_Contact:ct.id, Account_Name:ct.Account_Name,
-      Attending_Status:pick(['Investigating','Yes','No','Investigating']),
-      Meeting_Status:pick(['Open','Open','Contacted','Meeting booked','Meeting held','Meeting declined']),
-      Priority:pick(['P1','P2','P3',null]), Source:pick(['Partner Directory','Event App','Manual',null]),
+      Attending_Status:pick(['Investigating','Yes','No','Investigating','Unknown']),
+      Meeting_Status:status,
+      Priority:pick(['P1','P2','P3',null]), Source:sources,
       Is_Target: chance(.42), Met_Last_Year: chance(.24),
-      Added_By:pick(users).full_name, BD_Comment: chance(.18) ? 'Follow up after the demo slot.' : null,
+      Priority_for_Conference: chance(.14) ? '1' : '0',
+      Booked_Meetings: counts.booked, Declined_Meetings: counts.declined, Held_Meetings: counts.held,
+      // 'Added in bulk insert' is what the accounts widget calls a MeetToMatch match
+      How_Created: pick(['Added in bulk insert','Created manually','Created manually','Created manually']),
+      Added_By:pick(users).full_name, BD_Comment: chance(.18) ? pick(BD_NOTES) : null,
+      SL_Comment: chance(.09) ? pick(SL_NOTES) : null,
       Created_Time: iso(new Date(2026, int(0,4), int(1,28))) });
   }
 }
@@ -173,7 +257,7 @@ const SYNC = ['in_sync','in_sync','in_sync','outdated','incorrect','not_in_crm',
 const meetings = [];
 for (const c of campaigns){
   const days = c.Event_Type==='Event' ? 4 : 5;
-  const n = c.Event_Type==='Event' ? 46 : 22;
+  const n = c.Is_Previous ? 30 : c.Event_Type==='Event' ? 46 : 22;
   for (let i=0;i<n;i++){
     const acc = pick(accounts);
     const day = int(0,days-1);
@@ -187,11 +271,20 @@ for (const c of campaigns){
       Meeting_DateTime_String:`${dstr(d)} ${pad(h)}:${pad(m)}`,
       Meeting_Date: iso(d), Meeting_Duration:dur,
       Meeting_Room: room, Spot: room ? null : pick(c.spots),
-      Meeting_Status: pick(['Booked','Booked','Booked','Held','Declined']),
+      Meeting_Status: pick(['Booked','Booked','Planned','Held','Held','Finished','Declined','Cancelled']),
       Target_Priority: pick([null,null,'P1','P2','P3']),
       Owner: pick(users).full_name,
       Meeting_Type: pick(['Discovery','Programme Review','Commercial','Relationship']),
       Account_Name: acc.id, Campaign: c.id,
+      // Roadshow-only columns in the original: Country/State/City replace Room/Spot,
+      // and Purpose_of_the_Meeting is shown in the tail column. Taken from the account
+      // so a multi-city roadshow still varies meeting to meeting, not just by campaign.
+      Country: c.Event_Type==='Roadshow' ? (accounts.find(a=>a.id===acc.id)||{}).Country||null : null,
+      State: c.Event_Type==='Roadshow' ? (accounts.find(a=>a.id===acc.id)||{}).State||null : null,
+      City: c.Event_Type==='Roadshow' ? (accounts.find(a=>a.id===acc.id)||{}).City||null : null,
+      Purpose_of_the_Meeting: c.Event_Type==='Roadshow'
+        ? pick(['Discovery call before the visit','Contract renewal discussion','New product introduction','Relationship / account review'])
+        : null,
       Deal: chance(.5) ? pick(deals.filter(x=>x.Account_Name===acc.id))?.id ?? null : null,
       External_Event_Id: sync==='not_in_crm' ? null : 'EVT'+id().slice(-9),
       Calendar_UID: chance(.85) ? 'UID'+id().slice(-10) : null,
@@ -199,11 +292,24 @@ for (const c of campaigns){
       Sync_State: sync,
       External_Modified: sync==='outdated' ? iso(new Date(2026, int(0,4), int(1,28))) : null,
       Recap: chance(.35) ? 'Reviewed the enclosure tolerances and agreed to re-scope the thermal work.' : null,
-      Attendees_String: [...new Set(Array.from({length:int(1,3)},()=>pick(c.attendees).Name1))].join(', '),
-      participants: Array.from({length:int(1,4)},()=>{
-        const ct = pick(contacts.filter(x=>x.Account_Name===acc.id)) || pick(contacts);
-        return { Name1:ct.Full_Name, Position:ct.Title, Type:pick(ROLES), Email:ct.Email, Group:'External' };
-      })
+      // Buyers (roles Economic/Technical/User/Coach Buyer) and our own our-side attendees are the
+      // same sabform in the original, split by Type — not two different pools. our side names are
+      // ours (c.attendees), buyer names are the account's contacts. Attendees_String is derived
+      // from the our side slice, same as oursText in the original falls back to it.
+      ...(() => {
+        const buyers = Array.from({length:int(1,4)},()=>{
+          const ct = pick(contacts.filter(x=>x.Account_Name===acc.id)) || pick(contacts);
+          return { Name1:ct.Full_Name, Position:ct.Title, Type:pick(ROLES), Email:ct.Email, Group:'External' };
+        });
+        const ours = Array.from({length:int(1,2)},()=>{
+          const a = pick(c.attendees);
+          return { Name1:a.Name1, Position:null, Type:'Our Attendee', Email:a.Email, Group:'Internal' };
+        });
+        return {
+          participants: [...buyers, ...ours],
+          Attendees_String: [...new Set(ours.map(p=>p.Name1))].join(', ')
+        };
+      })()
     });
   }
 }
@@ -249,11 +355,11 @@ for (const dl of deals.filter(d=>d.Stage!=='5. Lost').slice(0,14)){
 const enrichAccount = accounts[0];                       // the holding, so hierarchy matters
 const family = [enrichAccount.id, ...accounts.filter(a=>a.Main_Parent_Account===enrichAccount.id).map(a=>a.id)];
 const known = contacts.filter(c => family.includes(c.Account_Name));
-const providerPeople = [];
+const knownPeople = [];
 known.slice(0, 14).forEach((c, i) => {
   const viaHierarchy = c.Account_Name !== enrichAccount.id;
   const urlOnly = i % 4 === 3 && c.Linkedin;             // matched only by normalised profile URL
-  providerPeople.push({
+  knownPeople.push({
     id:'PP'+id().slice(-8), Full_Name:c.Full_Name, Title:c.Title, Seniority:c.Seniority,
     Email: urlOnly ? null : c.Email,
     Linkedin: c.Linkedin ? c.Linkedin + (i % 3 === 0 ? '/' : '') : null,   // trailing slash on purpose
@@ -266,9 +372,10 @@ known.slice(0, 14).forEach((c, i) => {
       From: iso(new Date(2016+k*3, int(0,11), 1)), To: k===0 ? null : iso(new Date(2019+k*3, int(0,11), 1)) }))
   });
 });
+const newPeople = [];
 for (let i=0;i<18;i++){
   const fn = pick(FN), ln = pick(LN), [title,sen] = pick(TITLES);
-  providerPeople.push({
+  newPeople.push({
     id:'PP'+id().slice(-8), Full_Name:`${fn} ${ln}`, Title:title, Seniority:sen,
     Email: chance(.7) ? `${fn[0].toLowerCase()}.${slug(ln)}@${slug(enrichAccount.Account_Name)}.example` : null,
     Linkedin: chance(.8) ? `https://www.linkedin.com/in/${slug(fn+'-'+ln)}-${int(10,99)}` : null,
@@ -278,6 +385,16 @@ for (let i=0;i<18;i++){
       Company: pick(A1)+' '+pick(A2), Title: pick(TITLES)[0],
       From: iso(new Date(2015+k*3, int(0,11), 1)), To: k===0 ? null : iso(new Date(2018+k*3, int(0,11), 1)) }))
   });
+}
+// Interleaved, not concatenated: any UI that takes a name-filtered prefix of this list (e.g. the
+// "create from provider" search, which slices its first 8 matches) must not end up dup-heavy just
+// because knownPeople happened to sit first in the array. Round-robin keeps a fresh, creatable
+// person within reach of any short prefix regardless of which names the seed happens to produce.
+const providerPeople = [];
+const maxLen = Math.max(knownPeople.length, newPeople.length);
+for (let i=0;i<maxLen;i++){
+  if (i < newPeople.length) providerPeople.push(newPeople[i]);
+  if (i < knownPeople.length) providerPeople.push(knownPeople[i]);
 }
 const enrichment = { Account: enrichAccount.id, People: providerPeople };
 
@@ -356,7 +473,7 @@ for (let i=0;i<1240;i++){
   const nouns = ['meeting','account','deal','contact','recap','summary','status','owner','schedule','invite','report','tag'];
   // The verdict has to follow from the evidence, not sit beside it: a function
   // labelled dead with a visible entry point is the first thing a reader spots.
-  const f = { id:'F'+(5511000000000+i), api_name:`${pick(verbs)}_${pick(nouns)}_${mod.toLowerCase()}${i%7?'':'_v2'}`,
+  const f = { id:'F'+(7100000000000+i), api_name:`${pick(verbs)}_${pick(nouns)}_${mod.toLowerCase()}${i%7?'':'_v2'}`,
     category:cat, module:mod, status:st, lines:int(12, 640),
     last_modified: iso(new Date(int(2023,2026), int(0,11), int(1,28))),
     entry_workflow:false, entry_button:false, entry_widget:false, entry_scheduler:false,
@@ -387,7 +504,7 @@ for (let i=0;i<1240;i++){
 for (let i=0;i<284;i++){
   const active = chance(.78);
   const never = active && chance(.05);
-  orgRules.push({ id:'R'+(6149600000000+i), name:`${pick(['On create','On edit','On stage change','On close','Daily'])} — ${pick(MODULES_FN)} ${pick(['notify','sync','recalc','assign'])}`,
+  orgRules.push({ id:'R'+(7200000000000+i), name:`${pick(['On create','On edit','On stage change','On close','Daily'])} — ${pick(MODULES_FN)} ${pick(['notify','sync','recalc','assign'])}`,
     module:pick(MODULES_FN), trigger:pick(['create','edit','field_update','date_time']), active,
     last_executed: never ? null : (active ? iso(new Date(2026, int(0,7), int(1,28))) : iso(new Date(int(2023,2025), int(0,11), int(1,28)))),
     criteria_count:int(0,4), actions:int(1,3), duplicate_group: chance(.15) ? 'G'+int(1,18) : null });
@@ -456,6 +573,9 @@ for (let i=0;i<9;i++){ const nm = `${pick(A1)} ${pick(A2)}`;
     City:pick(CITY)[1], Country:pick(CITY)[0], Industry:pick(['Consumer Hardware','Medical Devices','Industrial IoT']),
     Headcount:int(30,900), Linked_Account:null }); }
 
+/* Contacts overall, as the CRM keeps it on the account record. */
+accounts.forEach(a => { a.Count_of_Contacts = contacts.filter(c => c.Account_Name === a.id).length; });
+
 /* ---------- assemble ---------- */
 campaigns.forEach(c => c.attendees.forEach(a => {
   const [f,l] = a.Name1.split(' ');
@@ -463,7 +583,7 @@ campaigns.forEach(c => c.attendees.forEach(a => {
 }));
 const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', seed:20260826 },
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
-  Deals:deals, Potentials:potentials, Campaigns:campaigns, Event_Contacts:eventContacts,
+  Deals:deals, Potentials:potentials, BU_Contacts:buContacts, Campaigns:campaigns, Event_Contacts:eventContacts,
   Meetings:meetings, Messages:messages, Enrichment:enrichment,
   Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs, Provider_Orgs:providerOrgs };
 
@@ -473,15 +593,19 @@ writeFileSync('data/dataset.json', JSON.stringify(db));
 // The slim build must stay referentially whole: a row that points at a record
 // which did not make the cut renders as a blank cell, which looks like a bug in
 // the widget rather than a bug in the fixture.
-const slimContacts = contacts.filter((c,i)=> c.Account_Name===accounts[2].id ? i%6===0 : true).slice(0,220);
+const slimContacts = contacts.filter((c,i)=> c.Account_Name===accounts[2].id ? i%6===0 : true).slice(0,400);
 const contactIds = new Set(slimContacts.map(c=>c.id));
-const slimEC = eventContacts.filter(e=>contactIds.has(e.Origin_Contact)).slice(0,300);
+// per campaign, so last year's edition survives the trim and the previous-event
+// branch of the accounts widget still has something to match against
+const slimEC = campaigns.flatMap(c => eventContacts
+  .filter(e => e.Campaign === c.id && contactIds.has(e.Origin_Contact)).slice(0,250));
 const slimDeals = deals;
 const dealIds = new Set(slimDeals.map(d=>d.id));
 const slim = { ...db,
   Contacts: slimContacts,
   Plan_Players: planPlayers.filter(p=>contactIds.has(p.Contact)),
   Employment: employment.filter(e=>contactIds.has(e.Contact)),
+  BU_Contacts: buContacts.filter(bc=>contactIds.has(bc.Contact)),
   Event_Contacts: slimEC,
   Messages: messages.filter(m=>dealIds.has(m.Deal)).slice(0,120) };
 const dangling = slimEC.filter(e=>!contactIds.has(e.Origin_Contact)).length

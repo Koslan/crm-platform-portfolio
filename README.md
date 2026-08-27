@@ -16,7 +16,7 @@ npm install
 npx playwright install chromium     # only needed for the tests
 npm run build                       # dataset -> emulator -> dist/index.html
 npm run serve                       # http://localhost:8080
-npm test                            # 143 headless checks
+npm test                            # 162 headless checks
 ```
 
 `npm run verify` does build + test in one go — the same thing CI runs.
@@ -55,7 +55,7 @@ The guards exist because this is a portfolio, and a portfolio that leaks is wors
    renders as a blank cell, which reads as a bug in the widget rather than a bug in the fixture.
 2. **Identifier scan** — the build fails if anything resembling a real org id, host, corporate
    domain or API key appears in the sources.
-3. **Behaviour** — 143 headless checks across routing, the query console, the record pages, the
+3. **Behaviour** — 162 headless checks across routing, the query console, the record pages, the
    wizard and the chat flow, failing on any console error.
 
 ## Adding a widget
@@ -66,6 +66,15 @@ The guards exist because this is a portfolio, and a portfolio that leaks is wors
 4. Register whatever server-side functions it calls: `mockZoho.registerFunction(name, fn)`.
 5. Point a page at `widgets/<name>/index.html` in a frame — the platform loads widgets in one
    too, so this is faithful as well as convenient.
+
+## Bringing a surface closer to its original
+
+The replicas were built from descriptions of the widgets, not from their code, so some read as
+*similar* rather than *the same*. `prompts/fidelity-pass.md` is a reusable prompt that fixes one
+surface at a time: read the original, write down every difference in labels, order, states and
+behaviour, agree what to take, then edit only that surface's file and re-run the suite.
+`docs/fidelity-map.md` is the lookup it depends on, and the scrubbing rules live at its foot —
+form and behaviour come across from the original, content never does.
 
 ## House rules
 

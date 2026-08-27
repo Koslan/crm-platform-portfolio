@@ -18,6 +18,7 @@
     Messages:{ Deal:'Deals' },
     Potentials:{ Programme:'Programmes' },
     Accounts:{ Main_Parent_Account:'Accounts' },
+    Campaigns:{ Previous_Event_Campaigns:'Campaigns' },
     Plan_Players:{ Account_Name:'Accounts', Contact:'Contacts' },
     Plan_Actions:{ Account_Name:'Accounts' },
     Service_Matrix:{ Account_Name:'Accounts' },
@@ -46,11 +47,12 @@
   RELATED.Accounts.Service_Matrix = ['Service_Matrix','Account_Name'];
   RELATED.Contacts.Employment = ['Employment','Contact'];
   const PICKLISTS = {
-    Meetings:{ Meeting_Status:['Booked','Held','Declined'] },
-    Event_Contacts:{ Attending_Status:['Investigating','Yes','No'],
-      Meeting_Status:['Open','Contacted','Meeting booked','Meeting held','Meeting declined'],
-      Priority:['P1','P2','P3'] },
-    Deals:{ Stage:['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost'] },
+    Meetings:{ Meeting_Status:['Booked','Planned','Held','Finished','Declined','Cancelled'] },
+    Event_Contacts:{ Attending_Status:['Investigating','Yes','No','Unknown'],
+      Meeting_Status:['Open','Contacted','Meeting booked','Meeting held','Meeting declined',
+        'No Reply','Not interested','Not attending',"Don't contact"],
+      Priority:['P1','P2','P3'], Priority_for_Conference:['0','1'] },
+    Deals:{ Stage:['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost','Recommendation','Duplicate'] },
     Plan_Players:{ Player_Role:['Sponsor','Strategic coach','Neutral','Anti-sponsor'] },
     Plan_Actions:{ Status:['Not started','In progress','Done','At risk'] },
     Employment:{ Status:['Current','Past'] }
