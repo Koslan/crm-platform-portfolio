@@ -70,6 +70,110 @@ const logTxt = await p.locator('#b-log').textContent();
 say('board: console carries real entries', /coql/.test(logTxt) && /save/.test(logTxt));
 await p.screenshot({path:'b3-console.png'});
 
+/* --- "Add meeting" wizard --- */
+await p.click('#b-close'); await p.waitForTimeout(300);   // the on-screen console from the check above is still open
+const boardBefore = +(await p.locator('#b-pills button').first().locator('b').textContent());
+await p.click('#b-add');
+await p.waitForSelector('#b-wiz.on', {timeout:5000});
+say('wizard opens', true);
+say('wizard: blocked with no account', await p.locator('#bwNext').isDisabled());
+
+const seed = await p.evaluate(()=>window.__DATA__.Accounts.find(a=>!a.Parent_Account).Account_Name.slice(0,3));
+await p.fill('#bwAcc', seed);
+await p.waitForTimeout(400);
+const wHits = await p.locator('#bwBody .bw-opt').count();
+say('wizard: account search returns hits ('+wHits+')', wHits>0);
+await p.locator('#bwBody .bw-opt').first().click();
+// picking an account auto-advances to step 2 in this wizard, unlike the desktop one
+await p.waitForSelector('#bwBody .bw-role', {timeout:5000});
+await p.waitForTimeout(400);
+say('wizard: step 2 has four buyer roles', (await p.locator('.bw-role').count())===4);
+say('wizard: blocked until a buyer is picked', await p.locator('#bwNext').isDisabled());
+
+// exclusivity: find an account with 5+ working contacts so the search-picker sheet (not chips) is exercised
+const bigAcc = await p.evaluate(async () => {
+  for (const a of window.__DATA__.Accounts) {
+    const r = await ZOHO.CRM.API.coql({ select_query:
+      `select id from Contacts where Account_Name = '${a.id}' and Contact_Status = 'Working' limit 10` });
+    if (r.data.length >= 5) return a.Account_Name;
+  }
+  return null;
+});
+say('wizard: an account with 5+ contacts exists to test the picker ('+bigAcc+')', !!bigAcc);
+if (bigAcc) {
+  await p.click('#bwX');
+  await p.waitForTimeout(300);
+  await p.click('#b-add');
+  await p.waitForSelector('#b-wiz.on');
+  await p.fill('#bwAcc', bigAcc);
+  await p.waitForTimeout(400);
+  await p.locator('#bwBody .bw-opt', { hasText: bigAcc }).first().click();
+  await p.waitForSelector('#bwBody .bw-add', {timeout:5000});
+  await p.waitForTimeout(300);
+  say('wizard: 5+ contacts switches to the search picker', (await p.locator('.bw-add').count())===4);
+  await p.locator('.bw-add[data-addrole="Economic"]').click();
+  await p.waitForSelector('#bwPick.on', {timeout:3000});
+  const pickerName = (await p.locator('#bwPickList .bw-pick-row .n').first().textContent()).trim();
+  await p.locator('#bwPickList .bw-pick-row').first().click();
+  await p.waitForTimeout(150);
+  await p.click('#bwPickClose');
+  await p.waitForTimeout(150);
+  say('wizard: buyer picked as Economic', (await p.evaluate(()=>MobileBoard.w.buyers.Economic.length))===1);
+  // roles are exclusive: moving the same person to Technical must drop them from Economic
+  await p.locator('.bw-add[data-addrole="Technical"]').click();
+  await p.waitForSelector('#bwPick.on');
+  await p.locator('#bwPickList .bw-pick-row', { hasText: pickerName }).first().click();
+  await p.waitForTimeout(150);
+  await p.click('#bwPickClose');
+  await p.waitForTimeout(150);
+  const buyersAfterMove = await p.evaluate(()=>JSON.parse(JSON.stringify(MobileBoard.w.buyers)));
+  say('wizard: buyer roles are mutually exclusive',
+    buyersAfterMove.Economic.length===0 && buyersAfterMove.Technical.includes(pickerName));
+} else {
+  await p.locator('.bw-chip[data-role]').first().click();
+  await p.waitForTimeout(150);
+}
+
+await p.locator('.bw-chip[data-team]').first().click();
+await p.waitForTimeout(200);
+say('wizard: unblocks once a buyer and our-side attendee are picked', !(await p.locator('#bwNext').isDisabled()));
+await p.click('#bwNext');
+await p.waitForSelector('#bwBody .bw-cap, #bwBody .bw-warn', {timeout:5000});
+say('wizard: step 3 shows rooms with capacity or a no-rooms warning', true);
+await p.click('#bwNext');
+await p.waitForSelector('.bw-slotrow, .bw-grid', {timeout:8000});
+await p.waitForTimeout(300);
+const listSlots = await p.locator('.bw-slotrow').count();
+say('wizard: suggested-times slots computed ('+listSlots+')', listSlots>0);
+await p.click('.bw-seg button[data-view="grid"]');
+await p.waitForSelector('.bw-grid table', {timeout:3000});
+say('wizard: 15-min grid renders', (await p.locator('.bw-grid tbody tr').count())>0);
+await p.click('.bw-seg button[data-view="list"]');
+await p.waitForTimeout(200);
+await p.locator('.bw-slotrow[data-slot]').first().click();
+await p.waitForTimeout(150);
+await p.screenshot({path:'b4-wizard.png'});
+say('wizard: slot pick unblocks step 4', !(await p.locator('#bwNext').isDisabled()));
+await p.click('#bwNext');
+await p.waitForSelector('.bw-review', {timeout:5000});
+say('wizard: review lists the campaign time zone', /zone/i.test(await p.locator('.bw-review').textContent()));
+say('wizard: purpose is optional — step 5 is not blocked', !(await p.locator('#bwNext').isDisabled()));
+await p.click('#bwNext');
+await p.waitForSelector('.bw-done', {timeout:8000});
+say('wizard: booking wrote a record', /Meeting booked/.test(await p.locator('.bw-done').textContent()));
+await p.screenshot({path:'b5-wizard-done.png'});
+const createdId = await p.evaluate(()=>MobileBoard.w.createdId);
+const createdRec = await p.evaluate(async id => (await ZOHO.CRM.API.getRecord({ Entity:'Meetings', RecordID:id })).data[0], createdId);
+// the buyer was moved to Technical during the exclusivity check above — the written participant
+// must carry that role, not a hardcoded 'Economic Buyer' (a real bug on the desktop Wizard)
+say('wizard: participant role is the one actually picked, not a hardcoded default',
+  bigAcc ? createdRec.participants.some(x => x.Type === 'Technical buyer')
+         : !!createdRec.participants.length);
+await p.click('#bwFinish');
+await p.waitForTimeout(500);
+say('wizard: closes and the new meeting appears on the board',
+  +(await p.locator('#b-pills button').first().locator('b').textContent()) === boardBefore + 1);
+
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,5).join('\n'));
 await b.close();

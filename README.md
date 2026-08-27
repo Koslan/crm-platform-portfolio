@@ -16,7 +16,7 @@ npm install
 npx playwright install chromium     # only needed for the tests
 npm run build                       # dataset -> emulator -> dist/index.html
 npm run serve                       # http://localhost:8080
-npm test                            # 162 headless checks
+npm test                            # 181 headless checks
 ```
 
 `npm run verify` does build + test in one go — the same thing CI runs.
@@ -33,7 +33,7 @@ npm test                            # 162 headless checks
 | `src/event-page.js` | Event campaign record: Overview, Contacts, Meetings, and the booking wizard. |
 | `src/pages.js` | Solution map, contact enrichment, deal conversations. |
 | `src/teams.js` | Emulated chat client and the two-card recap flow. |
-| `src/board.js` | Room schedule with lane layout, and the mobile meeting board with its on-screen console. |
+| `src/board.js` | Room schedule with lane layout, and the mobile meeting board with its own "Add meeting" wizard and on-screen console. |
 | `src/widgets2.js` | Calendar reconciliation, account snapshot, development plan, employment history. |
 | `src/orghealth.js` | Org health report — function reachability, connections, rules, dependency graph. |
 | `src/widgets3.js` | Account hierarchy tree and the sales cockpit. |
@@ -55,8 +55,8 @@ The guards exist because this is a portfolio, and a portfolio that leaks is wors
    renders as a blank cell, which reads as a bug in the widget rather than a bug in the fixture.
 2. **Identifier scan** — the build fails if anything resembling a real org id, host, corporate
    domain or API key appears in the sources.
-3. **Behaviour** — 162 headless checks across routing, the query console, the record pages, the
-   wizard and the chat flow, failing on any console error.
+3. **Behaviour** — 181 headless checks across routing, the query console, the record pages, both
+   booking wizards and the chat flow, failing on any console error.
 
 ## Adding a widget
 

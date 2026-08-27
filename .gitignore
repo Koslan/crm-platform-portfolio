@@ -10,6 +10,10 @@ data/dataset.slim.json
 # The notes quote the original org's module and field names, so they stay on disk.
 *.bak-before-*
 _to_delete/
-docs/fidelity-accounts.md
-docs/fidelity-contacts.md
-docs/fidelity-solutionmap.md
+# Notes from a fidelity pass quote the original org's modules, fields and domains
+# verbatim. Match them by shape rather than by name: the last one landed in claude/
+# instead of docs/ and the by-name rule missed it.
+docs/fidelity-*.md
+!docs/fidelity-map.md
+claude/
+*fidelity-*notes*.md
