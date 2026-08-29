@@ -250,56 +250,101 @@ const CSS_TRK = `
 .trk-tech tr:first-child td{border-top:0}
 
 /* ---- Microsoft Teams recreation ---- */
-.tmw{--bg:#1F1F1F;--bg2:#2B2B2B;--bg3:#242424;--acc:#6264A7;--ink:#F5F5F5;--ink2:#BDBDBD;--ln:#3A3A3A;
-  background:var(--bg);color:var(--ink);font-family:"Segoe UI","IBM Plex Sans",sans-serif;
+.tmw{--bg:#1B1A19;--bg2:#292827;--bg3:#242322;--rail:#1B1A19;--acc:#6264A7;--acc2:#7B83EB;
+  --ink:#F5F5F5;--ink2:#C8C6C4;--ink3:#8A8886;--ln:#3B3A39;
+  background:var(--bg2);color:var(--ink);font-family:"Segoe UI","IBM Plex Sans",sans-serif;
   display:grid;grid-template-rows:auto 1fr;min-height:600px}
 .tmw *{box-sizing:border-box}
-.tmw .top{display:flex;align-items:center;gap:16px;padding:9px 16px;border-bottom:1px solid var(--ln)}
-.tmw .top .logo{font:600 13.5px/1 "Segoe UI",sans-serif;display:flex;align-items:center;gap:7px}
-.tmw .top .logo i{width:20px;height:20px;border-radius:4px;background:var(--acc);display:inline-block}
-.tmw .top .srch{flex:1;max-width:420px;background:var(--bg3);border:1px solid var(--ln);border-radius:5px;
-  padding:6px 10px;font-size:12.5px;color:var(--ink2)}
-.tmw .body{display:grid;grid-template-columns:52px 220px minmax(0,1fr);min-height:0}
-.tmw .rail{background:var(--bg);border-right:1px solid var(--ln);display:flex;flex-direction:column;
-  align-items:center;gap:16px;padding:14px 0;font-size:9.5px;color:var(--ink2)}
-.tmw .rail span{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tmw .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
+  padding:0 10px;height:48px;background:var(--rail);border-bottom:1px solid var(--ln)}
+.tmw .top .logo{font:600 14px/1 "Segoe UI",sans-serif;display:flex;align-items:center;gap:8px;color:#fff}
+.tmw .top .logo i{width:24px;height:24px;border-radius:5px;flex:none;display:inline-block;position:relative;
+  background:linear-gradient(135deg,#5b5fc7,#7b83eb)}
+.tmw .top .logo i::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font:700 13px/1 "Segoe UI",sans-serif;color:#fff}
+.tmw .top .srch{justify-self:center;width:100%;max-width:420px;background:var(--bg3);border:1px solid var(--ln);
+  border-radius:5px;padding:6px 10px 6px 30px;font-size:12.5px;color:var(--ink3);position:relative}
+.tmw .top .srch-wrap{position:relative;width:100%;max-width:420px}
+.tmw .top .srch-wrap::before{content:'\\1F50D';position:absolute;left:9px;top:50%;transform:translateY(-50%) scale(.8);
+  opacity:.65;font-size:12px}
+.tmw .top .side{display:flex;align-items:center;gap:14px;font-size:15px;color:var(--ink2)}
+.tmw .top .side.r{justify-content:flex-end}
+.tmw .top .side .av{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;
+  font:600 10.5px/26px "Segoe UI",sans-serif;text-align:center;display:block;flex:none}
+.tmw .body{display:grid;grid-template-columns:68px 232px minmax(0,1fr);min-height:0;background:transparent;border:0;border-radius:0;padding:0}
+.tmw .rail{background:var(--rail);border-right:1px solid var(--ln);display:flex;flex-direction:column;
+  align-items:center;padding:12px 0;font-size:9.5px;color:var(--ink3)}
+.tmw .rail .me{width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;
+  font:600 11px/28px "Segoe UI",sans-serif;text-align:center;margin-bottom:18px;flex:none}
+.tmw .rail nav{display:flex;flex-direction:column;gap:2px;width:100%;align-items:center}
+.tmw .rail span{display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;padding:6px 0;
+  border-radius:4px;position:relative}
 .tmw .rail span.on{color:#fff}
-.tmw .rail span.on i{background:var(--acc)}
-.tmw .rail i{width:26px;height:26px;border-radius:6px;background:var(--bg2);display:block}
-.tmw .chans{background:var(--bg);border-right:1px solid var(--ln);overflow:auto;padding:10px 0}
-.tmw .chans h6{font:600 11px/1 "Segoe UI",sans-serif;color:var(--ink2);padding:6px 14px;margin:0}
+.tmw .rail span.on::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:3px;
+  border-radius:0 3px 3px 0;background:#fff}
+.tmw .rail i{display:block;font-size:16px;line-height:20px;font-style:normal}
+.tmw .rail b{font-weight:400;font-size:9.5px;line-height:1}
+.tmw .rail .apps{margin-top:auto;padding-top:14px}
+.tmw .chans{background:var(--bg2);border-right:1px solid var(--ln);overflow:auto;display:flex;flex-direction:column}
+.tmw .chans .team-hd{display:flex;align-items:center;gap:8px;padding:12px 14px 8px;font:600 13px/1.2 "Segoe UI",sans-serif;color:#fff}
+.tmw .chans .team-hd i{width:20px;height:20px;border-radius:4px;background:var(--acc);flex:none}
+.tmw .chans .team-hd b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmw .chans .team-hd .cv{color:var(--ink3);font-size:10px}
 .tmw .chan-grp{padding:2px 8px 10px}
-.tmw .chan{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:5px;font-size:12.5px;color:var(--ink2)}
-.tmw .chan[aria-current="true"]{background:var(--bg2);color:#fff;font-weight:600}
-.tmw .chan .dot{width:6px;height:6px;border-radius:99px;background:var(--ln);flex:none}
+.tmw .chan{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:4px;font-size:13px;color:var(--ink2)}
+.tmw .chan[aria-current="true"]{background:var(--bg3);color:#fff;font-weight:600}
+.tmw .chan .hash{color:var(--ink3);font-weight:400;flex:none}
+.tmw .chan[aria-current="true"] .hash{color:var(--ink2)}
 .tmw .thr{display:flex;flex-direction:column;min-width:0}
-.tmw .thr-hd{padding:11px 18px;border-bottom:1px solid var(--ln);font:600 14px/1.3 "Segoe UI",sans-serif}
-.tmw .thr-hd .sub{font:400 11.5px/1 "Segoe UI",sans-serif;color:var(--ink2);margin-top:3px}
-.tmw .threads{display:flex;gap:0;padding:8px 18px 0;border-bottom:1px solid var(--ln);flex-wrap:wrap}
-.tmw .threads button{background:none;border:0;border-bottom:2px solid transparent;color:var(--ink2);
-  font:400 12px/1 "Segoe UI",sans-serif;padding:7px 4px;margin-right:16px;cursor:pointer;text-align:left}
-.tmw .threads button[aria-current="true"]{color:#fff;border-bottom-color:var(--acc)}
-.tmw .canvas{overflow:auto;flex:1;padding:16px 18px}
-.tmw .msg{display:flex;gap:10px;margin-bottom:16px}
+.tmw .thr-hd{padding:9px 18px 0;border-bottom:1px solid var(--ln)}
+.tmw .thr-hd .crumb{display:flex;align-items:center;gap:6px;font:600 15px/1.3 "Segoe UI",sans-serif;color:#fff;flex-wrap:wrap}
+.tmw .thr-hd .crumb .team{color:var(--ink2);font-weight:400;font-size:13px}
+.tmw .thr-hd .crumb .sep{color:var(--ink3);font-weight:400}
+.tmw .thr-hd .sub{font:400 11.5px/1 "Segoe UI",sans-serif;color:var(--ink3);margin:4px 0 8px}
+.tmw .thr-hd .ptabs{display:flex;gap:20px}
+.tmw .thr-hd .ptabs span{font:500 12.5px/1 "Segoe UI",sans-serif;color:var(--ink3);padding:8px 2px;
+  border-bottom:2px solid transparent}
+.tmw .thr-hd .ptabs span.on{color:#fff;border-bottom-color:var(--acc2)}
+.tmw .jump{display:flex;align-items:center;gap:0;padding:7px 18px;border-bottom:1px solid var(--ln);
+  flex-wrap:wrap;background:var(--bg3)}
+.tmw .jump .lbl{font:600 10px/1 "Segoe UI",sans-serif;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);margin-right:12px}
+.tmw .jump button{background:none;border:0;border-bottom:2px solid transparent;color:var(--ink2);
+  font:400 12px/1 "Segoe UI",sans-serif;padding:6px 4px;margin-right:16px;cursor:pointer;text-align:left}
+.tmw .jump button[aria-current="true"]{color:#fff;border-bottom-color:var(--acc2)}
+.tmw .canvas{overflow:auto;flex:1;padding:16px 18px 6px}
+.tmw .msg{display:flex;gap:10px;margin-bottom:2px;padding:6px 8px;border-radius:6px;position:relative;border:0}
+.tmw .msg:hover{background:var(--bg3)}
+.tmw .msg+.msg{margin-top:14px}
 .tmw .msg .av{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
   font:600 11px/1 "Segoe UI",sans-serif;color:#fff}
+.tmw .msg .hover{position:absolute;top:-14px;right:10px;display:none;align-items:center;gap:2px;
+  background:var(--bg3);border:1px solid var(--ln);border-radius:6px;padding:3px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.tmw .msg:hover .hover{display:flex}
+.tmw .msg .hover i{width:24px;height:24px;border-radius:4px;font-size:13px;display:flex;align-items:center;justify-content:center}
 .tmw .msg .who{font:600 12.5px/1 "Segoe UI",sans-serif;color:#fff}
-.tmw .msg .who span{font-weight:400;color:var(--ink2);margin-left:8px;font-size:11px}
-.tmw .msg .bd{font-size:13px;line-height:1.5;color:var(--ink);white-space:pre-wrap;margin-top:4px}
+.tmw .msg .who span{font-weight:400;color:var(--ink3);margin-left:8px;font-size:11px}
+.tmw .msg .bd{font-size:13.5px;line-height:1.5;color:var(--ink);white-space:pre-wrap;margin-top:3px}
 .tmw .msg .bd b.pitch{color:#9698d6;font-weight:600}
 .tmw .msg .tag{display:inline-block;margin-top:6px;font:500 11px/1 "IBM Plex Mono",monospace;color:#9698d6;
   background:rgba(98,100,167,.22);border-radius:4px;padding:3px 7px}
 .tmw .msg .att{margin-top:7px;font-size:12px;color:#9698d6}
 .tmw .msg .rx{margin-top:8px;min-height:1px}
-.tmw .msg .rx .ticket{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--ln);
+.tmw .msg .rx .ticket{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--ln);
   border-radius:14px;padding:3px 10px;font-size:12px;color:var(--ink2)}
 .tmw .sysmsg{margin:0 0 16px;border:1px solid var(--ln);border-radius:8px;background:var(--bg3);padding:12px 14px}
 .tmw .sysmsg h6{margin:0 0 6px;font:600 12.5px/1.3 "Segoe UI",sans-serif;color:#fff}
 .tmw .sysmsg .row{margin-top:7px}
-.tmw .sysmsg .row b{color:var(--ink2);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px}
+.tmw .sysmsg .row b{color:var(--ink3);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px}
 .tmw .sysmsg .row div{font-size:12.5px;line-height:1.5;color:var(--ink)}
-@media(max-width:900px){.tmw .body{grid-template-columns:44px 1fr}.tmw .chans{display:none}}
-@media(max-width:680px){.tmw .body{grid-template-columns:1fr}.tmw .rail{display:none}.tmw,.jrw{min-height:480px}}
+.tmw .compose{margin:6px 18px 14px;border:1px solid var(--ln);border-radius:8px;background:var(--bg3)}
+.tmw .compose .fld{padding:10px 12px 4px;font-size:13px;color:var(--ink3)}
+.tmw .compose .tools{display:flex;align-items:center;gap:14px;padding:4px 10px 8px;font-size:14px;color:var(--ink3);margin-bottom:0;flex-wrap:nowrap}
+.tmw .compose .tools .send{margin-left:auto;color:var(--ink3);opacity:.5}
+.tmw .compose .note{padding:0 12px 9px;font:400 10.5px/1.4 "Segoe UI",sans-serif;color:var(--ink3);font-style:italic}
+@media(max-width:900px){.tmw .body{grid-template-columns:56px 1fr}.tmw .chans{display:none}}
+@media(max-width:680px){.tmw .body{grid-template-columns:1fr}.tmw .rail{display:none}.tmw,.jrw{min-height:480px}
+  .tmw .top{grid-template-columns:auto 1fr auto}.tmw .top .srch-wrap{max-width:none}}
 
 /* ---- Jira recreation ---- */
 .jrw{--bg:#FFFFFF;--bg2:#F7F8F9;--acc:#0C66E4;--ink:#172B4D;--ink2:#5E6C84;--ln:#DFE1E6;
@@ -311,7 +356,7 @@ const CSS_TRK = `
 .jrw .top nav{display:flex;gap:16px;font-size:12.5px;color:var(--ink2)}
 .jrw .top .srch{flex:1;max-width:340px;background:var(--bg2);border:1px solid var(--ln);border-radius:4px;
   padding:6px 10px;font-size:12.5px;color:var(--ink2);margin-left:auto}
-.jrw .body{display:grid;grid-template-columns:190px minmax(0,1fr);min-height:0}
+.jrw .body{display:grid;grid-template-columns:190px minmax(0,1fr);min-height:0;background:transparent;border:0;border-radius:0;padding:0}
 .jrw .side{background:var(--bg2);border-right:1px solid var(--ln);padding:14px 0}
 .jrw .side h6{font:600 11px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);
   padding:0 16px 8px;margin:0}
@@ -498,12 +543,13 @@ const Tracker = {
   },
 
   threadHTML(root, replies, showBw) {
-    let h = `<div class="msg"><span class="av" style="background:${hue(root.author)}">${ini(root.author)}</span>
+    const hoverIcons = `<span class="hover"><i title="Like">&#128077;</i><i title="Reply">&#8617;</i><i title="React">&#128512;</i><i title="More">&#8943;</i></span>`;
+    let h = `<div class="msg">${hoverIcons}<span class="av" style="background:${hue(root.author)}">${ini(root.author)}</span>
       <div><div class="who">${E(root.author)}<span>${E(root.when)} &middot; root message</span></div>
       <div class="bd">${this.bodyWithPitch(root.text)}</div></div></div>`;
     replies.forEach(r => {
       const delivered = !!this.delivered[r.id];
-      h += `<div class="msg"><span class="av" style="background:${hue(r.author)}">${ini(r.author)}</span>
+      h += `<div class="msg">${hoverIcons}<span class="av" style="background:${hue(r.author)}">${ini(r.author)}</span>
         <div><div class="who">${E(r.author)}<span>${E(r.when)} &middot; reply</span></div>
         <div class="bd">${this.mentionJira(r.text, r.mention)}</div>
         <div class="tag">${E(r.tag)}</div>
@@ -519,22 +565,46 @@ const Tracker = {
     const root = this.thread === 'pitch' ? ROOT : ROOT_NOPITCH;
     const replies = this.thread === 'pitch' ? REPLIES : [];
     const showBw = this.thread === 'pitch' && this.bw.delivered;
-    return `<div class="top"><div class="logo"><i></i> Teams</div><div class="srch">Search</div></div>
+    return `<div class="top">
+        <div class="logo"><i></i> Teams</div>
+        <div class="srch-wrap"><div class="srch">Search</div></div>
+        <div class="side r"><span title="Help">&#63;</span><span title="Settings">&#9881;</span><span class="av">KB</span></div>
+      </div>
       <div class="body">
-        <div class="rail"><span>&#128172;<br>Chat</span><span class="on">&#128101;<br>Teams</span><span>&#128197;<br>Calendar</span></div>
-        <div class="chans"><h6>[PRJ] Presale</h6>
+        <div class="rail">
+          <div class="me">KB</div>
+          <nav>
+            <span title="Activity"><i>&#128276;</i><b>Activity</b></span>
+            <span title="Chat"><i>&#128172;</i><b>Chat</b></span>
+            <span class="on" title="Teams"><i>&#128101;</i><b>Teams</b></span>
+            <span title="Calendar"><i>&#128197;</i><b>Calendar</b></span>
+            <span title="Calls"><i>&#128222;</i><b>Calls</b></span>
+          </nav>
+          <span class="apps" title="Apps"><i>&#8943;</i><b>Apps</b></span>
+        </div>
+        <div class="chans">
+          <div class="team-hd"><i></i><b>[PRJ] Presale</b><span class="cv">&#9662;</span></div>
           <div class="chan-grp">
-            <div class="chan"><span class="dot"></span>General</div>
-            <div class="chan" aria-current="true"><span class="dot"></span>${E(CHANNEL.name)}</div>
-            <div class="chan"><span class="dot"></span>onboarding_supersalesbros</div>
+            <div class="chan"><span class="hash">#</span>General</div>
+            <div class="chan" aria-current="true"><span class="hash">#</span>${E(CHANNEL.name)}</div>
+            <div class="chan"><span class="hash">#</span>onboarding_supersalesbros</div>
           </div></div>
         <div class="thr">
-          <div class="thr-hd">${E(CHANNEL.name)}<div class="sub">${E(CHANNEL.client)} &middot; channel is registered in Zoho Analytics</div></div>
-          <div class="threads">
+          <div class="thr-hd">
+            <div class="crumb"><span class="team">[PRJ] Presale</span><span class="sep">&#8250;</span>${E(CHANNEL.name)}</div>
+            <div class="sub">${E(CHANNEL.client)} &middot; channel is registered in Zoho Analytics</div>
+            <div class="ptabs"><span class="on">Posts</span><span>Files</span><span>Wiki</span><span>+</span></div>
+          </div>
+          <div class="jump"><span class="lbl">Jump to thread</span>
             <button data-th="pitch" aria-current="${this.thread === 'pitch'}">Client review &amp; estimation <span style="opacity:.6">&middot; ${PITCH}</span></button>
             <button data-th="nopitch" aria-current="${this.thread === 'nopitch'}">Second sample batch</button>
           </div>
           <div class="canvas">${this.threadHTML(root, replies, showBw)}</div>
+          <div class="compose">
+            <div class="fld">Type a message</div>
+            <div class="tools"><span>&#128206;</span><span>&#128512;</span><span>&#127909;</span><span>&#128273;</span><span class="send">&#10148;</span></div>
+            <div class="note">Read-only recreation &mdash; posting is disabled here</div>
+          </div>
         </div>
       </div>`;
   },
@@ -546,7 +616,7 @@ const Tracker = {
     if (c.biweekly) {
       return `<div class="cmt${fresh}${flash}"><span class="av" style="background:${hue('Zoho sync')}">ZS</span>
         <div><div class="hd"><b>Zoho sync</b><span class="src">Zoho CRM</span>
-          <span class="trk-lock lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span></div>
+          <span class="trk-lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span></div>
         <div class="bd">Bi-weekly Teams recap &middot; 15 Aug 2026 &mdash; 29 Aug 2026
 Channel: ${E(CHANNEL.name)}
 
@@ -559,7 +629,7 @@ Needed: Confirm attendees and approve the remaining commercial assumption.</div>
     return `<div class="cmt${fresh}${flash}"><span class="av" style="background:${hue(c.author)}">${ini(c.author)}</span>
       <div><div class="hd"><b>${E(c.author)}</b><span class="via">via Teams &middot; ${E(c.when)}</span>
         <span class="src">Zoho CRM</span>
-        ${restricted ? `<span class="trk-lock lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span>` : ''}</div>
+        ${restricted ? `<span class="trk-lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span>` : ''}</div>
       <div class="bd">${this.mentionJira(c.text, c.mention)}</div>
       <div class="lnk">Channel: ${E(CHANNEL.name)} &middot; <a href="#">Open thread in Teams</a></div>
       ${c.files ? `<div class="files">Attachments from Teams${c.files.map(f => `<div>&#128279; <a href="#">${E(f)}</a> &mdash; Open in Teams/SharePoint</div>`).join('')}</div>` : ''}

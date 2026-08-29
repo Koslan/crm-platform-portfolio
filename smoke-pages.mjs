@@ -112,7 +112,7 @@ say('tracker: synchronization sets one-time reactions', (await p.locator('.tmw .
 await p.click('.trk-tabs [data-tab="jira"]');
 await p.waitForSelector('.jrw .cmt', {timeout:4000});
 say('tracker: delivered replies land as Jira comments', (await p.locator('.jrw .cmt').count())===2);
-say('tracker: restricted comment carries a role lock, not just colour', /Restricted to Producers/.test(await p.locator('.jrw .cmt .lock').first().textContent()));
+say('tracker: restricted comment carries a role lock, not just colour', /Restricted to Producers/.test(await p.locator('.jrw .cmt .trk-lock').first().textContent()));
 say('tracker: attachment travels as a link, not an upload', /Estimation_v3\.xlsx/.test(await p.locator('.jrw .cmt .files').textContent()));
 const beforeAgain = await p.locator('.jrw .cmt').count();
 await p.click('.trk-bar [data-act="again"]');
