@@ -55,7 +55,8 @@ const doc = `<!doctype html>
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
 <meta property="og:url" content="${site}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${site}og.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${desc}">
 </head>
