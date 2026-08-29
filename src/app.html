@@ -2124,8 +2124,35 @@ const CASES = {
 
     {id:'teams-recap', t:'A recap written from the meeting itself',
      sub:'The notes that matter are in the recording. Nobody transcribes them, so the field stays empty.',
+     dg:{kind:'chain', at:1,
+      aria:'Seven-hop chain from reading the meeting record to writing the recap back, with a permission failure on listing transcripts',
+      steps:[
+       {id:'meeting', n:'Read meeting', sub:'CRM', checkpoint:'stage written'},
+       {id:'organiser', n:'Resolve organiser', sub:'directory identity', checkpoint:'stage written'},
+       {id:'join', n:'Join link → id', sub:'online-meeting id', checkpoint:'stage written'},
+       {id:'list', n:'List transcripts', sub:'', fail:'403', checkpoint:'stage written'},
+       {id:'download', n:'Download captions', sub:'', checkpoint:'stage written'},
+       {id:'model', n:'Model call', sub:'', checkpoint:'stage written'},
+       {id:'write', n:'Write summary', sub:'+ stage', checkpoint:'stage written'}
+      ],
+      rails:[
+       {from:'meeting', to:'meeting', kind:'async', label:'pipeline started on card 1', sub:'nothing waits for it'},
+       {from:'list', to:'list', kind:'branch', label:'fallback: second source', demo:'transcript-match'}
+      ],
+      detail:{
+       meeting:{t:'Read meeting record', d:'Pulled from the CRM the moment the chain starts.'},
+       organiser:{t:'Resolve organiser', d:'The organiser is resolved to a directory identity.'},
+       join:{t:'Join link → online-meeting id', d:'The join link is turned into an online-meeting identifier.'},
+       list:{t:'List transcripts — the main failure', d:'Access to transcripts was switched off at the tenant level with no warning, and every call started returning a permission error (403). The pipeline records the stage it reached on the record itself, so the answer to "why is this empty" is visible in the data rather than buried in a run log.'},
+       download:{t:'Download captions', d:'Downloads the caption file for the transcript that was found.'},
+       model:{t:'Model call', d:'The model call that turns captions into a recap.'},
+       write:{t:'Write summary + stage', d:'Writes the recap and the stage the pipeline reached back onto the meeting record.'},
+       'rail:meeting:meeting':{t:'Async pipeline start', d:'The whole chain is started the moment a person picks the account on the first card — long before anyone asks for a recap. Nothing waits for it.'},
+       'rail:list:list':{t:'Fallback: second source', d:'When there is no transcript, a second source is matched by score rather than by key, with a gate that refuses the automatic link if the known recording owner is not among the candidates.', demo:'transcript-match'}
+      }
+     },
      body:[
-      ['The chain','Read the meeting record, resolve the organiser to a directory identity, turn a join link into an online-meeting identifier, list the transcripts on it, download the caption file, put it through a model, write the summary and a processing stage back. Seven hops, each of which can fail differently.'],
+      ['The chain','Seven hops, each of which can fail differently — read the meeting record, resolve the organiser, resolve the join link, list transcripts, download captions, model call, write back.'],
       ['The timing trick','The whole chain is started the moment a person picks the account on the first card — long before anyone asks for a recap. Nothing waits for it. Two steps later, when the recap card opens, the field is already filled. It is the cheapest possible optimisation and it changes how the feature feels entirely.'],
       ['When there is no transcript','A second source exists, and the two have no identifier in common. Matching is done by score rather than by key: overlap between intervals of unequal length, expressed as two coverage ratios with the larger taken and a penalty for the gap between them, then adjusted by service hints and by addresses lifted out of the transcript body. Above that sits a gate — if the owner of the recording is known and the best candidate does not include them, the automatic link is refused outright.'],
       ['Two thresholds, not one','The link is written at a lower score than the text is. "I believe this is the meeting" and "I am willing to write data into it" are different decisions and were given different bars, with every candidate and its score kept for a human to look at.'],
