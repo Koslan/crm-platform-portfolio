@@ -21,6 +21,8 @@ const w3   = readFileSync('src/widgets3.js','utf8');
 const ap   = readFileSync('src/apollo.js','utf8');
 const dg   = readFileSync('src/diagrams.js','utf8');
 const aij  = readFileSync('src/aijournal.js','utf8');
+const mksf = readFileSync('platform/mockSF.js','utf8');
+const sflw = readFileSync('src/sflwc.js','utf8');
 
 const body = tpl
   .replace('/*__MOCKZOHO__*/',   () => mock)
@@ -34,7 +36,8 @@ const body = tpl
   .replace('/*__WIDGETS3__*/',   () => w3)
   .replace('/*__APOLLO__*/',     () => ap)
   .replace('/*__DIAGRAMS__*/',   () => dg)
-  .replace('/*__AIJOURNAL__*/',  () => aij);
+  .replace('/*__AIJOURNAL__*/',  () => aij)
+  .replace('/*__SFLWC__*/',      () => mksf + '\n' + sflw);
 
 const title = (/<title>([^<]*)<\/title>/.exec(body) || [,'CRM platform field notes'])[1];
 const desc = 'CRM platform engineering: widgets, integrations and org tooling, running outside the CRM against generated data.';

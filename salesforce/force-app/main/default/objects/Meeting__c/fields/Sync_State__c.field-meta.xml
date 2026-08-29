@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sync_State__c</fullName>
+    <label>Sync State</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <description>Mirrors the Zoho calendar-reconciliation vocabulary: in_sync, outdated, only_in_crm, only_in_calendar, incorrect.</description>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>in_sync</fullName><default>true</default><label>In sync</label></value>
+            <value><fullName>outdated</fullName><default>false</default><label>Outdated</label></value>
+            <value><fullName>only_in_crm</fullName><default>false</default><label>Only in CRM</label></value>
+            <value><fullName>only_in_calendar</fullName><default>false</default><label>Only in calendar</label></value>
+            <value><fullName>incorrect</fullName><default>false</default><label>Incorrect</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

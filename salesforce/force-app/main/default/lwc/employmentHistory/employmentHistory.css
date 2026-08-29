@@ -1,0 +1,46 @@
+.employment-history {
+    font-family: -apple-system, "Segoe UI", sans-serif;
+}
+.eh-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.eh-tools h4 {
+    margin: 0;
+    font-size: 14px;
+}
+.eh-grow {
+    flex: 1;
+}
+.eh-hint {
+    font-size: 12px;
+    color: #6b7280;
+}
+.eh-error {
+    background: #fef2f2;
+    color: #b42318;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+.eh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.eh-table th,
+.eh-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.eh-cbx {
+    text-align: center;
+}
+.eh-note {
+    margin-top: 10px;
+}

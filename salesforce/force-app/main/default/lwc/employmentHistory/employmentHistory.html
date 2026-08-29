@@ -1,0 +1,54 @@
+<template>
+    <div class="employment-history">
+        <div class="eh-tools">
+            <h4>Where this person has worked</h4>
+            <span class="eh-grow"></span>
+            <span class="eh-hint">{rowCount} record(s)</span>
+        </div>
+
+        <template if:true={error}>
+            <div class="eh-error" role="alert">{error}</div>
+        </template>
+
+        <template if:true={hasRows}>
+            <table class="eh-table">
+                <thead>
+                    <tr>
+                        <template for:each={columns} for:item="col">
+                            <th key={col.key} scope="col">{col.label}</th>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={rows} for:item="row">
+                        <tr key={row.id}>
+                            <td class="eh-cbx">
+                                <input
+                                    type="checkbox"
+                                    data-id={row.id}
+                                    checked={row.isMain}
+                                    disabled={isBusy}
+                                    onchange={handleMainChange}
+                                />
+                            </td>
+                            <td>{row.company}</td>
+                            <td>{row.title}</td>
+                            <td>{row.seniority}</td>
+                            <td>{row.buyerRole}</td>
+                            <td>{row.startDate}</td>
+                            <td>{row.endDate}</td>
+                            <td>{row.status}</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+
+        <p class="eh-hint eh-note">
+            One row is marked as the main employer, and it is the one the contact record points
+            at. Ticking a different row moves that pointer — every other row is cleared first,
+            then the new one is set, so the record is never briefly without a main employer if
+            the second write fails.
+        </p>
+    </div>
+</template>

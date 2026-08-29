@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Sync Run Event</label>
+    <pluralLabel>Sync Run Events</pluralLabel>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <eventType>HighVolume</eventType>
+    <publishBehavior>PublishAfterCommit</publishBehavior>
+    <description>Published by DeltaSyncJob after every page commits: which mailbox, which page,
+        how many records, and the stage reached (running/throttled/invalid_token/completed/failed).
+        A subscribing LWC (syncMonitor, referenced in the write-up) uses empApi to show a live
+        run without polling. This is the direct analogue of "the stage is written on the record"
+        in the Deluge version, made push-based instead of pull-based.</description>
+</CustomObject>

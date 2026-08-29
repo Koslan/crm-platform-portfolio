@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Campaign__c</fullName>
+    <label>Campaign</label>
+    <type>Lookup</type>
+    <referenceTo>Campaign</referenceTo>
+    <relationshipLabel>Event Contacts</relationshipLabel>
+    <relationshipName>Event_Contacts</relationshipName>
+    <deleteConstraint>Cascade</deleteConstraint>
+    <required>false</required>
+    <description>Left optional deliberately: salesforce/data/export.mjs does not create
+        standard Campaign records for the Northbeam dataset (out of scope for this
+        export — see its header comment and salesforce/README.md), so rows it imports
+        carry no Campaign__c. A production deployment that also imports Campaigns could
+        tighten this back to required.</description>
+</CustomField>

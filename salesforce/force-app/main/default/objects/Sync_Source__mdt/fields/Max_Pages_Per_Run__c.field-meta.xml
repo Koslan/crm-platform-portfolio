@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Max_Pages_Per_Run__c</fullName>
+    <label>Max Pages Per Run</label>
+    <type>Number</type>
+    <precision>4</precision>
+    <scale>0</scale>
+    <required>true</required>
+    <defaultValue>20</defaultValue>
+    <description>Governor-limit ceiling: caps callouts this Queueable chain makes before it must re-chain into a fresh transaction (Salesforce allows at most 100 callouts per transaction).</description>
+</CustomField>

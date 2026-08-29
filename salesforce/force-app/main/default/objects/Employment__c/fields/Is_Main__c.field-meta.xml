@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Main__c</fullName>
+    <label>Is Main</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Exactly one Employment__c row per Contact should carry true at any time. Not
+        enforced by a validation rule on this object on purpose — see
+        EmploymentHistoryController.setMainEmployment, which is the single write path that
+        maintains the invariant (unset all, then set one, in that order).</description>
+</CustomField>

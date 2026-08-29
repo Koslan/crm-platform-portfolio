@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Provider_Org_Id__c</fullName>
+    <label>Provider Org Id</label>
+    <type>Text</type>
+    <length>40</length>
+    <externalId>true</externalId>
+    <required>false</required>
+    <description>Id from the synthetic enrichment provider dataset (Northbeam legend), matches Zoho Accounts.Provider_Org_Id. External Id for upsert matching during import.</description>
+</CustomField>

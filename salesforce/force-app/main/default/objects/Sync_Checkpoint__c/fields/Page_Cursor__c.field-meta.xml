@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Page_Cursor__c</fullName>
+    <label>Page Cursor</label>
+    <type>Number</type>
+    <precision>8</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>Which page this source is currently on within the run. Written after every page commits, so a Queueable chain that dies on page 40 resumes on page 41 rather than starting over.</description>
+</CustomField>

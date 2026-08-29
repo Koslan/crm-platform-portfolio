@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Status__c</fullName>
+    <label>Meeting Status</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Open</fullName><default>true</default><label>Open</label></value>
+            <value><fullName>Contacted</fullName><default>false</default><label>Contacted</label></value>
+            <value><fullName>Meeting booked</fullName><default>false</default><label>Meeting booked</label></value>
+            <value><fullName>Meeting held</fullName><default>false</default><label>Meeting held</label></value>
+            <value><fullName>Meeting declined</fullName><default>false</default><label>Meeting declined</label></value>
+            <value><fullName>No Reply</fullName><default>false</default><label>No Reply</label></value>
+            <value><fullName>Not interested</fullName><default>false</default><label>Not interested</label></value>
+            <value><fullName>Not attending</fullName><default>false</default><label>Not attending</label></value>
+            <value><fullName>Don&apos;t contact</fullName><default>false</default><label>Don&apos;t contact</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

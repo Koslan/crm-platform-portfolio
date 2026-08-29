@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Sync Source</label>
+    <pluralLabel>Sync Sources</pluralLabel>
+    <visibility>Public</visibility>
+    <description>Custom Metadata Type: one record per mailbox to sync, plus the page size and
+        time ceiling for that source. Deployed with a change set / package like any other
+        metadata, unlike a Custom Setting — which is the reason it was chosen over one, on top
+        of being queryable from a Flow without Apex.</description>
+</CustomObject>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Programme</label>
+    <pluralLabel>Programmes</pluralLabel>
+    <nameField>
+        <label>Programme Name</label>
+        <type>Text</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <description>Maps to the Zoho Programmes module: a product line an Account is building, grouping Opportunities and defining which Service_Line__c records can be sold against it.</description>
+</CustomObject>
