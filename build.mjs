@@ -6,7 +6,7 @@
      dist/artifact.html the same content as a fragment, for hosts that supply their own
                         <head> and would otherwise end up with two of everything.
 */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 
 const tpl  = readFileSync('src/app.html','utf8');
 const mock = readFileSync('platform/mockZoho.js','utf8');
@@ -66,6 +66,7 @@ ${body.replace(/<title>[^<]*<\/title>\s*/, '')}
 `;
 
 mkdirSync('dist',{recursive:true});
+cpSync('public','dist',{recursive:true});
 writeFileSync('dist/index.html', doc);
 writeFileSync('dist/artifact.html', body);
 console.log('dist/index.html   ', (doc.length/1024).toFixed(0)+' KB  (full document, for Pages)');
