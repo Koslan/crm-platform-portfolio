@@ -2001,10 +2001,42 @@ const CASES = {
 
     {id:'buckets', t:'Sorting a conference export into buckets instead of matching it',
      sub:'Several hundred rows, no shared key with anything, and half the company names in the file are wrong.',
+     dg:{kind:'funnel', at:2,
+      aria:'Funnel from a conference export through four ordered rules to seven outcome buckets, two of them worked by a person',
+      input:{n:'Conference export', count:'several hundred rows, no shared key'},
+      rules:[
+       {id:'profile', n:'Profile lookup by slug, path anchor', order:1},
+       {id:'account', n:'Account check', order:2},
+       {id:'email', n:'Email', order:3},
+       {id:'name', n:'Name, tie-break: account then email', order:4}
+      ],
+      buckets:[
+       {id:'matched-profile', n:'Matched by profile', who:'auto'},
+       {id:'matched-disagree', n:'Matched, account disagrees', who:'auto'},
+       {id:'matched-email-name', n:'Matched by email or name', who:'auto'},
+       {id:'needs-enrichment', n:'Needs enrichment', who:'auto'},
+       {id:'created-enrichment', n:'Created from enrichment', who:'auto'},
+       {id:'ambiguous', n:'Ambiguous', who:'human'},
+       {id:'unresolved', n:'Unresolved', who:'human'}
+      ],
+      gates:[{after:'name', n:'no candidate resolves → ambiguous with the candidates attached, never the first one'}],
+      detail:{
+       profile:{t:'Profile lookup by slug, with a path anchor', d:'Done on the slug with a path anchor rather than the whole URL, so an extended slug and a trailing slash both still hit, while the anchor stops a slug matching in the middle of somebody else’s address.'},
+       account:{t:'Account check', d:'First tie-breaker when several candidates come back.'},
+       email:{t:'Email', d:'Second tie-breaker, run only after account.'},
+       name:{t:'Name, fixed tie-break order', d:'Tie-breakers run in a fixed order — account first, then email — and if none resolves it, the row goes to ambiguous with the candidates attached rather than taking the first.'},
+       'matched-profile':{t:'Matched by profile', d:'The strongest signal: a direct profile-URL hit.'},
+       'matched-disagree':{t:'Matched, account disagrees', d:'A profile match exists, but the account on the row does not agree with it — reported rather than silently trusted.'},
+       'matched-email-name':{t:'Matched by email or name', d:'Resolved through the tie-break chain: account first, then email.'},
+       'needs-enrichment':{t:'Needs enrichment', d:'No match yet; queued for the enrichment provider.'},
+       'created-enrichment':{t:'Created from enrichment', d:'A new contact created from what enrichment returned.'},
+       ambiguous:{t:'Ambiguous — worked by a person', d:'The tool deliberately does not push for full automation. No candidate resolves → ambiguous with the candidates attached, never the first one.'},
+       unresolved:{t:'Unresolved — worked by a person', d:'Nothing matched at all; left for a human rather than guessed.'}
+      }
+     },
      body:[
-      ['Why matching fails','There is no single identifier. Profile URLs are written differently on each side — canonicalised slugs, trailing slashes, an appended hash. Email is missing for a good share of people. The company column is filled in by whoever exported it and is regularly wrong. And names arriving from enrichment are sometimes mangled, with event tags ending up inside a surname.'],
-      ['The shape of the answer','Not a match — a classification. Every row lands in exactly one bucket: matched by profile, matched but the account disagrees, matched by email or name, needs enrichment, created from enrichment, ambiguous, unresolved. Each bucket is then loaded independently, and the ambiguous and unresolved ones are worked by a person. The tool deliberately does not push for full automation.'],
-      ['The searches underneath','Profile lookup is done on the slug with a path anchor rather than the whole URL, so an extended slug and a trailing slash both still hit, while the anchor stops a slug matching in the middle of somebody else’s address. Where several candidates come back, tie-breakers run in a fixed order — account first, then email — and if none resolves it, the row goes to ambiguous with the candidates attached rather than taking the first.'],
+      ['Why matching fails','There is no single identifier: profile URLs are written differently on each side, email is missing for many people, the company column is regularly wrong, and enrichment names are sometimes mangled.'],
+      ['The shape of the answer','Not a match — a classification, worked independently per bucket. See the funnel above.'],
       ['The write rules that keep it safe','A name is corrected only when the surname differs, because otherwise every Alex becomes an Alexander. Title and email are filled only into an empty field and never over a live value. Everything else that merely differs is reported for a human to look at. Those three rules are what make the tool safe to run twice.']]},
 
     {id:'token-boundary', t:'Two credentials, and a line drawn between them',
