@@ -492,7 +492,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
-const TEST_COUNT=296; // updated by hand after `npm test` — not derivable at runtime, no browser here
+const TEST_COUNT=314; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
@@ -529,7 +529,7 @@ const ZOHO_GROUPS=[
   intro:'Teams, calendars, Jira, enrichment providers — flows that survive timeouts, throttling and payloads that are simply gone if rejected.',
   items:[
    {id:'chat-recap',t:'Meeting recap from chat',kind:'emul',s:'A two-card wizard in a chat client, writing a structured recap into the CRM.'},
-   {id:'chat-tracker',t:'Chat to issue tracker',kind:'emul',s:'A thread becomes a linked, deduplicated comment on an issue.'},
+   {id:'chat-tracker',t:'Chat to issue tracker',kind:'emul',s:'A tagged reply becomes a public or role-restricted, deduplicated comment on a Jira issue.'},
    {id:'event-cycle',t:'Event lifecycle',kind:'emul',s:'Target list → booked meeting → reconciled calendar, end to end.'},
    {id:'deal',t:'Deal conversations',kind:'live',s:'Chat threads and tracker comments inside the deal record.'},
    {id:'delta-sync',t:'Delta sync with a checkpoint per page',kind:'note',s:'Seventeen mailboxes, no storage, a hard timeout.'},
@@ -621,7 +621,7 @@ const TIPS={
  'Outlook':'Mailbox and calendar data through Graph and Outlook APIs — part of the same sync estate as the 17 mailboxes.',
  'Email ingestion':'Built the pipeline that carries email out of multiple sources and mailboxes into Zoho: fetched server-side, deduplicated, matched to the right account and deal, and attached where sales actually looks — instead of dying in personal inboxes.',
  'Entra ID':'Every Graph integration I run sits on app registrations I own: permission scopes cut to least privilege, admin consent flows, secrets rotated on schedule.',
- 'Jira':'Two-way deal ↔ issue sync: comments idempotent through a marker inside the body, attachments as remote links — after I proved by experiment that the corporate proxy was eating multipart bodies.',
+ 'Jira':'Teams threads routed to Jira by the PITCH code in a root message, comments idempotent through a marker inside the body, public or role-restricted by a #jira / #jira_private tag, attachments always sent as links rather than uploads.',
  'Apollo':'Built the enrichment pipeline: provider people matched against the CRM through four dedup keys in sequence, the last a normalised profile URL; batching tuned to provider quota with three retry steps.',
  'Slack':'CRM events surfaced into Slack channels — deal changes and sync failures reported where the team already is.',
  'Google Workspace':'Google Drive document management integrated into Salesforce at Noltic — including a Chrome extension I later re-architected; Google Calendar sync in the BookMe backend at Provectus.',
@@ -867,9 +867,9 @@ const STORY={
  },
  "Jira": {
   "w": "Room 8 · 2023—now",
-  "t": "Sales asks “what is engineering doing on my deal” — and the answer lived in Jira comments they cannot see.",
-  "b": "A Jira–CRM integration with entity mapping, bidirectional comments made idempotent by a marker inside the body, attachments as remote links after experiments proved the corporate proxy dropped multipart bodies, and permissions kept intact on both sides.",
-  "r": "A ten-minute sync that never duplicates, and delivery status visible on the deal instead of behind a licence.",
+  "t": "Presales discusses a deal in Teams — and none of it reaches the Jira issue engineering actually works from.",
+  "b": "A Teams-to-Jira integration routed by a PITCH code resolved once from a thread's root message: public or role-restricted comments made idempotent by a marker inside the body, attachments sent as links rather than uploads, and a one-time reaction confirming delivery back on the source message.",
+  "r": "A ten-minute sync that never duplicates a comment, with delivery visible on the Teams message itself instead of only inside Jira.",
   "demo": "chat-tracker"
  },
  "Apollo": {
@@ -1178,8 +1178,8 @@ const EDGES=[
  /* Microsoft — top */
  {id:'graph', n:'Microsoft Graph', sub:'calendar delta sync', x:340, y:78, t:'Microsoft Graph → Zoho',
   d:'17 shared mailboxes over Graph delta queries: a checkpoint per page, throttling that slows a mailbox instead of failing it, invalid tokens falling back to a full read in the same run. Booked meetings reach the CRM in minutes.',demo:'delta-sync'},
- {id:'teams', n:'Teams', sub:'chat → CRM', x:497, y:78, t:'Teams ↔ Zoho',
-  d:'Thread conversations imported without a bot — a text contract in the first message maps a thread to its deal. Adaptive-card wizards write meeting recaps back, each card a callback subscription so nothing holds a request open.',demo:'teams-sync'},
+ {id:'teams', n:'Teams', sub:'chat → CRM → Jira', x:497, y:78, t:'Teams ↔ Zoho',
+  d:'Thread conversations imported without a bot — a text contract in the first message routes a thread onward, to its Jira issue or its deal. Adaptive-card wizards write meeting recaps back, each card a callback subscription so nothing holds a request open.',demo:'teams-sync'},
  {id:'entra', n:'Entra ID', sub:'auth & scopes', x:640, y:78, t:'Entra ID — the auth backbone',
   d:'Every Microsoft integration runs on app registrations I own: least-privilege permission scopes, admin consent flows, secret rotation on schedule. Auth failures clear the cached token and retry once — then fail loudly.'},
  /* Google — right */
@@ -1190,8 +1190,8 @@ const EDGES=[
  /* Sales & ops — left */
  {id:'apollo', n:'Apollo', sub:'enrichment, dedup', x:114, y:140, t:'Apollo → Zoho',
   d:'Provider people matched against the CRM through four keys in sequence, ending with a normalised profile URL; existing contacts gathered through the account hierarchy; batching tuned to provider quota.',demo:'enrich'},
- {id:'jira', n:'Jira', sub:'deal ↔ issue, idempotent', x:110, y:232, t:'Zoho ↔ Jira',
-  d:'Comments sync both ways, made idempotent by a marker inside the body. Attachments travel as remote links — after experiments proved the corporate proxy dropped multipart uploads. Delivery status mirrors onto the deal.',demo:'chat-tracker'},
+ {id:'jira', n:'Jira', sub:'PITCH routing, idempotent', x:110, y:232, t:'Teams → Zoho → Jira',
+  d:'A Teams thread routes to a Jira issue by the PITCH code in its root message. Comments are public or role-restricted and made idempotent by a marker inside the body; attachments travel as links, never uploads; the source message gets a one-time reaction once delivery is confirmed.',demo:'chat-tracker'},
  {id:'mail', n:'Email sources', sub:'multi-source ingestion', x:114, y:324, t:'Email sources → Zoho',
   d:'A server-side pipeline that carries mail out of multiple sources and mailboxes into the CRM: deduplicated, matched to the right account and deal, attached where sales actually looks.'},
  {id:'slack', n:'Slack', sub:'alerts & deal events', x:110, y:416, t:'Zoho → Slack',
@@ -1576,7 +1576,7 @@ function vAbout(){
    +'</ul>'
    +'<div class="proj"><span class="k">Projects from this role &mdash; open them on this site</span>'
    +plink('event','Event campaign toolkit')+plink('board','Meeting board (mobile)')+plink('solution','Solution map')
-   +plink('teams-sync','Teams → CRM sync')+plink('chat-tracker','Chat → Jira')+plink('delta-sync','Calendar delta sync')
+   +plink('teams-sync','Teams → Jira routing')+plink('chat-tracker','Chat → Jira')+plink('delta-sync','Calendar delta sync')
    +plink('teams-recap','Meeting recaps')+plink('enrich','Apollo enrichment')+plink('orghealth','Org audit')
    +plink('code-extraction','Code extraction')+plink('cockpit','Sales cockpit')+'</div>'
    +'<div class="shots">'
@@ -1907,17 +1907,19 @@ const FLOWS = [
         'When the linked opportunity belongs to a different account, a sentinel value carries "chosen deliberately" through a control that can only return one string'],
    stack:'Emulated chat shell, adaptive cards, orchestration trace'},
 
-  {id:'chat-tracker', t:'Chat to Tracker, through the CRM', kind:'emul',
-   sub:'A thread in chat becomes a linked, deduplicated comment on an issue.',
-   see:'Three panes: the chat thread, the CRM record it resolves to, and the issue. The metadata block at the top of the thread drives the match; the trace panel shows which key matched and how confident it was.',
-   does:['Read a thread that carries a metadata block','Watch it resolve to a deal, with match source and confidence',
-         'Send a message to the tracker and see the comment appear','Attach a file and see it arrive as a link, not an upload',
-         'Switch to the thread with no metadata block and watch it park for review instead of guessing'],
-   why:['A text contract in the first message of a thread is the mapping mechanism — people will type, they will not leave the chat',
-        'The channel registry lives on the deal record, so adding a channel is a field edit, not a deploy',
-        'Attachments travel as links because the proxy in front of the tracker drops multipart bodies — and because the tracker cannot restrict a file to a role',
-        'Conflicting metadata parks the thread for review rather than trusting the newest value'],
-   stack:'Emulated chat and tracker shells, orchestration trace'},
+  {id:'chat-tracker', t:'Chat to Tracker, through Zoho', kind:'emul',
+   sub:'A tagged Teams reply becomes a public or role-restricted comment on the Jira issue its thread resolves to.',
+   see:'Two full application screens, switched by tab rather than sharing one frame: a dark Microsoft Teams recreation and a light Jira recreation. The controls that drive the demo sit outside both — running the sync, replaying it, and reaching for the restricted, missing-PITCH and biweekly scenarios on demand.',
+   does:['Read a thread whose root message carries a PITCH code — every reply in it inherits the same code',
+         'Run synchronization and watch a tagged reply arrive as a Jira comment, then get a one-time ticket reaction in Teams',
+         'Run it again and watch the existing marker stop a duplicate comment and a duplicate reaction',
+         'Open a reply tagged #jira_private and see the resulting comment carry a Jira project-role lock instead of just a colour',
+         'Switch to a thread with no PITCH in its root and watch the sync skip it safely instead of guessing'],
+   why:['The PITCH code lives in the root message, not the channel — one channel can carry several PITCH discussions at once',
+        'The channel registry itself lives in Zoho Analytics, so it only decides which channels get read, never which deal a reply belongs to',
+        'A hidden marker inside the comment body plus an In_Jira flag on the stored message make a run every ten minutes idempotent',
+        'Attachments never upload into Jira — only their names travel across as links back to Teams'],
+   stack:'Emulated Teams and Jira shells, no shared frame, orchestration state kept in the CRM emulator'},
 
   {id:'event-cycle', t:'Event Lifecycle', kind:'emul',
    sub:'From a target list to a booked meeting to a reconciled calendar.',
@@ -2130,39 +2132,36 @@ const CASES = {
   'Teams and orchestration':[
     {id:'teams-sync', t:'Getting a chat platform into the CRM without a bot',
      sub:'Conversations decide things. None of it reaches the record, and nobody is going to retype it.',
-     dg:{kind:'funnel', at:3,
-      aria:'Funnel from a chat thread through marker-block detection, deal id match, issue key fallback and candidate count to four resolution buckets, two worked by a person',
-      input:{n:'Thread, first message'},
-      rules:[
-       {id:'block', n:'Block between markers?', order:1},
-       {id:'deal-id', n:'ZOHO_DEAL exact match', order:2},
-       {id:'issue-key', n:'Fallback: JIRA_KEY', order:3},
-       {id:'candidates', n:'How many candidates', order:4}
+     dg:{kind:'chain', at:3,
+      aria:'Six-step chain from a tagged Teams reply through a bounded Graph read, PITCH resolution, a CRM upsert, a Jira marker search and posting, with a branch for a duplicate marker and a loop back every ten minutes',
+      steps:[
+       {id:'tag', n:'Reply tagged', sub:'#jira / #jira_private'},
+       {id:'read', n:'Read via Graph', sub:'bounded window'},
+       {id:'resolve', n:'Resolve PITCH', sub:'from the root message', checkpoint:'inherited by every reply', fail:'no PITCH → skipped safely'},
+       {id:'crm', n:'Upsert in CRM', sub:'Teams_Messages row', checkpoint:'state saved'},
+       {id:'marker', n:'Search Jira marker', sub:'hidden in comment body'},
+       {id:'post', n:'Post + confirm', sub:'comment, then one-time reaction', checkpoint:'In_Jira = true'}
       ],
-      buckets:[
-       {id:'matched-deal', n:'Matched by deal id', who:'auto'},
-       {id:'matched-issue', n:'Matched by issue key', who:'auto'},
-       {id:'parked', n:'Parked for review', who:'human'},
-       {id:'stored-reason', n:'Stored with reason', who:'human'}
+      rails:[
+       {from:'marker', to:'marker', kind:'branch', label:'marker exists → duplicate skipped'},
+       {from:'post', to:'read', kind:'loop', label:'every ten minutes'}
       ],
-      gates:[{after:'candidates', n:'nothing is guessed from the text'}],
       detail:{
-       block:{t:'Block between two markers', d:'A text contract in the first message of a thread — a block between two markers carrying the deal, the issue key, the context and a sync flag. Deliberately the least clever option available: people will type in a chat window, and they will not leave it to fill in a form.'},
-       'deal-id':{t:'ZOHO_DEAL exact match, confidence 100', d:'Resolution runs in a fixed order with the source recorded: by deal id at full confidence first.'},
-       'issue-key':{t:'Fallback: JIRA_KEY', d:'Falls back to the issue key when there is no deal id match.'},
-       candidates:{t:'How many candidates', d:'Nothing is guessed from the text — guessing the deal from the body is how a conversation lands under the wrong client.'},
-       'matched-deal':{t:'Matched by deal id — recorded', d:'Written with source and confidence alongside the row.'},
-       'matched-issue':{t:'Matched by issue key — source recorded', d:'Written with the fallback source recorded, not silently treated the same as a deal-id match.'},
-       parked:{t:'Parked for review — several matches', d:'Several candidates come back; the thread parks for a person rather than picking one.'},
-       'stored-reason':{t:'Stored with reason — zero matches', d:'No candidates at all: replies are not imported, and the message is stored with the reason attached.'}
+       tag:{t:'Reply tagged in Teams', d:'#jira makes the resulting comment public; #jira_private restricts it to a Jira project role. An untagged reply is read but never sent anywhere.'},
+       read:{t:'Read via Microsoft Graph, a bounded window at a time', d:'Each run reads a bounded slice of channel activity rather than a channel’s full history — the platform throttles Graph, and nothing here can afford to re-read everything every ten minutes.'},
+       resolve:{t:'PITCH resolved once, from the root message', d:'The first valid PITCH code in a thread’s root message becomes the routing key for every reply beneath it. A code typed only into a reply is not enough — trusting it would mean re-deciding the routing on every message instead of once per thread.'},
+       crm:{t:'Zoho CRM as the state store', d:'The thread is upserted into a Teams_Messages row before Jira is touched at all — message ids, PITCH, delivery state. Jira is never asked what it already has; the CRM already knows.'},
+       marker:{t:'A marker hidden in the comment body', d:'Before posting, the run searches the issue for a hidden [crm-teams-msg:&lt;id&gt;] marker. Finding one is the whole duplicate check — a run that fires twice over the same reply never posts twice.'},
+       post:{t:'Comment posted, reaction set once', d:'A public or role-restricted comment lands on the issue, then the source message gets a one-time 🎫 — proof the exact message reached Jira, not just that a sync ran.'},
+       'rail:marker:marker':{t:'Marker already exists', d:'When the search on the marker step finds a hit, posting and the reaction are both skipped — the run reports a duplicate rather than writing a second comment.'}
       }
      },
      body:[
-      ['The constraint','Three at once. A channel is not a deal — a management channel carries dozens, so any "channel equals deal" rule is wrong on the cases that matter most. Building an app inside the chat client was not going to happen in a reasonable timescale. And the function is time-limited while the platform API throttles: pulling replies means one call per root message, and the pauses alone ran to ten and thirteen seconds.'],
-      ['Where the mapping lives','On the thread, not the channel — the resolution shown above. The registry of which channels to read at all lives on the deal record itself, in two link fields, so adding a channel is a business user filling in a field, not an engineer deploying.'],
-      ['Surviving the time limit','The function is resumable without any external state: before touching a channel it checks whether records already exist for it, and it takes no more than five new channels a run. A schedule every ten minutes then walks the whole estate on its own, and no single run ever comes near the ceiling.'],
-      ['What was traded away','Only the first page of history is imported, so a long-running channel arrives partial. Thread-level fields are duplicated onto every reply on purpose — it buys simple related lists on a platform where joins are expensive. A management channel is deliberately excluded from the backfill, because sweeping it in would file a year of mixed conversation under one deal.'],
-      ['Still open, and worth saying out loud','A controlled run took 218 seconds against a 120-second ceiling on the synchronous call, with no retry policy — so after a timeout it is unknown whether the work finished. The fix is the same one used elsewhere in this portfolio: stop waiting for the call and let it report back.']]},
+      ['The constraint','Three things at once. A channel is not a discussion — one presales channel routinely carries several PITCH conversations in parallel, so any "channel equals opportunity" rule is wrong on the cases that matter most. People will type in the chat window they are already in; they will not open a form or install a bot to tag a message correctly. And Teams is only reachable through Microsoft Graph, which is throttled and bounded per call, so nothing here can afford to re-read a channel\'s full history on every run.'],
+      ['Where the routing actually lives','On the root message of a thread, not the channel and not any individual reply. A PITCH code typed into the first message becomes that thread\'s routing key for every reply underneath it, resolved once and inherited from there — a code that only shows up in a reply never overrides the root\'s. The channel registry is a separate, coarser decision: it lives in Zoho Analytics and only says which physical Teams channels get read at all, never which opportunity a message belongs to.'],
+      ['Delivering without duplicating','A scheduled run every ten minutes reads a bounded window of Graph activity, resolves each thread\'s PITCH, and writes or updates a Teams_Messages row in Zoho CRM before Jira is touched at all — the CRM is the state store the sync trusts, not Jira\'s own comment list. Before posting, it searches the issue for a marker hidden inside the comment body; finding one is enough to skip, so a run that fires twice over the same reply never produces two comments and never re-fires the one-time delivery reaction.'],
+      ['What was traded away','Visibility is a Jira project role, not a client-side toggle, so a restricted comment is only as safe as the tracker\'s own permission model. Attachments never upload: a file only ever travels as its name and a link back to the source, because a comment can be closed to a role and a file on the same issue cannot. And the sync runs one way on purpose — a reply made straight on the Jira issue never finds its way back into the thread, so the two records can read differently at the edges.'],
+      ['Still open, and worth saying out loud','A PITCH code typed only into a reply, never into the root, is invisible to this router by design — a thread can carry an obvious tracking code deep in the conversation and still be filed nowhere, because trusting a later message would mean re-deciding the routing on every reply instead of once per thread. The biweekly recap inherits the same root-PITCH grouping, so a conversation that never resolved a root code never gets summarised either.']]},
 
     {id:'teams-recap', t:'A recap written from the meeting itself',
      sub:'The notes that matter are in the recording. Nobody transcribes them, so the field stays empty.',
@@ -2490,12 +2489,14 @@ const REC = [
         'Create one that is clean, and watch it appear in the left lane a second later.'],
    why:'The order is the whole point: look, then write. Profile URLs are normalised before comparison — trailing slashes, protocol, an appended numeric suffix — because the same person is written four different ways across two systems. Name matches are shown but never block, since two people genuinely do share a name.'},
   {id:'tracker',   t:'Chat to issue tracker',  host:'__TRACKER__',   arg:()=>null,
-   sub:'A thread in chat, the deal it resolves to, and the issue it ends up on — three panes, with the trace of every call beside them.',
-   try:['Read the first message: the block between the markers is the whole mapping mechanism. People will type; they will not leave the chat to fill in a form.',
-        'Send a message across, then send the same one again. The second attempt is skipped, because the comment already carries its marker.',
-        'Attach the report. Watch the trace: the upload is refused by the proxy, and what lands on the issue is a link.',
-        'Switch to the third thread — no metadata block. Nothing is guessed; the message is stored and flagged for review.'],
-   why:'The mapping lives at the level of the thread, not the channel, because one channel carries several deals. The idempotency marker is hidden inside the comment body, so a sync running every ten minutes never posts twice. And the attachment is a link rather than a file for two reasons at once: the proxy drops multipart bodies, and the tracker cannot restrict a file to a role.'},
+   sub:'Two recreated application screens, not one CRM shell: a Teams thread on one side, the Jira issue it routes to on the other.',
+   try:['Read the root message: the PITCH code inside it is the whole routing mechanism, resolved once and inherited by every reply.',
+        'Run synchronization. The tagged replies land as comments on the Jira screen, and each one gets a one-time ticket reaction back in Teams.',
+        'Run it again. The existing marker is found, nothing is posted twice, and no second reaction fires.',
+        'Show the restricted example: the same run also produces a comment locked to a Jira project role, not just coloured differently.',
+        'Show the missing-PITCH example: a thread with no code in its root is skipped safely, never guessed at.',
+        'Open the technical details drawer to see the hidden markers and the deal each thread is filed against.'],
+   why:'The mapping lives on the thread\'s root message, not the channel, because one channel carries several PITCH discussions — the channel registry (in Zoho Analytics) only says which channels to read at all. A hidden marker inside each comment body, plus an In_Jira flag on the stored message, is what makes a run every ten minutes idempotent. Attachments never upload: only their names travel across, as links back to Teams — a Jira comment can be closed to a role, but a file on that same issue cannot.'},
   {id:'contact',   t:'Employment history',     host:'__HISTORY__',   arg:d=>{
      // a contact who has actually moved around, otherwise the screen shows one row
      const by={}; d.Employment.forEach(e=>by[e.Contact]=(by[e.Contact]||0)+1);

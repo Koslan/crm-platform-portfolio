@@ -15,7 +15,7 @@ const PAGES = [
   { id: 'authority',   kind: 'authority', minCells: 24 },
   { id: 'token-boundary', kind: 'authority', minCells: 10 },
   { id: 'buckets',     kind: 'funnel', minBuckets: 6 },
-  { id: 'teams-sync',  kind: 'funnel', minBuckets: 3 },
+  { id: 'teams-sync',  kind: 'chain', minNodes: 6 },
 ];
 
 for (const page of PAGES) {

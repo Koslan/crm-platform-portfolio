@@ -205,148 +205,422 @@ const Teams = {
 };
 
 
-/* ---------- chat thread -> CRM -> issue tracker ---------- */
+/* ---------- Microsoft Teams -> Zoho -> Jira synchronization ----------
+   Two self-contained recreations, not a shared CRM shell: a dark Teams
+   window and a light Jira window, switched by tab rather than squeezed
+   into one three-column frame. Routing runs on the PITCH code in the
+   root message of a thread; the channel itself only tells Zoho which
+   Teams channels to read at all. See the write-up (teams-sync) for the
+   constraint this replays and what stays broken. */
+const CHANNEL = { name:'presales_game_project', client:'Northstar Games' };
+const PITCH = 'PITCH-2048';
+const ROOT = { author:'Marta Kaminski', when:'29 Aug 2026 · 09:12',
+  text:`${PITCH}\n\nThe client confirmed the review call for Tuesday. Please check the latest scope and let me know who will attend.` };
+const REPLIES = [
+  { id:'r1', author:'Tomas Novak', when:'29 Aug 2026 · 10:40', tag:'#jira', mention:'Kostiantyn Buriak',
+    text:'@Kostiantyn Buriak, please review the estimation before the call.',
+    files:['Estimation_v3.xlsx','Scope_notes.pdf'] },
+  { id:'r2', author:'Marta Kaminski', when:'29 Aug 2026 · 10:52', tag:'#jira_private',
+    text:'The commercial assumption still needs internal approval.' }
+];
+const ROOT_NOPITCH = { author:'Andrej Petrov', when:'27 Aug 2026 · 15:03',
+  text:'Does anyone know when the second sample batch lands? The client asked twice already.' };
+
+const CSS_TRK = `
+.trk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.trk-bar .grow{flex:1 1 auto}
+.trk-status{font:400 12.5px/1.5 "IBM Plex Sans",sans-serif;padding:7px 12px;border-radius:6px;color:var(--ink-2);
+  border-left:3px solid var(--line-strong);background:var(--surface-2);margin-bottom:12px}
+.trk-status[data-tone="ok"]{border-left-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+.trk-status[data-tone="warn"]{border-left-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
+.trk-tabs{display:flex;gap:0;border-bottom:1px solid var(--line)}
+.trk-tabs button{font:500 13px/1 "IBM Plex Mono",monospace;letter-spacing:.04em;background:none;border:0;
+  border-bottom:2px solid transparent;padding:10px 4px;margin-right:22px;cursor:pointer;color:var(--ink-3)}
+.trk-tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.trk-tabs button .n{color:var(--ink-3);margin-right:6px}
+.trk-screens{border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;overflow:hidden}
+.trk-screens .tmw[hidden],.trk-screens .jrw[hidden]{display:none}
+.trk-lock{display:inline-flex;align-items:center;gap:5px;font:500 11px/1 "IBM Plex Sans",sans-serif;
+  padding:4px 9px 4px 7px;border-radius:999px;white-space:normal}
+.trk-tech{margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:auto}
+.trk-tech table{width:100%;border-collapse:collapse;font-size:12px}
+.trk-tech td{padding:7px 12px;border-top:1px solid var(--line);vertical-align:top}
+.trk-tech td:first-child{font:500 11px/1.4 "IBM Plex Mono",monospace;color:var(--ink-3);white-space:nowrap;
+  width:190px;border-right:1px solid var(--line)}
+.trk-tech tr:first-child td{border-top:0}
+
+/* ---- Microsoft Teams recreation ---- */
+.tmw{--bg:#1F1F1F;--bg2:#2B2B2B;--bg3:#242424;--acc:#6264A7;--ink:#F5F5F5;--ink2:#BDBDBD;--ln:#3A3A3A;
+  background:var(--bg);color:var(--ink);font-family:"Segoe UI","IBM Plex Sans",sans-serif;
+  display:grid;grid-template-rows:auto 1fr;min-height:600px}
+.tmw *{box-sizing:border-box}
+.tmw .top{display:flex;align-items:center;gap:16px;padding:9px 16px;border-bottom:1px solid var(--ln)}
+.tmw .top .logo{font:600 13.5px/1 "Segoe UI",sans-serif;display:flex;align-items:center;gap:7px}
+.tmw .top .logo i{width:20px;height:20px;border-radius:4px;background:var(--acc);display:inline-block}
+.tmw .top .srch{flex:1;max-width:420px;background:var(--bg3);border:1px solid var(--ln);border-radius:5px;
+  padding:6px 10px;font-size:12.5px;color:var(--ink2)}
+.tmw .body{display:grid;grid-template-columns:52px 220px minmax(0,1fr);min-height:0}
+.tmw .rail{background:var(--bg);border-right:1px solid var(--ln);display:flex;flex-direction:column;
+  align-items:center;gap:16px;padding:14px 0;font-size:9.5px;color:var(--ink2)}
+.tmw .rail span{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tmw .rail span.on{color:#fff}
+.tmw .rail span.on i{background:var(--acc)}
+.tmw .rail i{width:26px;height:26px;border-radius:6px;background:var(--bg2);display:block}
+.tmw .chans{background:var(--bg);border-right:1px solid var(--ln);overflow:auto;padding:10px 0}
+.tmw .chans h6{font:600 11px/1 "Segoe UI",sans-serif;color:var(--ink2);padding:6px 14px;margin:0}
+.tmw .chan-grp{padding:2px 8px 10px}
+.tmw .chan{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:5px;font-size:12.5px;color:var(--ink2)}
+.tmw .chan[aria-current="true"]{background:var(--bg2);color:#fff;font-weight:600}
+.tmw .chan .dot{width:6px;height:6px;border-radius:99px;background:var(--ln);flex:none}
+.tmw .thr{display:flex;flex-direction:column;min-width:0}
+.tmw .thr-hd{padding:11px 18px;border-bottom:1px solid var(--ln);font:600 14px/1.3 "Segoe UI",sans-serif}
+.tmw .thr-hd .sub{font:400 11.5px/1 "Segoe UI",sans-serif;color:var(--ink2);margin-top:3px}
+.tmw .threads{display:flex;gap:0;padding:8px 18px 0;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+.tmw .threads button{background:none;border:0;border-bottom:2px solid transparent;color:var(--ink2);
+  font:400 12px/1 "Segoe UI",sans-serif;padding:7px 4px;margin-right:16px;cursor:pointer;text-align:left}
+.tmw .threads button[aria-current="true"]{color:#fff;border-bottom-color:var(--acc)}
+.tmw .canvas{overflow:auto;flex:1;padding:16px 18px}
+.tmw .msg{display:flex;gap:10px;margin-bottom:16px}
+.tmw .msg .av{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font:600 11px/1 "Segoe UI",sans-serif;color:#fff}
+.tmw .msg .who{font:600 12.5px/1 "Segoe UI",sans-serif;color:#fff}
+.tmw .msg .who span{font-weight:400;color:var(--ink2);margin-left:8px;font-size:11px}
+.tmw .msg .bd{font-size:13px;line-height:1.5;color:var(--ink);white-space:pre-wrap;margin-top:4px}
+.tmw .msg .bd b.pitch{color:#9698d6;font-weight:600}
+.tmw .msg .tag{display:inline-block;margin-top:6px;font:500 11px/1 "IBM Plex Mono",monospace;color:#9698d6;
+  background:rgba(98,100,167,.22);border-radius:4px;padding:3px 7px}
+.tmw .msg .att{margin-top:7px;font-size:12px;color:#9698d6}
+.tmw .msg .rx{margin-top:8px;min-height:1px}
+.tmw .msg .rx .ticket{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--ln);
+  border-radius:14px;padding:3px 10px;font-size:12px;color:var(--ink2)}
+.tmw .sysmsg{margin:0 0 16px;border:1px solid var(--ln);border-radius:8px;background:var(--bg3);padding:12px 14px}
+.tmw .sysmsg h6{margin:0 0 6px;font:600 12.5px/1.3 "Segoe UI",sans-serif;color:#fff}
+.tmw .sysmsg .row{margin-top:7px}
+.tmw .sysmsg .row b{color:var(--ink2);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px}
+.tmw .sysmsg .row div{font-size:12.5px;line-height:1.5;color:var(--ink)}
+@media(max-width:900px){.tmw .body{grid-template-columns:44px 1fr}.tmw .chans{display:none}}
+@media(max-width:680px){.tmw .body{grid-template-columns:1fr}.tmw .rail{display:none}.tmw,.jrw{min-height:480px}}
+
+/* ---- Jira recreation ---- */
+.jrw{--bg:#FFFFFF;--bg2:#F7F8F9;--acc:#0C66E4;--ink:#172B4D;--ink2:#5E6C84;--ln:#DFE1E6;
+  background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;
+  display:grid;grid-template-rows:auto 1fr;min-height:600px}
+.jrw *{box-sizing:border-box}
+.jrw .top{display:flex;align-items:center;gap:18px;padding:9px 16px;border-bottom:1px solid var(--ln)}
+.jrw .top .logo{font:700 14px/1 "IBM Plex Sans",sans-serif;color:var(--acc)}
+.jrw .top nav{display:flex;gap:16px;font-size:12.5px;color:var(--ink2)}
+.jrw .top .srch{flex:1;max-width:340px;background:var(--bg2);border:1px solid var(--ln);border-radius:4px;
+  padding:6px 10px;font-size:12.5px;color:var(--ink2);margin-left:auto}
+.jrw .body{display:grid;grid-template-columns:190px minmax(0,1fr);min-height:0}
+.jrw .side{background:var(--bg2);border-right:1px solid var(--ln);padding:14px 0}
+.jrw .side h6{font:600 11px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);
+  padding:0 16px 8px;margin:0}
+.jrw .side a{display:block;padding:7px 16px;font-size:12.5px;color:var(--ink2);border-left:2px solid transparent}
+.jrw .side a[aria-current="true"]{color:var(--acc);border-left-color:var(--acc);background:#E9F2FE;font-weight:600}
+.jrw .main{overflow:auto;padding:16px 22px}
+.jrw .crumb{font-size:11.5px;color:var(--ink2);margin-bottom:10px}
+.jrw .crumb b{color:var(--ink)}
+.jrw .ihd{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:12px;
+  border-bottom:1px solid var(--ln)}
+.jrw .ihd h1{font:600 18px/1.3 "IBM Plex Sans",sans-serif;margin:0}
+.jrw .ihd h1 span{color:var(--ink2);font-weight:400;margin-right:8px}
+.jrw .meta{display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+.jrw .status-chip{background:#DEEBFF;color:#0747A6;font:600 11px/1 "IBM Plex Sans",sans-serif;padding:4px 10px;
+  border-radius:4px;flex:none}
+.jrw .itabs{display:flex;border-bottom:1px solid var(--ln);margin:14px 0 0;flex-wrap:wrap}
+.jrw .itabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--ink2);
+  font:500 12.5px/1 "IBM Plex Sans",sans-serif;padding:10px 4px;margin-right:22px;cursor:pointer}
+.jrw .itabs button[aria-selected="true"]{color:var(--acc);border-bottom-color:var(--acc)}
+.jrw .comments{padding-top:14px}
+.jrw .empty{color:var(--ink2);font-size:12.5px;font-style:italic;padding:14px 0}
+.jrw .cmt{display:flex;gap:10px;padding:14px 0;border-top:1px solid var(--ln)}
+.jrw .cmt:first-child{border-top:0}
+.jrw .cmt .av{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font:600 10.5px/1 "IBM Plex Sans",sans-serif;color:#fff}
+.jrw .cmt .hd{display:flex;align-items:center;gap:8px;font-size:12px;flex-wrap:wrap}
+.jrw .cmt .hd b{color:var(--ink)}
+.jrw .cmt .hd .via{color:var(--ink2)}
+.jrw .cmt .src{display:inline-flex;align-items:center;gap:5px;font:500 10.5px/1 "IBM Plex Mono",monospace;
+  color:#0052CC;background:#E9F2FE;border-radius:4px;padding:2px 7px}
+.jrw .cmt .bd{font-size:13px;line-height:1.55;margin-top:6px;white-space:pre-wrap}
+.jrw .cmt .bd .mention{color:var(--acc);font-weight:600;background:#E9F2FE;border-radius:3px;padding:0 3px}
+.jrw .cmt .lnk{margin-top:7px;font-size:12px;color:var(--ink2)}
+.jrw .cmt .lnk a{color:var(--acc)}
+.jrw .cmt .files{margin-top:8px;border:1px solid var(--ln);border-radius:6px;padding:8px 10px;background:var(--bg2)}
+.jrw .cmt .files div{font-size:12px;padding:2px 0}
+.jrw .cmt .files a{color:var(--acc)}
+.jrw .cmt .marker{margin-top:6px;font:400 10.5px/1.4 "IBM Plex Mono",monospace;color:var(--ink2);opacity:.75}
+.jrw .lock{background:#FFF0B3;color:#7A5D00}
+.jrw .cmt.new{animation:trkfade .5s ease-out}
+@keyframes trkfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.jrw .cmt.new{animation:none}}
+.jrw .cmt.flash{background:#FFFAE6}
+@media(max-width:900px){.jrw .body{grid-template-columns:1fr}.jrw .side{display:none}}
+`;
+
+const wait = ms => new Promise(r => window.setTimeout(r, ms));
+
 const Tracker = {
   async mount(host) {
     S.ensureCss();
-    if (!document.getElementById('tms-css')) {
-      const st = document.createElement('style'); st.id = 'tms-css'; st.textContent = CSS3; document.head.appendChild(st);
+    if (!document.getElementById('trk-css')) {
+      const st = document.createElement('style'); st.id = 'trk-css'; st.textContent = CSS_TRK; document.head.appendChild(st);
     }
     host.classList.add('ecp');
-    this.trace = [];
-    const { rows } = await coqlAll(
-      `select id, Deal_Name, Stage, Amount, Account_Name.Account_Name from Deals where Stage != '5. Lost' limit 200`, 200);
-    this.deals = rows;
-    const d = rows[0], d2 = rows[1] || rows[0];
-    this.threads = [
-      { id:'t1', ctx:'DELIVERY', topic:'Tolerance review', key:'NBE-'+1000, deal:d, meta:true,
-        body:'Latest drawing set is attached. Two dimensions on the bracket are outside the agreed tolerance and the supplier wants a decision before Friday.' },
-      { id:'t2', ctx:'ACCOUNT', topic:'Framework renewal', key:'NBE-'+1244, deal:d2, meta:true,
-        body:'They asked for a two-year framework instead of per-project purchase orders. Commercial wants our position by the end of the month.' },
-      { id:'t3', ctx:'OTHER', topic:'Anything about the shipment?', key:null, deal:null, meta:false,
-        body:'Does anyone know when the second sample batch lands? The client asked twice already.' }
-    ];
-    host.innerHTML = `<div class="tms">
-      <div class="col"><div class="ch">Threads <span class="tag">emulated UI</span></div><div class="list" id="tk-list"></div></div>
-      <div class="col"><div class="ch" id="tk-title">Pick a thread</div><div class="stream" id="tk-stream"></div></div>
-      <div class="col"><div class="ch">CRM &amp; issue</div><div id="tk-side" style="overflow:auto;max-height:52%"></div>
-        <div class="ch" style="border-top:1px solid var(--line)">Trace</div><div class="trace" id="tk-trace"></div></div>
-    </div>`;
-    q(host,'#tk-list').innerHTML = this.threads.map((t,i) => `<div class="chat" data-i="${i}" aria-selected="${i===0}">
-      <span class="av" style="background:${hue(t.topic)}">${ini(t.topic)}</span>
-      <div><div class="t">${E(t.topic)}</div><div class="s">${E(t.ctx)} · ${t.meta ? 'carries metadata' : 'no metadata block'}</div></div></div>`).join('');
-    q(host,'#tk-list').onclick = e => { const x = e.target.closest('[data-i]'); if (!x) return;
-      qa(host,'.chat').forEach(y => y.setAttribute('aria-selected', String(y === x)));
-      this.open(+x.dataset.i); };
     this.host = host;
-    this.open(0);
+    this.tab = 'teams'; this.thread = 'pitch'; this.itab = 'comments';
+    this.delivered = {}; this.comments = []; this.bw = { delivered:false, marker:null };
+    this.techOpen = false; this.flashIds = new Set();
+    this.statusText = 'Two replies in this thread are tagged for Jira — nothing has synced yet.'; this.tone = 'idle';
+    this.opportunity = null;
+
+    try {
+      const { rows } = await coqlAll(
+        `select id, Deal_Name, Account_Name.Account_Name from Deals where Stage != '5. Lost' limit 1`, 1);
+      if (rows[0]) this.opportunity = { name: rows[0].Deal_Name, account: rows[0]['Account_Name.Account_Name'] };
+    } catch (e) { /* the drawer just shows an em dash for Opportunity */ }
+
+    host.innerHTML = `<div class="trk">
+      <div class="trk-bar">
+        <button class="btn" data-act="run">Run synchronization</button>
+        <button class="btn sec" data-act="again">Run again</button>
+        <button class="chip2" data-act="restricted">Show restricted example</button>
+        <button class="chip2" data-act="missing">Show missing PITCH example</button>
+        <button class="chip2" data-act="biweekly">Show biweekly recap</button>
+        <span class="grow"></span>
+        <button class="chip2" id="trk-tech-btn" data-act="tech" aria-pressed="false">Show technical details</button>
+      </div>
+      <div id="trk-status-wrap"></div>
+      <div class="trk-tabs" role="tablist" aria-label="Application screen">
+        <button role="tab" id="trk-tab-teams" data-tab="teams" aria-selected="true" aria-controls="trk-teams">01 <span class="n">·</span> Microsoft Teams</button>
+        <button role="tab" id="trk-tab-jira" data-tab="jira" aria-selected="false" aria-controls="trk-jira">02 <span class="n">·</span> Jira</button>
+      </div>
+      <div class="trk-screens">
+        <div id="trk-teams" class="tmw" role="tabpanel" aria-labelledby="trk-tab-teams"></div>
+        <div id="trk-jira" class="jrw" role="tabpanel" aria-labelledby="trk-tab-jira" hidden></div>
+      </div>
+      <div id="trk-tech" class="trk-tech" hidden></div>
+    </div>`;
+
+    host.addEventListener('click', e => {
+      const tab = e.target.closest('[data-tab]'); if (tab) { this.tab = tab.dataset.tab; this.paint(); return; }
+      const th = e.target.closest('[data-th]'); if (th) { this.thread = th.dataset.th; this.paint(); return; }
+      const itab = e.target.closest('[data-itab]'); if (itab) { this.itab = itab.dataset.itab; this.paint(); return; }
+      const act = e.target.closest('[data-act]'); if (!act) return;
+      const a = act.dataset.act;
+      if (a === 'run' || a === 'again') this.runSync();
+      else if (a === 'restricted') this.showRestricted();
+      else if (a === 'missing') this.showMissing();
+      else if (a === 'biweekly') this.runBiweekly();
+      else if (a === 'tech') this.toggleTech();
+    });
+    this.paint();
   },
 
-  log(kind, text, note) {
-    this.trace.unshift(`<div><b>${E(kind)}</b> ${E(text)}${note ? ` <i>${E(note)}</i>` : ''}</div>`);
-    const t = q(this.host,'#tk-trace'); if (t) t.innerHTML = this.trace.join('');
+  status(text, tone) { this.statusText = text; this.tone = tone || 'idle'; },
+
+  bodyWithPitch(text) { return E(text).replace(/PITCH-\d+/, m => `<b class="pitch">${m}</b>`); },
+  mentionJira(text, mention) {
+    const esc2 = E(text);
+    return mention ? esc2.replace('@' + E(mention), `<span class="mention">@${E(mention)}</span>`) : esc2;
   },
 
-  open(i) {
-    const t = this.threads[i]; this.t = t; this.trace = []; this.sent = [];
-    q(this.host,'#tk-title').textContent = `${t.topic} · ${t.ctx.toLowerCase()} channel`;
-    const block = t.meta ? `#CRM_SYNC_START
-ZOHO_DEAL: ${t.deal.id}
-JIRA_KEY: ${t.key}
-CONTEXT: ${t.ctx}
-THREAD_TOPIC: ${t.topic}
-SYNC_TO_ZOHO: true
-#CRM_SYNC_END
-
-` : '';
-    q(this.host,'#tk-stream').innerHTML = `
-      <div class="bub"><span class="av" style="background:${hue('Marta Kaminski')}">MK</span>
-        <div style="flex:1"><div class="nm">Marta Kaminski<span>first message in the thread</span></div>
-          <div class="bd" style="white-space:pre-wrap">${E(block)}${E(t.body)}</div>
-          <div class="act"><button class="chip2" data-push="0">Send to the issue</button></div></div></div>
-      <div class="bub"><span class="av" style="background:${hue('Tomas Novak')}">TN</span>
-        <div style="flex:1"><div class="nm">Tomas Novak<span>reply</span></div>
-          <div class="bd">Supplier can hold the slot until Tuesday. After that the tooling window moves by three weeks.</div>
-          <div class="act"><button class="chip2" data-push="1">Send to the issue</button>
-            <button class="chip2" data-att="1">&#128206; Attach the report</button></div></div></div>
-      <div id="tk-out"></div>`;
-    q(this.host,'#tk-stream').onclick = e => {
-      const push = e.target.closest('[data-push]'); if (push) return this.push(push);
-      const att = e.target.closest('[data-att]'); if (att) return this.attach(att);
-    };
-    this.resolve();
+  async runSync() {
+    if (this.thread === 'nopitch') {
+      this.status('Skipped safely · no PITCH found in the root message', 'warn'); this.paint(); return;
+    }
+    this.status('Synchronizing…', 'idle'); this.paint();
+    await wait(420);
+    let added = 0;
+    REPLIES.forEach(r => {
+      if (this.delivered[r.id]) return;
+      added++;
+      const marker = `[crm-teams-msg:${r.id}]`;
+      this.delivered[r.id] = marker;
+      this.comments.push(Object.assign({}, r, { marker, fresh:true }));
+    });
+    if (added) {
+      this.status((added === 1 ? '1 comment' : added + ' comments') + ' delivered · ticket set on the source message', 'ok');
+      this.paint();
+      await wait(650);
+      this.comments.forEach(c => { c.fresh = false; });
+    } else {
+      this.status('Existing Jira marker found · duplicate skipped', 'idle');
+      this.flashIds = new Set(Object.keys(this.delivered));
+      this.paint();
+      await wait(1300);
+      this.flashIds = new Set(); this.paint();
+    }
   },
 
-  resolve() {
-    const t = this.t;
-    this.log('parse', 'read the block between the markers', t.meta ? 'found' : 'absent');
-    if (!t.meta) {
-      this.log('match', 'DEAL_NOT_FOUND', 'nothing to guess from');
-      this.log('write', 'stored with Needs_Review = true', 'the message is kept, the link is not invented');
-      q(this.host,'#tk-side').innerHTML = `<div class="crmcard"><h6>No deal resolved</h6>
-        <div style="font-size:12.5px;color:var(--ink-2)">This thread carries no metadata block, so there is nothing to
-        attach it to. The message is stored anyway and flagged for review — guessing the deal from the text is how a
-        conversation ends up under the wrong client.</div>
-        <div style="margin-top:10px"><span class="pill no">Needs review</span>
-          <span class="pill ghost">Sync status: DEAL_NOT_FOUND</span></div></div>`;
-      qa(this.host,'#tk-stream [data-push],#tk-stream [data-att]').forEach(x => { x.disabled = true; x.style.opacity = .45; });
+  async showRestricted() {
+    this.thread = 'pitch'; this.tab = 'teams'; this.paint();
+    await wait(150);
+    await this.runSync();
+    this.tab = 'jira'; this.flashIds = new Set(['r2']); this.paint();
+    await wait(1300);
+    this.flashIds = new Set(); this.paint();
+  },
+
+  async showMissing() {
+    this.thread = 'nopitch'; this.tab = 'teams';
+    await this.runSync();
+  },
+
+  async runBiweekly() {
+    this.thread = 'pitch'; this.tab = 'teams';
+    if (this.bw.delivered) {
+      this.status('Already delivered', 'idle');
+      this.flashIds = new Set(['biweekly']); this.paint();
+      await wait(1300);
+      this.flashIds = new Set(); this.paint();
       return;
     }
-    this.log('match', 'by ZOHO_DEAL', 'confidence 100');
-    this.log('crm', 'deal found', t.deal.Deal_Name);
-    this.render();
+    this.status('Publishing the biweekly recap…', 'idle'); this.paint();
+    await wait(420);
+    this.bw.delivered = true;
+    this.bw.marker = `[crm-biweekly:${PITCH}:15 Aug 2026:29 Aug 2026:${CHANNEL.name}]`;
+    this.comments.push({ id:'biweekly', biweekly:true, marker:this.bw.marker, fresh:true });
+    this.status('Biweekly recap published to Teams and the linked issue', 'ok');
+    this.paint();
+    await wait(650);
+    this.comments.forEach(c => { c.fresh = false; });
   },
 
-  render() {
-    const t = this.t;
-    q(this.host,'#tk-side').innerHTML = `
-      <div class="crmcard"><h6>Deal in the CRM</h6>
-        <dl class="kvs" style="grid-template-columns:104px 1fr;font-size:12.5px">
-          <dt>Deal</dt><dd>${E(t.deal.Deal_Name)}</dd>
-          <dt>Account</dt><dd>${E(t.deal['Account_Name.Account_Name'])}</dd>
-          <dt>Stage</dt><dd>${E(t.deal.Stage)}</dd>
-          <dt>Matched by</dt><dd><span class="pill ok">ZOHO_DEAL</span> <span class="pill ghost">confidence 100</span></dd>
-          <dt>Context</dt><dd>${E(t.ctx)}</dd>
-        </dl></div>
-      <div class="crmcard"><h6>Issue ${E(t.key)}</h6>
-        <div style="font-size:12.5px;color:var(--ink-3)">Comments</div>
-        <div id="tk-comments" style="margin-top:6px">${this.sent.length ? '' :
-          '<div style="font-size:12.5px;color:var(--ink-3);font-style:italic">nothing sent across yet</div>'}
-          ${this.sent.map(c => `<div style="border-top:1px solid var(--line);padding:7px 0;font-size:12.5px">
-            <b>${E(c.who)}</b> <span style="color:var(--ink-3)">via the CRM</span><div>${E(c.text)}</div>
-            <div style="color:var(--ink-3);font-size:11px;margin-top:3px">marker ${E(c.marker)}</div></div>`).join('')}</div>
-        <div style="font-size:12.5px;color:var(--ink-3);margin-top:10px">Links</div>
-        <div id="tk-links" style="font-size:12.5px">${this.links ? this.links : '<span style="color:var(--ink-3);font-style:italic">none</span>'}</div>
+  toggleTech() { this.techOpen = !this.techOpen; this.paint(); },
+
+  sysmsgHTML() {
+    return `<div class="sysmsg"><h6>&#129302; Zoho sync &middot; Bi-weekly recap</h6>
+      <div class="row"><b>Period</b><div>15 Aug 2026 &mdash; 29 Aug 2026 &middot; ${E(CHANNEL.name)}</div></div>
+      <div class="row"><b>Changed</b><div>The client confirmed the review call and the estimation was updated after the latest scope clarification.</div></div>
+      <div class="row"><b>Needed</b><div>Confirm attendees and approve the remaining commercial assumption.</div></div>
+    </div>`;
+  },
+
+  threadHTML(root, replies, showBw) {
+    let h = `<div class="msg"><span class="av" style="background:${hue(root.author)}">${ini(root.author)}</span>
+      <div><div class="who">${E(root.author)}<span>${E(root.when)} &middot; root message</span></div>
+      <div class="bd">${this.bodyWithPitch(root.text)}</div></div></div>`;
+    replies.forEach(r => {
+      const delivered = !!this.delivered[r.id];
+      h += `<div class="msg"><span class="av" style="background:${hue(r.author)}">${ini(r.author)}</span>
+        <div><div class="who">${E(r.author)}<span>${E(r.when)} &middot; reply</span></div>
+        <div class="bd">${this.mentionJira(r.text, r.mention)}</div>
+        <div class="tag">${E(r.tag)}</div>
+        ${r.files ? `<div class="att">&#128206; ${r.files.length} file${r.files.length > 1 ? 's' : ''} attached</div>` : ''}
+        <div class="rx">${delivered ? `<span class="ticket" title="Delivered to Jira &middot; ${PITCH}" aria-label="Delivered to Jira">&#127915; Delivered to Jira</span>` : ''}</div>
+        </div></div>`;
+    });
+    if (showBw) h += this.sysmsgHTML();
+    return h;
+  },
+
+  teamsHTML() {
+    const root = this.thread === 'pitch' ? ROOT : ROOT_NOPITCH;
+    const replies = this.thread === 'pitch' ? REPLIES : [];
+    const showBw = this.thread === 'pitch' && this.bw.delivered;
+    return `<div class="top"><div class="logo"><i></i> Teams</div><div class="srch">Search</div></div>
+      <div class="body">
+        <div class="rail"><span>&#128172;<br>Chat</span><span class="on">&#128101;<br>Teams</span><span>&#128197;<br>Calendar</span></div>
+        <div class="chans"><h6>[PRJ] Presale</h6>
+          <div class="chan-grp">
+            <div class="chan"><span class="dot"></span>General</div>
+            <div class="chan" aria-current="true"><span class="dot"></span>${E(CHANNEL.name)}</div>
+            <div class="chan"><span class="dot"></span>onboarding_supersalesbros</div>
+          </div></div>
+        <div class="thr">
+          <div class="thr-hd">${E(CHANNEL.name)}<div class="sub">${E(CHANNEL.client)} &middot; channel is registered in Zoho Analytics</div></div>
+          <div class="threads">
+            <button data-th="pitch" aria-current="${this.thread === 'pitch'}">Client review &amp; estimation <span style="opacity:.6">&middot; ${PITCH}</span></button>
+            <button data-th="nopitch" aria-current="${this.thread === 'nopitch'}">Second sample batch</button>
+          </div>
+          <div class="canvas">${this.threadHTML(root, replies, showBw)}</div>
+        </div>
       </div>`;
   },
 
-  push(btn) {
-    const idx = +btn.dataset.push;
-    const texts = [this.t.body, 'Supplier can hold the slot until Tuesday. After that the tooling window moves by three weeks.'];
-    const who = idx === 0 ? 'Marta Kaminski' : 'Tomas Novak';
-    const marker = `[crm-msg:${this.t.id}-${idx}]`;
-    if (this.sent.some(c => c.marker === marker)) {
-      this.log('skip', 'marker already present on the issue', 'a ten-minute sync would have duplicated this');
-      btn.textContent = 'already there'; return;
+  commentHTML(c) {
+    const flash = this.flashIds.has(c.id) ? ' flash' : '';
+    const fresh = c.fresh ? ' new' : '';
+    const marker = this.techOpen ? `<div class="marker">${E(c.marker)}</div>` : '';
+    if (c.biweekly) {
+      return `<div class="cmt${fresh}${flash}"><span class="av" style="background:${hue('Zoho sync')}">ZS</span>
+        <div><div class="hd"><b>Zoho sync</b><span class="src">Zoho CRM</span>
+          <span class="trk-lock lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span></div>
+        <div class="bd">Bi-weekly Teams recap &middot; 15 Aug 2026 &mdash; 29 Aug 2026
+Channel: ${E(CHANNEL.name)}
+
+Changed: The client confirmed the review call and the estimation was updated after the latest scope clarification.
+
+Needed: Confirm attendees and approve the remaining commercial assumption.</div>
+        ${marker}</div></div>`;
     }
-    btn.disabled = true; btn.style.opacity = .55;
-    this.log('tracker', 'POST comment', marker);
-    this.sent.push({ who, text:texts[idx], marker });
-    btn.innerHTML = '&#10003; on the issue';
-    this.render();
+    const restricted = c.tag === '#jira_private';
+    return `<div class="cmt${fresh}${flash}"><span class="av" style="background:${hue(c.author)}">${ini(c.author)}</span>
+      <div><div class="hd"><b>${E(c.author)}</b><span class="via">via Teams &middot; ${E(c.when)}</span>
+        <span class="src">Zoho CRM</span>
+        ${restricted ? `<span class="trk-lock lock">&#128274; Restricted to Producers/BizDev/Supervisor/Art/Tech. Dir</span>` : ''}</div>
+      <div class="bd">${this.mentionJira(c.text, c.mention)}</div>
+      <div class="lnk">Channel: ${E(CHANNEL.name)} &middot; <a href="#">Open thread in Teams</a></div>
+      ${c.files ? `<div class="files">Attachments from Teams${c.files.map(f => `<div>&#128279; <a href="#">${E(f)}</a> &mdash; Open in Teams/SharePoint</div>`).join('')}</div>` : ''}
+      ${marker}</div></div>`;
   },
 
-  attach(btn) {
-    btn.disabled = true; btn.style.opacity = .55;
-    this.log('storage', 'GET file metadata', 'read from the channel folder');
-    this.log('proxy', 'multipart upload refused', '200 with an empty body — the bytes never arrive');
-    this.log('tracker', 'POST remotelink', 'globalId keeps it idempotent');
-    this.links = `<div style="border-top:1px solid var(--line);padding:7px 0">
-        &#128279; <span style="color:var(--accent)">tolerance-report-r3.pdf</span>
-        <div style="color:var(--ink-3);font-size:11px">a link, not an upload — it inherits the folder's permissions,
-        which is the only way to keep a rates document off everyone who can see the issue</div></div>`;
-    btn.innerHTML = '&#10003; linked';
-    this.render();
+  jiraHTML() {
+    const list = this.comments;
+    const activityLike = this.itab === 'activity' || this.itab === 'history';
+    return `<div class="top"><div class="logo">Jira</div><nav><span>Projects</span><span>Filters</span></nav><div class="srch">Search</div></div>
+      <div class="body">
+        <div class="side"><h6>PITCH project</h6>
+          <a aria-current="false">Summary</a><a aria-current="true">Issues</a><a aria-current="false">Reports</a></div>
+        <div class="main">
+          <div class="crumb">PITCH project <b>/</b> <b>${PITCH}</b></div>
+          <div class="ihd">
+            <div><h1><span>${PITCH}</span>Client review and estimation</h1>
+              <div class="meta"><span>Assignee: Kostiantyn Buriak</span><span>Reporter: Zoho sync</span></div></div>
+            <span class="status-chip">In Progress</span>
+          </div>
+          <div class="itabs" role="tablist">
+            <button role="tab" data-itab="activity" aria-selected="${this.itab === 'activity'}">Activity</button>
+            <button role="tab" data-itab="comments" aria-selected="${this.itab === 'comments'}">Comments</button>
+            <button role="tab" data-itab="history" aria-selected="${this.itab === 'history'}">History</button>
+          </div>
+          ${activityLike
+            ? `<p class="empty">Not part of this demo &mdash; Comments is where the synchronization lands.</p>`
+            : `<div class="comments">${list.length ? list.map(c => this.commentHTML(c)).join('') : '<p class="empty">Nothing delivered from Teams yet.</p>'}</div>`}
+        </div>
+      </div>`;
+  },
+
+  techHTML() {
+    const rows = [
+      ['Team_ID + Channel_ID', 'TEAM_PRESALES &middot; CH_PRESALES_GAME_PROJECT'],
+      ['Root_Message_ID', 'root-2048'],
+      ['Teams_Message_ID', Object.keys(this.delivered).join(', ') || '&mdash;'],
+      ['Message_Unique_Key', 'hash of channel + root + message id'],
+      ['Jira_Key', PITCH],
+      ['Opportunity', this.opportunity ? `${E(this.opportunity.name)} &middot; ${E(this.opportunity.account)}` : '&mdash;'],
+      ['ETag', 'W/&quot;teams-etag-08x2f&quot;'],
+      ['In_Jira', Object.keys(this.delivered).length ? 'true' : 'false'],
+      ['[crm-teams-msg:&hellip;]', 'hidden marker inside each delivered comment'],
+      ['[crm-biweekly:&hellip;]', this.bw.marker ? E(this.bw.marker) : 'not yet published']
+    ];
+    return `<table><tbody>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</tbody></table>`;
+  },
+
+  paint() {
+    const h = this.host;
+    q(h,'#trk-status-wrap').innerHTML = `<div class="trk-status" data-tone="${this.tone}">${E(this.statusText)}</div>`;
+    q(h,'#trk-tab-teams').setAttribute('aria-selected', String(this.tab === 'teams'));
+    q(h,'#trk-tab-jira').setAttribute('aria-selected', String(this.tab === 'jira'));
+    const teamsEl = q(h,'#trk-teams'), jiraEl = q(h,'#trk-jira');
+    teamsEl.hidden = this.tab !== 'teams'; jiraEl.hidden = this.tab !== 'jira';
+    teamsEl.innerHTML = this.teamsHTML();
+    jiraEl.innerHTML = this.jiraHTML();
+    const tech = q(h,'#trk-tech');
+    tech.hidden = !this.techOpen;
+    if (this.techOpen) tech.innerHTML = this.techHTML();
+    q(h,'#trk-tech-btn').setAttribute('aria-pressed', String(this.techOpen));
   }
 };
 
