@@ -2169,10 +2169,54 @@ const CASES = {
 
     {id:'authority', t:'Deciding which system is allowed to be right',
      sub:'Four systems touch the same meeting. Without a rule, the last write wins, and the last write is usually a robot.',
+     dg:{kind:'authority', at:1,
+      aria:'Ownership matrix: eight meeting fields against Calendar, CRM, Chat and Issue tracker, with the rule Time belongs to the calendar, judgement belongs to the CRM, delivery belongs to the tracker, chat owns nothing',
+      cols:[{id:'cal',n:'Calendar'},{id:'crm',n:'CRM'},{id:'chat',n:'Chat'},{id:'tracker',n:'Issue tracker'}],
+      rows:[
+       {id:'start-end', n:'Start / end time'},
+       {id:'duration', n:'Duration'},
+       {id:'attendees', n:'Attendees'},
+       {id:'meeting-type', n:'Meeting type'},
+       {id:'room-note', n:'Room note'},
+       {id:'recap', n:'Recap'},
+       {id:'delivery-state', n:'Delivery state'},
+       {id:'issue-link', n:'Link to issue'},
+       {id:'unnamed-a', n:'Unnamed (never) 1'},
+       {id:'unnamed-b', n:'Unnamed (never) 2'},
+       {id:'unnamed-c', n:'Unnamed (cut)'}
+      ],
+      cells:{
+       'start-end:cal':'owner', 'start-end:crm':'source', 'start-end:chat':'never', 'start-end:tracker':'never',
+       'duration:cal':'owner', 'duration:crm':'source', 'duration:chat':'never', 'duration:tracker':'never',
+       'attendees:cal':'owner', 'attendees:crm':'source', 'attendees:chat':'source', 'attendees:tracker':'never',
+       'meeting-type:cal':'never', 'meeting-type:crm':'owner', 'meeting-type:chat':'never', 'meeting-type:tracker':'never',
+       'room-note:cal':'never', 'room-note:crm':'owner', 'room-note:chat':'never', 'room-note:tracker':'never',
+       'recap:cal':'never', 'recap:crm':'owner', 'recap:chat':'source', 'recap:tracker':'never',
+       'delivery-state:cal':'never', 'delivery-state:crm':'source', 'delivery-state:chat':'never', 'delivery-state:tracker':'owner',
+       'issue-link:cal':'never', 'issue-link:crm':'source', 'issue-link:chat':'source', 'issue-link:tracker':'never',
+       'unnamed-a:cal':'never', 'unnamed-a:crm':'source', 'unnamed-a:chat':'never', 'unnamed-a:tracker':'never',
+       'unnamed-b:cal':'never', 'unnamed-b:crm':'source', 'unnamed-b:chat':'never', 'unnamed-b:tracker':'never',
+       'unnamed-c:cal':'truncated', 'unnamed-c:crm':'source', 'unnamed-c:chat':'never', 'unnamed-c:tracker':'never'
+      },
+      rule:'Time belongs to the calendar. Judgement belongs to the CRM. Delivery belongs to the tracker. Chat owns nothing.',
+      note:'The three rows above are placeholders, not named fields: the write-up says the payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third — without saying which. This diagram marks that a limit exists without guessing what it applies to. The write-up also says several other fields are written only on creation, so a later sync cannot erase a human edit — again without naming them, so no row here is marked create-only.',
+      detail:{
+       'start-end:cal':{t:'Start / end time — Calendar', d:'The calendar owns time: it is where people accept and move things.'},
+       'meeting-type:cal':{t:'Meeting type — never from the calendar', d:'The meeting type is never taken from the calendar side, even though the calendar has an event type of its own.'},
+       'meeting-type:crm':{t:'Meeting type — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
+       'room-note:crm':{t:'Room note — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
+       'recap:crm':{t:'Recap — CRM owns it', d:'A person typed it. The recap is judgement, not a fact carried in from elsewhere.'},
+       'delivery-state:tracker':{t:'Delivery state — tracker owns it', d:'The issue tracker is authoritative over its own delivery state.'},
+       'chat':{t:'Chat owns nothing', d:'The whole Chat column is source or never — the chat is where a decision gets made in conversation, not where it is stored.'},
+       'unnamed-a:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for one of them.'},
+       'unnamed-b:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for the other one.'},
+       'unnamed-c:cal':{t:'Truncated — field unnamed', d:'The write-up: "one is truncated." It does not say which field, or to what length.'}
+      }
+     },
      body:[
       ['The problem','A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record.'],
-      ['The map','Time belongs to the calendar: it is where people accept and move things. The room note, the meeting type and the recap belong to the CRM, because a person typed them. The issue owns delivery state. The chat owns nothing and is a source, not a store. Written down as a table, this settles most arguments before they start.'],
-      ['How it is enforced','In the payload builder, create and update are separated. Several fields are written only on creation, so a later sync cannot erase an edit somebody made by hand. Two fields are never written at all because of length ceilings, and one is truncated — each with the reason recorded next to it. The meeting type is never taken from the calendar side.'],
+      ['The map','Written down as a table, this settles most arguments before they start.'],
+      ['How it is enforced','In the payload builder, create and update are separated. Two fields are never written at all because of length ceilings, and one is truncated. The write-up gives the mechanism, not the field names, so the three placeholder rows above are left unnamed rather than guessed.'],
       ['Where it becomes visible','The reconciliation screen in this portfolio is the same rule made clickable: a third column showing what the record should say, computed from both sources plus this map, and a repair that writes exactly that. The rule is printed under the comparison, so the person clicking it can disagree with it.']]}
   ],
   'Interfaces':[
