@@ -1358,7 +1358,7 @@ function termAnswer(q){
   return MATRIX.map(r=>r.dom+' — '+(r.l1.length+r.l2.length+r.l3.length)+' skills').join('\n')+'\ntry: <span class="cmd">skills zoho</span>';
  }
  if(c==='experience'){
-  const xp={room8:'Room 8 Group · CRM Engineer / Platform Owner · 2023—now\n  Sole owner of a production Zoho CRM: integrations (Graph, Teams, Jira, Apollo),\n  70+ widgets, org extraction into Git, migrations, release process.',
+  const xp={room8:'Room 8 Group · CRM Engineer / Platform Owner · 2023—now\n  Sole owner of a production Zoho CRM: integrations (Graph, Teams, Jira, Apollo),\n  widgets across the CRM estate on a shared design system, org extraction into Git,\n  migrations, release process.',
    noltic:'Noltic · Salesforce Developer · 2022—23\n  REST/SOAP integrations, CI/CD pipeline, Google Drive integration + Chrome extension, LWC.',
    softserve:'SoftServe · Salesforce Dev & Admin · 2021—22 · client: Sparta Solutions\n  Sales/Service/Experience Cloud on concurrent implementations; workshops→release ownership.',
    synebo:'Synebo · Salesforce Developer · 2020—21\n  Apex within governor limits, SOQL optimisation, LWC/Aura/Visualforce.',
@@ -1485,7 +1485,7 @@ function vAbout(){
    +'<li>The whole org in Git; review gate + CI/CD; releases are one reviewed click.</li>'
    +'<li>Integrations classify their own failures and recover — or report themselves.</li>'
    +'<li>An explicit identity &amp; merge model enforced across every inbound flow.</li>'
-   +'<li>70+ widgets on a shared library, browser-tested at phone widths offline.</li>'
+   +'<li>Widgets across the CRM estate on a shared design system and a versioned component library, browser-tested at phone widths offline.</li>'
    +'<li>Every function indexed against five entry channels, with an audit trail.</li>'
    +'</ul></div></div>'
    +'<div class="g">Integrations &amp; orchestration</div><ul>'
@@ -1501,7 +1501,7 @@ function vAbout(){
    +'<li>Introduced <b>version control and reviewable history</b> to a platform that shipped with neither: internal tooling that extracts all CRM functions into a searchable Git-tracked codebase, maps dependencies and invocation paths, and generates a function-audit table — “no change reaches production unreviewed” as an operating rule.</li>'
    +'<li>Integrated a <b>two-way deploy pipeline for Deluge functions</b> — the entire org’s code pulled to local disk and pushed back after review — so the whole codebase is developed, searched and deep-analysed from one place, instead of the platform’s one-function-at-a-time browser editor.</li>'
    +'<li>Delivered <b>three full systems in under 12 months</b> — the event scheduler, the account development planner (Miller-Heiman methodology) and the conversations/file tooling — and <b>mentor junior developers</b> on the platform.</li>'
-   +'<li>Built and maintain <b>70+ widgets across 10 modules</b> with shared components and a versioning model, including mobile layouts for the Zoho app, automated browser tests at phone widths and offline harnesses that stub the Zoho SDK.</li>'
+   +'<li>Built and maintain <b>widgets across the CRM estate</b>, on a shared design system and a versioned component library, including mobile layouts, browser tests at phone widths and an offline harness that stubs the Zoho SDK.</li>'
    +'<li><b>Audited the inherited implementation end to end</b> and converted the findings into a prioritised remediation plan with sequencing and risk rationale; escalated security and data-integrity issues rather than building around them; review other developers’ work.</li>'
    +'<li>Drive adoption directly — user documentation, training and hands-on support for non-technical teams; apply <b>generative AI</b> across delivery and documentation work.</li>'
    +'</ul>'
@@ -1633,7 +1633,6 @@ function vAbout(){
   +'<div class="lc"><b data-count="15">0</b><span>live demos mounted on these pages</span></div>'
   +'<div class="lc"><b data-count="21">0</b><span>write-ups with the trade stated</span></div>'
   +'<div class="lc"><b data-count="4820">0</b><span>synthetic records generated for the emulator</span></div>'
-  +'<div class="lc"><b data-count="70">0<em>+</em></b><span>widgets in production at Room 8</span></div>'
   +'<div class="lc"><b data-count="1500">0<em>~</em></b><span>org functions extracted &amp; indexed</span></div>'
   +'</div>'
   +'<div class="callout acc" style="margin-top:18px"><span class="k">Synthetic by design</span>'
