@@ -2041,11 +2041,41 @@ const CASES = {
 
     {id:'token-boundary', t:'Two credentials, and a line drawn between them',
      sub:'One kind of key can call a function. A different kind can touch records. Neither can do both.',
+     dg:{kind:'authority', at:1,
+      aria:'Ownership matrix: seven operations against a simple invoke key and a full OAuth flow, with the rule the line follows the secret, not the convenience',
+      cols:[{id:'simple',n:'Simple key (function invoke)'},{id:'oauth',n:'Full OAuth flow'}],
+      rows:[
+       {id:'call-fn', n:'Call a server-side function'},
+       {id:'read', n:'Read records'},
+       {id:'create', n:'Create'},
+       {id:'update', n:'Update'},
+       {id:'delete', n:'Delete'},
+       {id:'query', n:'Run a query'},
+       {id:'third-party', n:'Use a third-party credential'}
+      ],
+      cells:{
+       'call-fn:simple':'owner', 'call-fn:oauth':'never',
+       'read:simple':'never', 'read:oauth':'owner',
+       'create:simple':'never', 'create:oauth':'owner',
+       'update:simple':'never', 'update:oauth':'owner',
+       'delete:simple':'never', 'delete:oauth':'owner',
+       'query:simple':'never', 'query:oauth':'owner',
+       'third-party:simple':'owner', 'third-party:oauth':'never'
+      },
+      rule:'The line follows the secret, not the convenience.',
+      detail:{
+       'call-fn:simple':{t:'Call a server-side function — simple key', d:'The simple key that lets an outside script invoke a server-side function.'},
+       'third-party:simple':{t:'Third-party credential — stays behind the simple key', d:'Anything needing a third-party credential stays inside a server-side function and is invoked with the simple key, so the credential never leaves the platform.'},
+       'read:oauth':{t:'Read — full OAuth flow', d:'Create, update, delete, query — everything that touches records goes directly over the full flow from the tool, with the token cached and refreshed a minute before it expires.'},
+       'create:oauth':{t:'Create — full OAuth flow', d:'Batched at ninety per write, following the platform’s own limits.'},
+       'delete:oauth':{t:'Delete — full OAuth flow', d:'Batched at a hundred per delete.'},
+       'query:oauth':{t:'Query — full OAuth flow', d:'No more than a hundred values in a single set membership test.'}
+      }
+     },
      body:[
       ['The constraint','The simple key that lets an outside script invoke a server-side function does not work for reading or writing records, or for running a query — those need a full authorisation flow. Wrapping every record operation in its own function to get around that means a new function for every operation, forever.'],
-      ['Where the line goes','It follows the secret, not the convenience. Anything needing a third-party credential stays inside a server-side function and is invoked with the simple key, so the credential never leaves the platform. Everything else — create, update, delete, query — goes directly over the full flow from the tool, with the token cached and refreshed a minute before it expires.'],
-      ['Transport details that earn their keep','A single request path with retries, where an authorisation failure clears the cached token and retries rather than failing, and a rate-limit response respects the interval the server asks for, falling back to a linear backoff with a ceiling. Batch sizes follow the platform’s own limits — a hundred for deletes, ninety for writes, pages of two hundred for reads, and no more than a hundred values in a single set membership test.'],
-      ['The switch worth knowing about','Bulk loads pass an empty trigger list, which suppresses every rule and state machine for the duration. Without it, two hundred records fire the whole automation estate and the run becomes unpredictable. The cost is that legitimate automation has to be caught up separately afterwards, and that is a decision to make consciously rather than discover.']]},
+      ['Transport','A single request path with retries: an authorisation failure clears the cached token and retries, a rate-limit response respects the interval the server asks for, falling back to a linear backoff with a ceiling. Batch sizes follow the platform’s own limits — a hundred for deletes, ninety for writes, pages of two hundred for reads, no more than a hundred values in a single set membership test.'],
+      ['The switch worth knowing about','Bulk loads pass an empty trigger list, which suppresses every rule and state machine for the duration — without it, two hundred records fire the whole automation estate and the run becomes unpredictable. Legitimate automation has to be caught up separately afterwards; that is a decision to make consciously rather than discover.']]},
 
     {id:'external-inventory', t:'Counting every way an org reaches outside',
      sub:'Thirty-five services, thousands of call sites, and no list of any of it.',
