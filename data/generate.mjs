@@ -456,6 +456,228 @@ contacts.slice(0, 120).forEach(c => {
 });
 
 
+/* ---------- agent journal ----------
+   Every action a chat/voice/api agent took, with a before/after diff, so the
+   history is a screen with filters rather than a log file nobody opens. The
+   picklists live in mockZoho (Agent_Journal.Result / .Risk / .Refusal_Reason /
+   .Channel), so a record here that used a value outside them would fail the
+   emulator's own validation the same way it fails the platform's. */
+const AJ_CHANNELS = ['chat','voice','api'];
+const AJ_RESULTS = ['applied','refused','awaiting-approval','failed'];
+const AJ_REFUSAL = ['field does not exist','multiple candidates','value outside picklist'];
+// Crude, predictable, explainable — a list of fields, not a judgement the model makes.
+const AJ_HIGH_RISK = ['Stage','Amount','Cooperation_Status','Owner','Account_Sales'];
+const AJ_LOW_RISK  = ['Recap','Meeting_Room','Meeting_Status','Title','Comment','BD_Comment'];
+
+// Mixed-language technical vocabulary and company names are exactly where
+// recognition breaks — that is the page's whole thesis, so the mangling has
+// to look like a real ASR transcript, not a typo generator.
+const mishear = (clean, broken) => ({ clean, broken });
+const AJ_STAGE_TEXT = { '0. Prospecting':'prospecting', '1. Qualification':'qualification',
+  '2. Proposal':'proposal', '3. Confirmation':'confirmation', '4. Won':'won', '5. Lost':'lost' };
+
+function pickDeal(){ return pick(deals); }
+function pickMeeting(){ return pick(meetings); }
+function pickAccount(){ return pick(accounts); }
+function dealAccountName(d){ return (accounts.find(a=>a.id===d.Account_Name)||{}).Account_Name || 'Unknown Account'; }
+function nowish(){ return `${iso(new Date(2026, int(2,7), int(1,28)))} ${pad(int(8,18))}:${pad(pick([0,10,15,20,30,40,45,50]))}`; }
+
+const journal = [];
+function logEntry(e){ journal.push({ id:id(), ...e }); }
+
+// 1) applied — stage change, clean recognition, low ambiguity (~9 records)
+for (let i=0;i<9;i++){
+  const d = pickDeal();
+  const from = d.Stage;
+  const toOptions = STAGES.filter(s=>s!==from);
+  const to = pick(toOptions);
+  const acc = dealAccountName(d);
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `move ${acc} to ${AJ_STAGE_TEXT[to] || to.toLowerCase()}`,
+    Intent_JSON: JSON.stringify({ module:'Deals', record:d.id, fields:{ Stage:to }, operation:'update' }),
+    Target_Module:'Deals', Target_Record: d.id,
+    Before_JSON: JSON.stringify({ Stage: from }), After_JSON: JSON.stringify({ Stage: to }),
+    Result:'applied', Refusal_Reason:null, Risk:'high'
+  });
+}
+
+// 2) applied — meeting recap, low risk (~8 records)
+const RECAP_LINES = [
+  'Reviewed the enclosure tolerances and agreed to re-scope the thermal work.',
+  'Walked through the certification timeline; client wants a fixed date before signing.',
+  'Confirmed the pilot scope and asked for a reference case in medical.',
+  'Discussed the connector change; procurement needs a cost delta before Friday.',
+  'Agreed the test report gets re-issued with two channels re-run.'
+];
+for (let i=0;i<8;i++){
+  const m = pickMeeting();
+  const before = m.Recap || null;
+  const after = pick(RECAP_LINES);
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `add recap to the ${m.Meeting_Type.toLowerCase()} meeting: ${after}`,
+    Intent_JSON: JSON.stringify({ module:'Meetings', record:m.id, fields:{ Recap:after }, operation:'update' }),
+    Target_Module:'Meetings', Target_Record: m.id,
+    Before_JSON: JSON.stringify({ Recap: before }), After_JSON: JSON.stringify({ Recap: after }),
+    Result:'applied', Refusal_Reason:null, Risk:'low'
+  });
+}
+
+// 3) applied — low-risk field on an account (~4 records)
+for (let i=0;i<4;i++){
+  const a = pickAccount();
+  const field = pick(['Title','Comment']);
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `set the account note for ${a.Account_Name} — waiting on procurement sign-off`,
+    Intent_JSON: JSON.stringify({ module:'Accounts', record:a.id, fields:{ Plan_Blockers:'Waiting on procurement sign-off' }, operation:'update' }),
+    Target_Module:'Accounts', Target_Record: a.id,
+    Before_JSON: JSON.stringify({ Plan_Blockers: a.Plan_Blockers||null }), After_JSON: JSON.stringify({ Plan_Blockers:'Waiting on procurement sign-off' }),
+    Result:'applied', Refusal_Reason:null, Risk:'low'
+  });
+}
+
+// 4) applied — high risk, went through approval and got applied (~3 records)
+for (let i=0;i<3;i++){
+  const a = pickAccount();
+  const from = a.Cooperation_Status;
+  const to = pick(['Client','Prospect','Former Client'].filter(s=>s!==from));
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `mark ${a.Account_Name} as ${to.toLowerCase()}`,
+    Intent_JSON: JSON.stringify({ module:'Accounts', record:a.id, fields:{ Cooperation_Status:to }, operation:'update' }),
+    Target_Module:'Accounts', Target_Record: a.id,
+    Before_JSON: JSON.stringify({ Cooperation_Status: from }), After_JSON: JSON.stringify({ Cooperation_Status: to }),
+    Result:'applied', Refusal_Reason:null, Risk:'high'
+  });
+}
+
+// 5) refused — field does not exist in the module (>=1, aim for 4)
+const FAKE_FIELDS = [
+  ['forecast confidence', 'Forecast_Confidence', 'Deals'],
+  ['renewal likelihood', 'Renewal_Likelihood', 'Accounts'],
+  ['NPS score', 'NPS_Score', 'Accounts'],
+  ['sentiment', 'Sentiment', 'Meetings']
+];
+FAKE_FIELDS.forEach(([label, apiName, mod]) => {
+  const rec = mod==='Deals' ? pickDeal() : mod==='Accounts' ? pickAccount() : pickMeeting();
+  const acc = mod==='Deals' ? dealAccountName(rec) : mod==='Accounts' ? rec.Account_Name : `the ${rec.Meeting_Type.toLowerCase()} meeting`;
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `set the ${label} on ${acc} to high`,
+    Intent_JSON: JSON.stringify({ module:mod, record:rec.id, fields:{ [apiName]:'High' }, operation:'update' }),
+    Target_Module: mod, Target_Record: rec.id,
+    Before_JSON: null, After_JSON: null,
+    Result:'refused', Refusal_Reason:'field does not exist', Risk: AJ_HIGH_RISK.includes(apiName) ? 'high' : 'low'
+  });
+});
+
+// 6) refused — multiple candidates, at least 2 records with genuinely ambiguous names
+// Two accounts that share a first word are the deliberate ambiguity: "Northbeam" itself
+// never appears (that is the invented company running the site), so the pair below is
+// picked from the near-duplicate cluster the account generator already seeded.
+const dupBase = accounts[6].Account_Name.split(' ')[0];
+const dupCandidates = accounts.filter(a => a.Account_Name.startsWith(dupBase)).slice(0,3);
+if (dupCandidates.length >= 2) {
+  dupCandidates.slice(0,2).forEach((a,i) => {
+    logEntry({
+      When: nowish(), Channel: pick(AJ_CHANNELS),
+      Utterance: `move ${dupBase} to won`,
+      Intent_JSON: JSON.stringify({ module:'Deals', record:null, fields:{ Stage:'4. Won' }, operation:'update' }),
+      Target_Module:'Deals', Target_Record: null,
+      Before_JSON: null, After_JSON: null,
+      Result:'refused', Refusal_Reason:'multiple candidates', Risk:'high'
+    });
+  });
+}
+// a second ambiguous pair from company-name mishearing, so it is not always the same base
+const svBase = accounts[8] ? accounts[8].Account_Name.split(' ')[0] : accounts[3].Account_Name.split(' ')[0];
+const svCandidates = accounts.filter(a => a.Account_Name.startsWith(svBase));
+if (svCandidates.length >= 2) {
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `set ${svBase} to prospect`,
+    Intent_JSON: JSON.stringify({ module:'Accounts', record:null, fields:{ Cooperation_Status:'Prospect' }, operation:'update' }),
+    Target_Module:'Accounts', Target_Record: null,
+    Before_JSON: null, After_JSON: null,
+    Result:'refused', Refusal_Reason:'multiple candidates', Risk:'high'
+  });
+}
+
+// 7) refused — value outside the picklist (~3 records)
+const BAD_STAGE_UTTERANCES = [
+  ['mark it as verbal commit', 'Verbal Commit'],
+  ['set the stage to closed-won-ish', 'Closed-Won-ish'],
+  ['put it in negotiation', 'Negotiation']
+];
+BAD_STAGE_UTTERANCES.forEach(([utt, badValue]) => {
+  const d = pickDeal();
+  const acc = dealAccountName(d);
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `${utt} for ${acc}`,
+    Intent_JSON: JSON.stringify({ module:'Deals', record:d.id, fields:{ Stage:badValue }, operation:'update' }),
+    Target_Module:'Deals', Target_Record: d.id,
+    Before_JSON: null, After_JSON: null,
+    Result:'refused', Refusal_Reason:'value outside picklist', Risk:'high'
+  });
+});
+
+// 8) awaiting-approval — high risk field, agent stopped and waited (~5 records)
+for (let i=0;i<5;i++){
+  const d = pickDeal();
+  const acc = dealAccountName(d);
+  const newOwner = pick(users).full_name;
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `reassign ${acc} to ${newOwner}`,
+    Intent_JSON: JSON.stringify({ module:'Deals', record:d.id, fields:{ Owner:newOwner }, operation:'update' }),
+    Target_Module:'Deals', Target_Record: d.id,
+    Before_JSON: JSON.stringify({ Owner: d.Owner }), After_JSON: JSON.stringify({ Owner: newOwner }),
+    Result:'awaiting-approval', Refusal_Reason:null, Risk:'high'
+  });
+}
+
+// 9) failed — the write reached the emulator's own validation and it rejected (~4 records)
+// Distinct from "refused": here the agent's own checks passed (field exists, one
+// candidate, value looks legal) but the platform still said no — a mandatory field
+// blanked out by a bad transcription, e.g. "call it [nothing]" losing the deal name.
+for (let i=0;i<4;i++){
+  const d = pickDeal();
+  const acc = dealAccountName(d);
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: `rename the ${acc} deal to [inaudible]`,
+    Intent_JSON: JSON.stringify({ module:'Deals', record:d.id, fields:{ Deal_Name:'' }, operation:'update' }),
+    Target_Module:'Deals', Target_Record: d.id,
+    Before_JSON: JSON.stringify({ Deal_Name: d.Deal_Name }), After_JSON: null,
+    Result:'failed', Refusal_Reason:null, Risk:'low'
+  });
+}
+
+// 10) a few voice/chat mixed-vocabulary misrecognition examples mid-stream, applied
+// after the domain dictionary corrected the term. These carry the corrected utterance
+// (what the dictionary produced) — the raw ASR noise is illustrated on the screen itself
+// via the six preset commands, not duplicated across every journal row.
+const MIXED_UTTER = [
+  a => `push ${a.Account_Name} into qualification, the CMF surfacing quote is ready`,
+  a => `${a.Account_Name} wants EMC pre-scan added, note it on the account`,
+  a => `book a recap for ${a.Account_Name}, the OTA and diagnostics scope moved`
+];
+MIXED_UTTER.forEach((f,i) => {
+  const a = pickAccount();
+  const d = deals.find(x=>x.Account_Name===a.id) || pickDeal();
+  logEntry({
+    When: nowish(), Channel: pick(AJ_CHANNELS),
+    Utterance: f(a),
+    Intent_JSON: JSON.stringify({ module:'Deals', record:d.id, fields:{ Stage:'1. Qualification' }, operation:'update' }),
+    Target_Module:'Deals', Target_Record: d.id,
+    Before_JSON: JSON.stringify({ Stage: d.Stage }), After_JSON: JSON.stringify({ Stage:'1. Qualification' }),
+    Result:'applied', Refusal_Reason:null, Risk:'high'
+  });
+});
+
 /* ---------- synthetic org configuration ----------
    What the extraction tooling produces when it is pointed at an org: every
    function with its entry points, every rule with when it last fired, every
@@ -585,7 +807,7 @@ const db = { meta:{ company:'Northbeam Engineering', generated:'deterministic', 
   Users:users, Accounts:accounts, Contacts:contacts, Programmes:programmes, Service_Catalog:catalog,
   Deals:deals, Potentials:potentials, BU_Contacts:buContacts, Campaigns:campaigns, Event_Contacts:eventContacts,
   Meetings:meetings, Messages:messages, Enrichment:enrichment,
-  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs, Provider_Orgs:providerOrgs };
+  Plan_Players:planPlayers, Plan_Actions:planActions, Service_Matrix:serviceMatrix, Employment:employment, Org:org, Agreements:agreements, Tasks:reachTasks, Portfolio_Requests:portfolioReqs, Provider_Orgs:providerOrgs, Agent_Journal:journal };
 
 mkdirSync('data',{recursive:true});
 writeFileSync('data/dataset.json', JSON.stringify(db));

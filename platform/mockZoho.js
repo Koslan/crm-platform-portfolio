@@ -55,10 +55,48 @@
     Deals:{ Stage:['0. Prospecting','1. Qualification','2. Proposal','3. Confirmation','4. Won','5. Lost','Recommendation','Duplicate'] },
     Plan_Players:{ Player_Role:['Sponsor','Strategic coach','Neutral','Anti-sponsor'] },
     Plan_Actions:{ Status:['Not started','In progress','Done','At risk'] },
-    Employment:{ Status:['Current','Past'] }
+    Employment:{ Status:['Current','Past'] },
+    Agent_Journal:{ Channel:['chat','voice','api'],
+      Result:['applied','refused','awaiting-approval','failed'],
+      Refusal_Reason:['field does not exist','multiple candidates','value outside picklist'],
+      Risk:['low','high'] }
   };
   const MANDATORY = { Meetings:['Name'], Accounts:['Account_Name'], Contacts:['Last_Name'] };
   const PAGE_MAX = 200;                      // the platform ceiling, reproduced on purpose
+
+  /* ---------------- field metadata ----------------
+     getFields is what the agent journal validates a parsed intent against —
+     the live list, not a hardcoded one. Declared once per module rather than
+     sniffed from a sample row, because a field that is always null on every
+     generated record still has to exist for validation to mean anything. */
+  const FIELDS = {
+    Deals:[
+      ['Deal_Name','text',true], ['Account_Name','lookup',true], ['Stage','picklist',true],
+      ['Substage','picklist',false], ['Amount','currency',false], ['Business_Unit','picklist',false],
+      ['Solutions','text',false], ['Programme','lookup',false], ['Closing_Date','date',false],
+      ['Owner','user',false], ['Loss_Reason','picklist',false]
+    ],
+    Meetings:[
+      ['Name','text',true], ['Account_Name','lookup',false], ['Campaign','lookup',false],
+      ['Deal','lookup',false], ['Meeting_DateTime_String','text',false], ['Meeting_Duration','number',false],
+      ['Meeting_Room','text',false], ['Meeting_Status','picklist',false], ['Meeting_Type','picklist',false],
+      ['Recap','textarea',false], ['Owner','user',false], ['Sync_State','picklist',false]
+    ],
+    Accounts:[
+      ['Account_Name','text',true], ['Cooperation_Status','picklist',false], ['Owner','user',false],
+      ['Account_Sales','user',false], ['Industry','picklist',false], ['Segment','picklist',false],
+      ['Country','text',false], ['City','text',false], ['Total_Revenue','currency',false],
+      ['Plan_Objective','text',false], ['Plan_Blockers','text',false], ['Relationship_Now','picklist',false]
+    ]
+  };
+  function getFieldsFor(mod){
+    const list = FIELDS[mod];
+    if (!list) return [];
+    return list.map(([api_name,data_type,mandatory]) => ({
+      api_name, data_type, mandatory: !!mandatory,
+      pick_list_values: (PICKLISTS[mod] && PICKLISTS[mod][api_name]) || null
+    }));
+  }
 
   /* ---------------- failure switch ---------------- */
   const chaos = { mode:'off', latency:0, seed:7 };
@@ -292,6 +330,7 @@
           return { data:all.map(r => hydrate(Entity, r)), info:{ count:all.length } };
         },
         async coql({ select_query }){ await gate(); return runCoql(select_query); },
+        async getFields({ Entity }){ await gate(); return { fields: getFieldsFor(Entity) }; },
         async insertRecord({ Entity, APIData }){ await gate(); return { data:[ insert(Entity, { ...APIData }) ] }; },
         async updateRecord({ Entity, RecordID, APIData }){ await gate(); return { data:[ update(Entity, RecordID, { ...APIData }) ] }; },
         async deleteRecord({ Entity, RecordID }){
