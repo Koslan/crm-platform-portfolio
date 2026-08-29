@@ -434,6 +434,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
+const TEST_COUNT=194; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
@@ -488,12 +489,12 @@ const ZOHO_GROUPS=[
 const AI_ITEMS=[
  {id:'loss-analysis',t:'Loss analysis in two stages',kind:'note',s:'Six evidence sources, a 38-cause taxonomy in the prompt, a human-correctable middle stage.'},
  {id:'agent-journal',t:'A CRM agent with an action journal',kind:'note',s:'Every action writes a before/after diff to a module. An opaque agent does not survive its first disputed edit.'},
- {id:'ai-workflow',t:'AI-assisted engineering, honestly',kind:'plan',s:'How this site and its 162 tests are built and kept green.'}];
+ {id:'ai-workflow',t:'AI-assisted engineering, honestly',kind:'plan',s:'How this site and its '+TEST_COUNT+' tests are built and kept green.'}];
 const SF_ITEMS=[
  {id:'sf-sync',t:'Apex vs Deluge: the same sync, twice',kind:'plan',s:'The delta-sync pattern rebuilt on Salesforce primitives.'},
  {id:'sf-lwc',t:'LWC widget, ported',kind:'plan',s:'One of the record-page widgets as a Lightning Web Component.'}];
 const FS_ITEMS=[
- {id:'harness',t:'The test harness this site grew from',kind:'note',s:'Playwright, 162 headless checks, failing on any console error.'},
+ {id:'harness',t:'The test harness this site grew from',kind:'note',s:'Playwright, '+TEST_COUNT+' headless checks, failing on any console error.'},
  {id:'generator',t:'A seeded dataset with deliberate defects',kind:'note',s:'Same seed, same data, reviewable diffs — and a build that fails on a dangling reference.'},
  {id:'ci-guards',t:'CI guards against leaks',kind:'note',s:'An identifier scan that fails the build if anything resembling a real org id or key appears.'},
  {id:'site',t:'This site itself',kind:'live',s:'One static file, no backend, hash routing, an emulated platform SDK underneath.'}];
@@ -590,7 +591,7 @@ const TIPS={
  'Azure DevOps':'Pipelines and boards where the client already lived in Azure — same release discipline, different tooling.',
  'CI/CD':'From “deploy is a person copy-pasting” to reviewed, one-click, reversible releases — done twice, on two different platforms.',
  'code review':'I review other developers’ CRM work at Room 8 against the platform’s engineering and security standards — and my own changes go through the same gate.',
- 'automated testing':'162 headless Playwright checks run this site on every build, failing on any console error; production widgets get browser tests at phone widths and an offline harness that stubs the Zoho SDK.',
+ 'automated testing':TEST_COUNT+' headless Playwright checks run this site on every build, failing on any console error; production widgets get browser tests at phone widths and an offline harness that stubs the Zoho SDK.',
  'release management':'Releases sequenced so change lands without disrupting live sales operations — staged, announced, reversible, with the risky part shipped behind a flag.',
  /* --- Development --- */
  'JavaScript':'Every widget on this site is framework-free vanilla JS — my daily language for UI that has to live inside an iframe the platform controls.',
@@ -603,7 +604,7 @@ const TIPS={
  'SQL':'From migration validation queries to reporting — SQL is where my data work gets checked.',
  'PostgreSQL':'The database behind my backend work and side tooling — schema design included.',
  /* --- AI --- */
- 'AI-assisted development':'AI is my delivery multiplier, not a toy: this site — an SDK emulator, 15 live widgets, 162 tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.',
+ 'AI-assisted development':'AI is my delivery multiplier, not a toy: this site — an SDK emulator, '+Object.values(ALL).filter(i=>i.kind==='live'||i.kind==='emul').length+' live widgets, '+TEST_COUNT+' tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.',
  'Claude':'Claude Code daily, tuned for CRM work: custom skills for widget development, MCP for org access, review gates so nothing generated lands unread.',
  'OpenAI API':'Designed a two-stage loss-analysis pipeline: ten times more code gathering evidence from six sources than calling the model, and a 38-cause taxonomy in the prompt so answers land in the company’s own categories.',
  'embedded CRM features':'AI living inside CRM surfaces I built: server-side recap rephrasing (no key ever in the page), an agent design where every action writes a before/after diff to a journal module.',
@@ -1355,9 +1356,9 @@ function termAnswer(q){
  if(c==='help') return TERM_HELP;
  if(c==='clear') return '__CLEAR__';
  if(c==='contact') return 'email    buriak.kostiantyn@gmail.com\nwhatsapp wa.me/48732579181\nlinkedin linkedin.com/in/kburiak\ngithub   github.com/koslan\nlocation Warsaw, Poland (CET) · remote/hybrid · EU work authorization';
- if(c==='certs') return 'Salesforce Certified Platform Developer I   2021 · current\nSalesforce Certified Administrator          2021 · current\nSalesforce Certified JavaScript Developer I 2022 · current\nverify: trailhead.salesforce.com/credentials/verification';
+ if(c==='certs') return 'Salesforce Certified Platform Developer I   2021 · current\nSalesforce Certified Administrator          2021 · current\nSalesforce Certified JavaScript Developer I 2022 · current\nverify: trailblazer.me/id/kburiak';
  if(c==='projects') return 'Live on this site:\n'+[ALL['event'],ALL['solution'],ALL['board'],ALL['cockpit'],ALL['orghealth'],ALL['platform']].map(i=>'  '+i.t+'  →  #/p/'+i.id).join('\n')+'\n…and '+(Object.keys(ALL).length-6)+' more — see the tabs above.';
- if(c==='site') return 'One static file. No backend. The CRM under the widgets is emulated in your browser;\n162 headless tests keep it honest. Everything you click is the production code.';
+ if(c==='site') return 'One static file. No backend. The CRM under the widgets is emulated in your browser;\n'+TEST_COUNT+' headless tests keep it honest. Everything you click is the production code.';
  if(c==='skills'){
   const map={zoho:0,salesforce:1,integrations:2,data:3,languages:4,ai:5};
   if(arg&&map[arg]!==undefined){const r=MATRIX[map[arg]];
@@ -1651,7 +1652,7 @@ function vAbout(){
   +'<div class="bsec rv"><span class="idx">08 / THIS SITE, LIVE</span><h2>Counted in your browser, right now</h2>'
   +'<p class="sub">Nothing here is a claim from a PDF — the site carries its own evidence and counts it as you read.</p>'
   +'<div class="live">'
-  +'<div class="lc"><b data-count="194">0<em>✓</em></b><span>headless tests behind this build</span></div>'
+  +'<div class="lc"><b data-count="'+TEST_COUNT+'">0<em>✓</em></b><span>headless tests behind this build</span></div>'
   +'<div class="lc"><b data-count="'+demoCount+'">0</b><span>live demos mounted on these pages</span></div>'
   +'<div class="lc"><b data-count="'+writeupCount+'">0</b><span>write-ups with the trade stated</span></div>'
   +'<div class="lc"><b data-count="4820">0</b><span>synthetic records generated for the emulator</span></div>'
