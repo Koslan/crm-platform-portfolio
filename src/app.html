@@ -2567,7 +2567,12 @@ function vFlow(f){
 function vCase(c){
   let h='';
   if(c.role) h+='<div class="callout acc"><span class="k">My role on this one</span><p>'+c.role+'</p></div>';
-  return h + c.body.map(([head,text])=>sec(head,'<p>'+text+'</p>')).join('');
+  const sections=c.body.map(([head,text])=>sec(head,'<p>'+text+'</p>'));
+  if(c.dg && window.Diagrams){
+    const at=Math.min(c.dg.at!=null?c.dg.at:1, sections.length);
+    sections.splice(at,0,window.Diagrams.render(c.dg));
+  }
+  return h + sections.join('');
 }
 function vHow(){
   return ABOUT.body.map(([h,t])=>sec(h,'<p>'+t+'</p>')).join('')
