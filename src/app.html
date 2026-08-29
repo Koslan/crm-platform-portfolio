@@ -1905,9 +1905,30 @@ const CASES = {
   'Integration and sync':[
     {id:'delta-sync', t:'Delta sync with a checkpoint per page',
      sub:'Seventeen mailboxes, no background workers, no persistent storage, and a hard function timeout.',
+     dg:{kind:'chain', at:1,
+      aria:'Delta sync chain from seventeen mailboxes through a delta token, paging and a checkpoint after every page, looping back to the next page because the language has no while loop',
+      steps:[
+       {id:'mailboxes', n:'17 mailboxes', sub:''},
+       {id:'token', n:'Delta token', sub:'', fail:'invalid token'},
+       {id:'page', n:'Page N', sub:'', fail:'throttled'},
+       {id:'write', n:'Write to CRM', sub:''},
+       {id:'checkpoint', n:'Checkpoint', sub:'', checkpoint:'saved every page'},
+       {id:'next', n:'Next page', sub:'', fail:'hard timeout'}
+      ],
+      rails:[{from:'checkpoint', to:'page', kind:'loop', label:'no while loop in the language, so the loop is the schedule'}],
+      detail:{
+       mailboxes:{t:'17 mailboxes', d:'One variable per mailbox, written through a connector call — the only place a scheduled function can keep state between runs.'},
+       token:{t:'Delta token', d:'The calendar API offers a delta link, but there is nowhere to keep it by default. Fails on an invalid sync token — cleared, and the run falls back to a full delta in the same run.'},
+       page:{t:'Page N', d:'Paging is a walk over a pre-built list of page numbers with a completion flag. Throttling slows a mailbox rather than failing it — the checkpoint is deliberately left alone.'},
+       write:{t:'Write to CRM', d:'Each page is written before the next one is requested.'},
+       checkpoint:{t:'Checkpoint — written on every page', d:'Not written at the end. This is the only reason a run can die on page forty and not lose the work — the next run continues from the saved checkpoint.'},
+       next:{t:'Next page', d:'A hard function timeout can end the whole chain unfinished; the status and saved checkpoint guarantee the next scheduled run continues.'},
+       'rail:checkpoint:page':{t:'The loop is the schedule', d:'The scripting language has no while loop, so paging is driven by the schedule calling the function again rather than a loop inside one run.'}
+      }
+     },
      body:[
-      ['The constraint','A full re-read every run means thousands of events and a guaranteed timeout. The calendar API offers a delta link, but there is nowhere to keep it: a scheduled function has no state between runs, and the scripting language has no supported way to write an organisation variable.'],
-      ['What was built','One variable per mailbox, written through a connector call. Paging is a walk over a pre-built list of page numbers with a completion flag, because the language has no while loop. The checkpoint is written on every page, not at the end, so a break on page forty does not undo the work. Three error classes get three different reactions: an invalid sync token clears the variable and falls back to a full delta in the same run; throttling stops the mailbox but deliberately leaves the checkpoint alone; a missing item marks the mailbox skipped. Once a month a forced full resync clears the drift that deltas accumulate.'],
+      ['The constraint','A full re-read every run means thousands of events and a guaranteed timeout. The calendar API offers a delta link, but there is nowhere to keep it between runs.'],
+      ['What was built','Three error classes get three different reactions: an invalid sync token falls back to a full delta in the same run; throttling stops the mailbox but leaves the checkpoint alone; a missing item marks the mailbox skipped. Once a month a forced full resync clears the drift that deltas accumulate.'],
       ['The trade','Events deleted upstream are counted and logged but not removed, so history attached to deals survives. Page size is lower than the default: slower runs, but heavy calendars stopped failing. A hundred-page ceiling per mailbox means a run can end unfinished — the status and the saved checkpoint guarantee the next one continues.']]},
     {id:'transcript-match', t:'Matching transcripts by score, not by key',
      sub:'No shared identifier, overlapping meetings, and durations that never agree.',
