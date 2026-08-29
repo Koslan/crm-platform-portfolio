@@ -2088,13 +2088,39 @@ const CASES = {
   'Teams and orchestration':[
     {id:'teams-sync', t:'Getting a chat platform into the CRM without a bot',
      sub:'Conversations decide things. None of it reaches the record, and nobody is going to retype it.',
+     dg:{kind:'funnel', at:3,
+      aria:'Funnel from a chat thread through marker-block detection, deal id match, issue key fallback and candidate count to four resolution buckets, two worked by a person',
+      input:{n:'Thread, first message'},
+      rules:[
+       {id:'block', n:'Block between markers?', order:1},
+       {id:'deal-id', n:'ZOHO_DEAL exact match', order:2},
+       {id:'issue-key', n:'Fallback: JIRA_KEY', order:3},
+       {id:'candidates', n:'How many candidates', order:4}
+      ],
+      buckets:[
+       {id:'matched-deal', n:'Matched by deal id', who:'auto'},
+       {id:'matched-issue', n:'Matched by issue key', who:'auto'},
+       {id:'parked', n:'Parked for review', who:'human'},
+       {id:'stored-reason', n:'Stored with reason', who:'human'}
+      ],
+      gates:[{after:'candidates', n:'nothing is guessed from the text'}],
+      detail:{
+       block:{t:'Block between two markers', d:'A text contract in the first message of a thread — a block between two markers carrying the deal, the issue key, the context and a sync flag. Deliberately the least clever option available: people will type in a chat window, and they will not leave it to fill in a form.'},
+       'deal-id':{t:'ZOHO_DEAL exact match, confidence 100', d:'Resolution runs in a fixed order with the source recorded: by deal id at full confidence first.'},
+       'issue-key':{t:'Fallback: JIRA_KEY', d:'Falls back to the issue key when there is no deal id match.'},
+       candidates:{t:'How many candidates', d:'Nothing is guessed from the text — guessing the deal from the body is how a conversation lands under the wrong client.'},
+       'matched-deal':{t:'Matched by deal id — recorded', d:'Written with source and confidence alongside the row.'},
+       'matched-issue':{t:'Matched by issue key — source recorded', d:'Written with the fallback source recorded, not silently treated the same as a deal-id match.'},
+       parked:{t:'Parked for review — several matches', d:'Several candidates come back; the thread parks for a person rather than picking one.'},
+       'stored-reason':{t:'Stored with reason — zero matches', d:'No candidates at all: replies are not imported, and the message is stored with the reason attached.'}
+      }
+     },
      body:[
-      ['The constraint','Three at once. A channel is not a deal — one channel carries several, and a management channel carries dozens, so any "channel equals deal" rule is wrong on the cases that matter most. Building an app inside the chat client was not going to happen in a reasonable timescale. And the function that does the work is time-limited, while the platform API throttles: pulling replies means one call per root message, and the pauses alone ran to ten and thirteen seconds.'],
-      ['The mechanism','A text contract in the first message of a thread — a block between two markers carrying the deal, the issue key, the context and a sync flag. It is deliberately the least clever option available: people will type in a chat window, and they will not leave it to fill in a form. The parser takes only what sits between the markers, so anything written below is free text and breaks nothing.'],
-      ['Where the mapping lives','On the thread, not the channel. And the registry of which channels to read at all lives on the deal record itself, in two link fields — so adding a channel is a business user filling in a field, not an engineer deploying. Resolution runs in a fixed order with the source recorded: by deal id at full confidence, falling back to the issue key; several matches park the thread for review; none at all means the replies are not imported and the message is stored with the reason attached.'],
+      ['The constraint','Three at once. A channel is not a deal — a management channel carries dozens, so any "channel equals deal" rule is wrong on the cases that matter most. Building an app inside the chat client was not going to happen in a reasonable timescale. And the function is time-limited while the platform API throttles: pulling replies means one call per root message, and the pauses alone ran to ten and thirteen seconds.'],
+      ['Where the mapping lives','On the thread, not the channel — the resolution shown above. The registry of which channels to read at all lives on the deal record itself, in two link fields, so adding a channel is a business user filling in a field, not an engineer deploying.'],
       ['Surviving the time limit','The function is resumable without any external state: before touching a channel it checks whether records already exist for it, and it takes no more than five new channels a run. A schedule every ten minutes then walks the whole estate on its own, and no single run ever comes near the ceiling.'],
-      ['What was traded away','Only the first page of history is imported, so a long-running channel arrives partial — recorded in the backlog rather than hidden. Thread-level fields are duplicated onto every reply, which is denormalisation on purpose: it buys simple related lists and reports on a platform where joins are expensive. And a management channel is deliberately excluded from the backfill, because sweeping it in would file a year of mixed conversation under one deal.'],
-      ['Still open, and worth saying out loud','A controlled run took 218 seconds against a 120-second ceiling on the synchronous call, with no retry policy — so after a timeout it is unknown whether the work finished. The fix is the same one used elsewhere in this portfolio: stop waiting for the call and let it report back. Knowing where a system is thin is worth more than pretending it is not.']]},
+      ['What was traded away','Only the first page of history is imported, so a long-running channel arrives partial. Thread-level fields are duplicated onto every reply on purpose — it buys simple related lists on a platform where joins are expensive. A management channel is deliberately excluded from the backfill, because sweeping it in would file a year of mixed conversation under one deal.'],
+      ['Still open, and worth saying out loud','A controlled run took 218 seconds against a 120-second ceiling on the synchronous call, with no retry policy — so after a timeout it is unknown whether the work finished. The fix is the same one used elsewhere in this portfolio: stop waiting for the call and let it report back.']]},
 
     {id:'teams-recap', t:'A recap written from the meeting itself',
      sub:'The notes that matter are in the recording. Nobody transcribes them, so the field stays empty.',
