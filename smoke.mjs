@@ -59,6 +59,37 @@ await p.goto('file://'+process.cwd()+'/dist/index.html#/p/time-model');
 await p.waitForTimeout(300);
 await p.screenshot({ path:'shot-writeup.png', fullPage:false });
 
+// A1 fixes: hero CTA, cert links, social card, live demo counter, About page structure
+await p.goto('file://'+process.cwd()+'/dist/index.html#/about');
+await p.waitForTimeout(300);
+
+const cvHref = await p.locator('a.pri').first().getAttribute('href');
+say('CV button links to a PDF', /\.pdf$/i.test(cvHref||''));
+
+const certHrefs = await p.locator('a.cert').evaluateAll(els=>els.map(e=>e.getAttribute('href')));
+say('no cert link points at a static credential page', certHrefs.length>0 && certHrefs.every(h=>!/\/credentials\//.test(h||'')));
+
+const headHtml = await p.evaluate(()=>document.head.innerHTML);
+say('document carries an og:image tag', /property="og:image"/.test(headHtml));
+
+const demoCounterVal = await p.locator('.live .lc b[data-count]').nth(1).getAttribute('data-count');
+const realDemoCount = await p.evaluate(()=>Object.values(ALL).filter(i=>i.kind==='live'||i.kind==='emul').length);
+say('live-demo counter matches ALL ('+demoCounterVal+' == '+realDemoCount+')', Number(demoCounterVal)===realDemoCount);
+
+const idxLabels = await p.locator('.bsec .idx').allTextContents();
+const wantOrder = Array.from({length:9},(_,i)=>String(i+1).padStart(2,'0'));
+say('About page has 9 sections numbered 01..09', idxLabels.length===9 && idxLabels.every((t,i)=>t.startsWith(wantOrder[i]+' /')));
+
+const runcardCount = await p.locator('.bsec').nth(4).locator('.runcard').count();
+say('section 05 has 7 cards', runcardCount===7);
+
+for (const id of ['harness','generator','ci-guards']) {
+  await p.goto('file://'+process.cwd()+'/dist/index.html#/p/'+id);
+  await p.waitForTimeout(250);
+  const bodyText = await p.locator('body').innerText();
+  say('#/p/'+id+' has its write-up', !bodyText.includes('write-up pending'));
+}
+
 say('no console errors ('+errs.length+')', errs.length===0);
 if (errs.length) console.log(errs.slice(0,5).join('\n'));
 await b.close();

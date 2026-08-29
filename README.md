@@ -16,7 +16,7 @@ npm install
 npx playwright install chromium     # only needed for the tests
 npm run build                       # dataset -> emulator -> dist/index.html
 npm run serve                       # http://localhost:8080
-npm test                            # 181 headless checks
+npm test                            # 194 headless checks
 ```
 
 `npm run verify` does build + test in one go — the same thing CI runs.
@@ -55,7 +55,7 @@ The guards exist because this is a portfolio, and a portfolio that leaks is wors
    renders as a blank cell, which reads as a bug in the widget rather than a bug in the fixture.
 2. **Identifier scan** — the build fails if anything resembling a real org id, host, corporate
    domain or API key appears in the sources.
-3. **Behaviour** — 181 headless checks across routing, the query console, the record pages, both
+3. **Behaviour** — 194 headless checks across routing, the query console, the record pages, both
    booking wizards and the chat flow, failing on any console error.
 
 ## Adding a widget
