@@ -1437,6 +1437,7 @@ function job(o){
 
 function vAbout(){
  const demoCount=Object.values(ALL).filter(i=>i.kind==="live"||i.kind==="emul").length;
+ const writeupCount=Object.values(ALL).filter(i=>i.kind==="note"&&CASE_BY_ID[i.id]).length;
  return '<div class="hero"><div>'
   +'<p class="eyebrow">CRM Platform Engineer &middot; Warsaw, Poland (CET) &middot; remote / hybrid</p>'
   +'<h1 style="font-size:clamp(34px,5vw,52px)">Kostiantyn Buriak</h1>'
@@ -1652,7 +1653,7 @@ function vAbout(){
   +'<div class="live">'
   +'<div class="lc"><b data-count="194">0<em>✓</em></b><span>headless tests behind this build</span></div>'
   +'<div class="lc"><b data-count="'+demoCount+'">0</b><span>live demos mounted on these pages</span></div>'
-  +'<div class="lc"><b data-count="23">0</b><span>write-ups with the trade stated</span></div>'
+  +'<div class="lc"><b data-count="'+writeupCount+'">0</b><span>write-ups with the trade stated</span></div>'
   +'<div class="lc"><b data-count="4820">0</b><span>synthetic records generated for the emulator</span></div>'
   +'<div class="lc"><b data-count="1500">0<em>~</em></b><span>org functions extracted &amp; indexed</span></div>'
   +'</div>'
