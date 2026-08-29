@@ -17,3 +17,4 @@ docs/fidelity-*.md
 !docs/fidelity-map.md
 claude/
 *fidelity-*notes*.md
+*.orig
