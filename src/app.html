@@ -166,6 +166,13 @@ h2{font-weight:600;font-size:19px;letter-spacing:-.02em;margin:0 0 6px}
 .cert h3{font-weight:600;font-size:14.5px;letter-spacing:-.015em;margin:0 0 3px}
 .cert .yr{font:400 11.5px "DM Mono",monospace;color:#8A8F9C}
 .cert .vf{font-size:12.5px;font-weight:500;color:#5B5BD6;margin-top:9px;display:block}
+.runcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.runcard{background:#fff;border:1px solid #E7E9F0;border-radius:14px;padding:18px 20px}
+.runcard h3{font-weight:600;font-size:14.5px;letter-spacing:-.01em;margin:0 0 5px}
+.runcard .rc-sub{font-size:12.5px;line-height:1.5;color:#5D636E;margin:0 0 10px}
+.runcard ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#5D636E}
+.runcard li{margin-bottom:5px}
+.runcard a{color:#5B5BD6;font-weight:500}
 
 /* integration map */
 .imap{background:#fff;border:1px solid #E7E9F0;border-radius:16px;padding:18px 18px 8px;overflow-x:auto}
@@ -1583,7 +1590,20 @@ function vAbout(){
    +'</ul>'})
   +'</div>'
 
-  +'<div class="bsec rv"><span class="idx">05 / CREDENTIALS</span><h2>Certifications</h2>'
+    +'<div class="bsec rv"><span class="idx">05 / HOW I RUN A PLATFORM</span><h2>What this looks like off the keyboard</h2>'
+  +'<p class="sub">The part of platform ownership that is not code: discovery, governance, adoption and the discipline that keeps the other six sections true.</p>'
+  +'<div class="runcards">'
+  +'<div class="runcard"><h3>Business analysis &amp; functional design</h3><p class="rc-sub">Turning a stakeholder request into a data model, not just a screen.</p><ul><li>Stakeholder discovery before a single field gets built — what the request is actually trying to solve.</li><li>Translate &#8220;I want a button&#8221; into entities, relationships and validation rules.</li><li>Push back on requirements that would break the platform, with a working alternative attached — spec before code.</li></ul></div>'
+  +'<div class="runcard"><h3>CRM administration &amp; access governance</h3><p class="rc-sub">Who sees what, and why, enforced by design rather than habit.</p><ul><li>Profiles, roles, sharing rules and layouts designed around how teams actually work.</li><li>Access follows the org chart and survives reorgs, because it hangs on roles rather than named users.</li><li>Changes to the access model go through a controlled review, not a live edit.</li></ul></div>'
+  +'<div class="runcard"><h3>Reporting &amp; analytics</h3><p class="rc-sub">Native reporting as part of administration; cross-system analysis where it earns its place.</p><ul><li>Reports and dashboards built and maintained as a normal part of CRM administration.</li><li>Cross-system analytics in Zoho Analytics where a question spans more than one source.</li><li>No BI stack beyond what was actually there &mdash; the honest version, not the impressive one.</li></ul></div>'
+  +'<div class="runcard"><h3>UAT, training &amp; adoption</h3><p class="rc-sub">A feature isn’t done when it ships; it is done when people use it correctly.</p><ul><li>Acceptance scenarios written and walked through before release, not after.</li><li>Training run on each team’s own data, not a generic sandbox.</li><li>Adoption checked a month out &mdash; is the feature actually being used, and by whom.</li></ul></div>'
+  +'<div class="runcard"><h3>Documentation</h3><p class="rc-sub">Documentation that lives where the work happens, not in a wiki nobody opens.</p><ul><li>In-product help built into the record itself &mdash; see the <a href="#/p/solution">field guide in the solution map</a> for a live example of the pattern.</li><li>Runbooks for the processes that would otherwise live in one person’s head.</li><li>Field-ownership diagrams that answer &#8220;who owns this value&#8221; before anyone has to ask.</li></ul></div>'
+  +'<div class="runcard"><h3>Governance, security &amp; controlled change</h3><p class="rc-sub">A history of what changed and why, where the platform itself keeps none.</p><ul><li>The whole org <a href="#/p/org-snapshot">snapshotted into git</a>, standing in for the change history the platform never kept.</li><li>Credential separation enforced across the <a href="#/p/token-boundary">secret boundary</a> between systems.</li><li>AppExchange Security Review as the hardest version of this discipline &mdash; passed, not waived.</li></ul></div>'
+  +'<div class="runcard"><h3>Delivery & stakeholder ownership</h3><p class="rc-sub">Sole technical owner of the platform, accountable for what ships and what breaks.</p><ul><li>Sole technical owner of the Zoho CRM platform since 2023 &mdash; roadmap, delivery and support in one seat.</li><li>Review other developers’ code before it reaches production.</li><li>Three full systems delivered in twelve months, plus ongoing mentoring of junior developers.</li></ul></div>'
+  +'</div>'
+  +'</div>'
+
++'<div class="bsec rv"><span class="idx">06 / CREDENTIALS</span><h2>Certifications</h2>'
   +'<p class="sub">Three Salesforce credentials, all current. Each card links to the official credential description; '
   +'verification is one click on Trailhead.</p>'
   +'<div class="certs">'
@@ -1598,7 +1618,7 @@ function vAbout(){
   +'<span class="vf">Verify on Trailhead &rarr;</span></a>'
   +'</div></div>'
 
-  +'<div class="bsec rv"><span class="idx">06 / EDUCATION</span><h2>Where the engineering started</h2>'
+  +'<div class="bsec rv"><span class="idx">07 / EDUCATION</span><h2>Where the engineering started</h2>'
   +'<p class="sub">A telecommunications degree before software: networks, infrastructure and system design — '
   +'the reason integrations feel like home ground rather than someone else’s territory.</p>'
   +'<div class="edu"><div class="crest">ONAT</div><div>'
@@ -1626,7 +1646,7 @@ function vAbout(){
   +'<dt>Beyond the code</dt><dd>Cycling, gym and martial arts keep the discipline; science fiction feeds the imagination — reading it, and building fictional worlds of my own. Travels to see how different cultures approach work and life. Learning Spanish.</dd>'
   +'</dl></div>'
 
-  +'<div class="bsec rv"><span class="idx">07 / THIS SITE, LIVE</span><h2>Counted in your browser, right now</h2>'
+  +'<div class="bsec rv"><span class="idx">08 / THIS SITE, LIVE</span><h2>Counted in your browser, right now</h2>'
   +'<p class="sub">Nothing here is a claim from a PDF — the site carries its own evidence and counts it as you read.</p>'
   +'<div class="live">'
   +'<div class="lc"><b data-count="162">0<em>✓</em></b><span>headless tests behind this build</span></div>'
@@ -1640,7 +1660,7 @@ function vAbout(){
   +'in your browser, and a failure switch turns on latency, rate limits and rejected writes — so recovery paths can '
   +'be clicked rather than described.</p></div></div>'
 
-  +'<div class="bsec rv"><span class="idx">08 / TERMINAL</span><h2>Or just ask the CV</h2>'
+  +'<div class="bsec rv"><span class="idx">09 / TERMINAL</span><h2>Or just ask the CV</h2>'
   +'<p class="sub">For those who read job sites in a terminal anyway.</p>'
   +'<div class="term"><div class="tout" id="tout"><span class="dim">kb-cv 1.0 — type <span class="cmd">help</span> or click a command below</span></div>'
   +'<div class="tline"><span class="prompt">kb@portfolio:~$</span><input id="tinp" autocomplete="off" spellcheck="false" aria-label="terminal input"></div>'
