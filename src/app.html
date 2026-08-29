@@ -1591,7 +1591,7 @@ function vAbout(){
    +'</ul>'})
   +'</div>'
 
-    +'<div class="bsec rv"><span class="idx">05 / HOW I RUN A PLATFORM</span><h2>What this looks like off the keyboard</h2>'
+  +'<div class="bsec rv"><span class="idx">05 / HOW I RUN A PLATFORM</span><h2>What this looks like off the keyboard</h2>'
   +'<p class="sub">The part of platform ownership that is not code: discovery, governance, adoption and the discipline that keeps the other six sections true.</p>'
   +'<div class="runcards">'
   +'<div class="runcard"><h3>Business analysis &amp; functional design</h3><p class="rc-sub">Turning a stakeholder request into a data model, not just a screen.</p><ul><li>Stakeholder discovery before a single field gets built — what the request is actually trying to solve.</li><li>Translate &#8220;I want a button&#8221; into entities, relationships and validation rules.</li><li>Push back on requirements that would break the platform, with a working alternative attached — spec before code.</li></ul></div>'
@@ -1600,11 +1600,11 @@ function vAbout(){
   +'<div class="runcard"><h3>UAT, training &amp; adoption</h3><p class="rc-sub">A feature isn’t done when it ships; it is done when people use it correctly.</p><ul><li>Acceptance scenarios written and walked through before release, not after.</li><li>Training run on each team’s own data, not a generic sandbox.</li><li>Adoption checked a month out &mdash; is the feature actually being used, and by whom.</li></ul></div>'
   +'<div class="runcard"><h3>Documentation</h3><p class="rc-sub">Documentation that lives where the work happens, not in a wiki nobody opens.</p><ul><li>In-product help built into the record itself &mdash; see the <a href="#/p/solution">field guide in the solution map</a> for a live example of the pattern.</li><li>Runbooks for the processes that would otherwise live in one person’s head.</li><li>Field-ownership diagrams that answer &#8220;who owns this value&#8221; before anyone has to ask.</li></ul></div>'
   +'<div class="runcard"><h3>Governance, security &amp; controlled change</h3><p class="rc-sub">A history of what changed and why, where the platform itself keeps none.</p><ul><li>The whole org <a href="#/p/org-snapshot">snapshotted into git</a>, standing in for the change history the platform never kept.</li><li>Credential separation enforced across the <a href="#/p/token-boundary">secret boundary</a> between systems.</li><li>AppExchange Security Review as the hardest version of this discipline &mdash; passed, not waived.</li></ul></div>'
-  +'<div class="runcard"><h3>Delivery & stakeholder ownership</h3><p class="rc-sub">Sole technical owner of the platform, accountable for what ships and what breaks.</p><ul><li>Sole technical owner of the Zoho CRM platform since 2023 &mdash; roadmap, delivery and support in one seat.</li><li>Review other developers’ code before it reaches production.</li><li>Three full systems delivered in twelve months, plus ongoing mentoring of junior developers.</li></ul></div>'
+  +'<div class="runcard"><h3>Delivery &amp; stakeholder ownership</h3><p class="rc-sub">Sole technical owner of the platform, accountable for what ships and what breaks.</p><ul><li>Sole technical owner of the Zoho CRM platform since 2023 &mdash; roadmap, delivery and support in one seat.</li><li>Review other developers’ code before it reaches production.</li><li>Three full systems delivered in twelve months, plus ongoing mentoring of junior developers.</li></ul></div>'
   +'</div>'
   +'</div>'
 
-+'<div class="bsec rv"><span class="idx">06 / CREDENTIALS</span><h2>Certifications</h2>'
+  +'<div class="bsec rv"><span class="idx">06 / CREDENTIALS</span><h2>Certifications</h2>'
   +'<p class="sub">Three Salesforce credentials, all current. Each card links to the official credential description; '
   +'verification is one click on Trailhead.</p>'
   +'<div class="certs">'
@@ -2030,7 +2030,7 @@ const CASES = {
       ['What was built','A seeded generator: the same seed produces the same dataset every time, so a pull request changes exactly what it says it changes and nothing else. On top of that, defects are injected on purpose rather than accidental — contacts missing an email address, meetings whose stored time has drifted from what the calendar would say — because the widgets that handle those cases need something to handle. A trimmed copy, `dataset.slim.json`, ships with the build, alongside a referential-integrity check that fails outright if the trimming leaves a dangling reference behind.'],
       ['The trade','The trimmed dataset still runs to 1.13 MB inlined directly into the page. That is the cost of having no backend: every record the demos touch has to already be sitting in the browser before the first click.']]},
     {id:'ci-guards', t:'CI guards against leaks',
-     sub:'A portfolio that leaks a real employer\u2019s data is worse than no portfolio at all.',
+     sub:'A portfolio that leaks a real employer’s data is worse than no portfolio at all.',
      body:[
       ['The constraint','Every surface on this site is a rebuild of something that first existed inside a real org, which means every source file is a place a real identifier, host or naming convention could slip back in — a copy-pasted comment, a variable name carried over out of habit, a fixture value nobody thought to change.'],
       ['What was built','Three guards run in `deploy.yml` before anything ships: a referential-integrity check over the generated dataset, an identifier scan across the source files for anything shaped like a real org id, host, corporate domain or credential, and the full behavioural test run. Any one of the three failing blocks the deploy.'],
