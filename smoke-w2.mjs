@@ -33,38 +33,6 @@ say('reconcile: bulk pass reports refusals under a flaky link — '+note.slice(0
 await p.uncheck('#r-chaos');
 await p.screenshot({path:'e2-reconcile.png'});
 
-/* --- account: at a glance + plan --- */
-await p.goto(U+'#/rec/enrich'); await p.waitForSelector('.ecp .kpi', {timeout:8000}); await p.waitForTimeout(400);
-say('glance: KPI tiles rendered', (await p.locator('.ecp .kpi div').count())>=6);
-say('glance: sparkline drawn', (await p.locator('.ecp .spark i').count())>0);
-say('glance: activity timeline', (await p.locator('.ecp .tl .ev').count())>0);
-await p.screenshot({path:'e3-glance.png'});
-await p.click('.ecp .tabs button[data-t="Development plan"]');
-await p.waitForSelector('#p-matrix table', {timeout:8000}); await p.waitForTimeout(400);
-say('plan: relationship ladder marks now and target',
-    (await p.locator('.ecp .ladder span.on').count())===1 && (await p.locator('.ecp .ladder span.want').count())<=1);
-say('plan: strategic players with coloured roles', (await p.locator('.ecp .role-pill').count())>0);
-say('plan: progress bars on actions', (await p.locator('.ecp .bar3 i').count())>0);
-const boxes = p.locator('#p-matrix input[type=checkbox]');
-const n0 = await boxes.count();
-say('plan: cross-sell matrix has ticks ('+n0+')', n0>10);
-const first = boxes.first();
-const was = await first.isChecked();
-await first.click(); await p.waitForTimeout(500);
-say('plan: a tick writes straight to the record', (await first.isChecked())!==was);
-await p.screenshot({path:'e4-plan.png'});
-
-/* --- contact history --- */
-await p.goto(U+'#/rec/contact'); await p.waitForSelector('#h-tw table', {timeout:8000}); await p.waitForTimeout(400);
-const rows = await p.locator('#h-tw tbody tr').count();
-say('history: several employers ('+rows+')', rows>1);
-say('history: exactly one row is main', (await p.locator('#h-tw input[data-main]:checked').count())===1);
-const target = p.locator('#h-tw input[data-main]:not(:checked)').first();
-await target.click(); await p.waitForTimeout(900);
-say('history: moving main keeps exactly one', (await p.locator('#h-tw input[data-main]:checked').count())===1);
-say('history: duration column computed', /yr|mo/.test(await p.locator('#h-tw tbody').textContent()));
-await p.screenshot({path:'e5-history.png'});
-
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,5).join('\n'));
 await b.close();

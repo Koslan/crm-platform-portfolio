@@ -549,7 +549,7 @@ function wire(root) {
    route() call happens synchronously at the bottom of the page's main
    script — before DOMContentLoaded ever fires. Waiting for that event
    here would mean missing the very first render on a direct link into a
-   write-up page (e.g. #/p/teams-recap loaded fresh), leaving its diagram
+   write-up page (e.g. #/p/org-tooling loaded fresh), leaving its diagram
    unwired until the next navigation. */
 (function observeView() {
   const view = document.getElementById('view');

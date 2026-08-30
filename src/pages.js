@@ -356,7 +356,7 @@ const SolutionMap = {
       const sorted = ds.slice().sort((a,b) => new Date(b.Closing_Date||b.Created_Time||0) - new Date(a.Closing_Date||a.Created_Time||0));
       pop = el(`<div class="ecp-pop"><h5>${E(c.dataset.c.split('||')[1])}</h5>
         ${sorted.map(d => `<div class="r">
-          <div class="rt"><a href="#/rec/deal">${E(d.Deal_Name)}</a></div>
+          <div class="rt">${E(d.Deal_Name)}</div>
           <div class="rb"><div class="meta">🔺 ${E(d.Stage)}<br>📅 ${E(d.Closing_Date || '—')}</div>
           <div>💰 ${budgetFmt(+d.Amount||0)}<br>🏢 ${E(this.p.Account_Name.name)}</div></div>
         </div>`).join('')}

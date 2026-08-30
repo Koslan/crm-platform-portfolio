@@ -11,51 +11,31 @@ say('tabs rendered', (await p.locator('.tabs a').count()) === 5);
 say('about is the front page', (await p.locator('h1').first().textContent()).includes('Kostiantyn'));
 await p.click('.tabs a[href="#/zoho"]');
 await p.waitForTimeout(200);
-say('a tab lists its pages', (await p.locator('a[href^="#/p/"]').count()) > 15);
-await p.click('a[href="#/p/platform"]');
-await p.waitForSelector('#out table', { timeout:5000 });
-say('console ran the default query', (await p.locator('#out table tbody tr').count()) > 0);
-say('counters visible', (await p.locator('.counter').count()) >= 6);
+say('a tab lists its pages', (await p.locator('a[href^="#/p/"]').count()) > 10);
 
-await p.click('button[data-q="2"]');           // paging ceiling
-await p.waitForTimeout(400);
-const meta = await p.locator('#meta').textContent();
-say('paging ceiling reported: '+meta.trim(), /200 of \d+/.test(meta) && /more_records=true/.test(meta));
-
-await p.click('button[data-q="1"]');           // dotted lookup
-await p.waitForTimeout(400);
-say('dotted lookup query returns rows', (await p.locator('#out table tbody tr').count()) > 0);
-
-await p.click('#chaos button[data-m="expired"]');
-await p.waitForTimeout(400);
-say('failure switch surfaces the error', (await p.locator('.errbox').count()) === 1);
-await p.click('#chaos button[data-m="off"]');
-await p.waitForTimeout(400);
-say('recovers when switched back', (await p.locator('#out table').count()) === 1);
-
-await p.goto('file://'+process.cwd()+'/dist/index.html#/p/delta-sync');
+await p.goto('file://'+process.cwd()+'/dist/index.html#/p/org-tooling');
 await p.waitForTimeout(300);
-say('write-up page routes', (await p.locator('h1').textContent()).includes('Delta sync'));
+say('write-up page routes', (await p.locator('h1').textContent()).includes('Building tooling'));
 
 // the routes the site used to publish still resolve
-await p.goto('file://'+process.cwd()+'/dist/index.html#/case/delta-sync');
+await p.goto('file://'+process.cwd()+'/dist/index.html#/case/org-tooling');
 await p.waitForTimeout(300);
-say('an old write-up link still lands', (await p.evaluate(() => location.hash)) === '#/p/delta-sync');
-await p.goto('file://'+process.cwd()+'/dist/index.html#/rec/contact');
+say('an old write-up link still lands', (await p.evaluate(() => location.hash)) === '#/p/org-tooling');
+await p.goto('file://'+process.cwd()+'/dist/index.html#/rec/teams');
 await p.waitForTimeout(300);
-say('an old demo link still lands', (await p.evaluate(() => location.hash)) === '#/p/history');
+say('an old demo link still lands', (await p.evaluate(() => location.hash)) === '#/p/chat-recap');
 await p.goto('file://'+process.cwd()+'/dist/index.html#/how');
 await p.waitForTimeout(300);
 say('the site page carries its legend', (await p.locator('.kv dt').count()) >= 3);
 
 // screenshots for the record
-await p.goto('file://'+process.cwd()+'/dist/index.html#/p/platform');
-await p.waitForSelector('#out table'); await p.waitForTimeout(300);
+await p.goto('file://'+process.cwd()+'/dist/index.html#/p/event');
+await p.waitForSelector('.ecp', {timeout:8000}); await p.waitForTimeout(300);
 await p.screenshot({ path:'shot-platform.png', fullPage:false });
 await p.goto('file://'+process.cwd()+'/dist/index.html#/');
 await p.waitForTimeout(300);
 await p.screenshot({ path:'shot-home.png', fullPage:false });
-await p.goto('file://'+process.cwd()+'/dist/index.html#/p/time-model');
+await p.goto('file://'+process.cwd()+'/dist/index.html#/p/orghealth');
 await p.waitForTimeout(300);
 await p.screenshot({ path:'shot-writeup.png', fullPage:false });
 

@@ -5,17 +5,18 @@ const U = 'file://' + process.cwd() + '/dist/index.html';
 let failed = 0;
 const say = (n, c) => { console.log((c ? '  ok  ' : 'FAIL  ') + n); if (!c) failed++; };
 
-/* Six write-up pages, each carrying exactly one diagram spec. For every
+/* Pages carrying exactly one diagram spec. teams-recap and teams-sync no
+   longer have standalone write-up routes — their diagrams now live on the
+   live demo pages they illustrate (chat-recap, chat-tracker). For every
    page: node/edge count sanity, a click that fills .dg-detail, a non-empty
    svg aria-label, and zero console errors — at least four checks each,
    per the brief's Definition of Done. */
 const PAGES = [
-  { id: 'teams-recap', kind: 'chain', minNodes: 7 },
-  { id: 'delta-sync',  kind: 'chain', minNodes: 6 },
+  { id: 'chat-recap',  kind: 'chain', minNodes: 7 },
   { id: 'authority',   kind: 'authority', minCells: 24 },
-  { id: 'token-boundary', kind: 'authority', minCells: 10 },
+  { id: 'org-tooling', kind: 'authority', minCells: 10 },
   { id: 'buckets',     kind: 'funnel', minBuckets: 6 },
-  { id: 'teams-sync',  kind: 'chain', minNodes: 6 },
+  { id: 'chat-tracker', kind: 'chain', minNodes: 6 },
 ];
 
 for (const page of PAGES) {
