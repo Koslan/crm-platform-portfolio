@@ -47,6 +47,22 @@ function textLine(x, y, s, opts) {
     + (style ? ' style="' + style + '"' : '') + '>' + esc(s) + '</text>';
 }
 
+/* Greedy word wrap for SVG text, which has no line box of its own. `perChar`
+   is an average advance width for the label's font: measuring properly would
+   need the node in the document, and this runs while the string is still being
+   built. Good enough to keep a line inside `max`. */
+function wrapLabel(s, max, perChar) {
+  const words = String(s).split(/\s+/);
+  const lines = []; let line = '';
+  words.forEach(w => {
+    const next = line ? line + ' ' + w : w;
+    if (line && next.length * perChar > max) { lines.push(line); line = w; }
+    else line = next;
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
 function arrowMarkerDefs() {
   return '<defs>'
     + '<marker id="dg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
@@ -325,7 +341,10 @@ function statesSVG(spec) {
 function funnelSVG(spec) {
   const rules = (spec.rules || []).slice().sort((a,b) => (a.order||0) - (b.order||0));
   const buckets = spec.buckets || [];
-  const inputW = 150, ruleW = 190, bucketW = 200;
+  /* The rule column carries the longest labels in a funnel ("4. Name, tie-break:
+     account then email"), so it is the widest of the three; at 190 the text ran
+     outside its own box. */
+  const inputW = 150, ruleW = 270, bucketW = 200;
   const colGap = 70;
   const rowH = 40, rowGap = 12;
   const pad = 24;
@@ -341,7 +360,7 @@ function funnelSVG(spec) {
 
   // input node, vertically centred
   const inputY = topPad + contentH/2 - 30;
-  body += rectNode('input', pad, inputY, inputW, 60, spec.input.n, spec.input.count ? (spec.input.count + ' rows') : '', {});
+  body += rectNode('input', pad, inputY, inputW, 60, spec.input.n, spec.input.count || '', {});
 
   // rule column
   rules.forEach((r, i) => {
@@ -372,14 +391,21 @@ function funnelSVG(spec) {
     body += rectNode(b.id, bucketsX, y, bucketW, rowH, label, b.who === 'human' ? 'worked by a person' : '', { cls });
   });
 
-  // gates: horizontal lines across the rule column with a label
+  // gates: a horizontal line across the rule column, labelled underneath.
+  // The gate sentence is the longest string in a funnel and the rule column is
+  // the narrowest part of one, so the label is wrapped to the width of its own
+  // line and set below it: on a single centred line above the gate it ran
+  // straight through the input node sitting to its left.
   (spec.gates || []).forEach(g => {
     const idx = rules.findIndex(r => r.id === g.after);
     if (idx < 0) return;
     const y = topPad + idx * (rowH + rowGap) + rowH + rowGap/2;
     body += '<line x1="' + (rulesX-14) + '" y1="' + y + '" x2="' + (rulesX+ruleW+14) + '" y2="' + y
       + '" stroke="' + WARN + '" stroke-width="1.4" stroke-dasharray="3,3"></line>';
-    body += textLine(rulesX+ruleW/2, y - 6, g.n, { style: 'font:400 9px "DM Mono",monospace;fill:' + WARN });
+    const gateStyle = 'font:400 9px "DM Mono",monospace;fill:' + WARN;
+    wrapLabel(g.n, ruleW + 28, 5.1).forEach((ln, i) => {
+      body += textLine(rulesX+ruleW/2, y + 13 + i*11, ln, { style: gateStyle });
+    });
   });
 
   const svg = '<svg role="img" width="' + w + '" aria-label="' + esc(spec.aria) + '" viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>';

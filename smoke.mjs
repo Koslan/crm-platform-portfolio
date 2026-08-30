@@ -11,7 +11,8 @@ say('tabs rendered', (await p.locator('.tabs a').count()) === 5);
 say('about is the front page', (await p.locator('h1').first().textContent()).includes('Kostiantyn'));
 await p.click('.tabs a[href="#/zoho"]');
 await p.waitForTimeout(200);
-say('a tab lists its pages', (await p.locator('a[href^="#/p/"]').count()) > 10);
+const zohoLinks = await p.locator('a[href^="#/p/"]').count();
+say('a tab lists its pages ('+zohoLinks+')', zohoLinks >= 8);
 
 await p.goto('file://'+process.cwd()+'/dist/index.html#/p/org-tooling');
 await p.waitForTimeout(300);

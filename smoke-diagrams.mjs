@@ -5,21 +5,25 @@ const U = 'file://' + process.cwd() + '/dist/index.html';
 let failed = 0;
 const say = (n, c) => { console.log((c ? '  ok  ' : 'FAIL  ') + n); if (!c) failed++; };
 
-/* Pages carrying exactly one diagram spec. teams-recap and teams-sync no
-   longer have standalone write-up routes — their diagrams now live on the
-   live demo pages they illustrate (chat-recap, chat-tracker). For every
-   page: node/edge count sanity, a click that fills .dg-detail, a non-empty
-   svg aria-label, and zero console errors — at least four checks each,
-   per the brief's Definition of Done. */
+/* Every diagram on the site, addressed as (page, index-on-that-page). Two
+   write-ups no longer have routes of their own: the teams-recap and teams-sync
+   diagrams moved onto the live demos they illustrate (chat-recap, chat-tracker),
+   and the eight integration write-ups merged into cross-system, which is why
+   that page carries two — an ownership matrix and a funnel. For every diagram:
+   node/edge count sanity, a click that fills .dg-detail, a non-empty svg
+   aria-label, and zero console errors — at least four checks each, per the
+   brief's Definition of Done. */
 const PAGES = [
-  { id: 'chat-recap',  kind: 'chain', minNodes: 7 },
-  { id: 'authority',   kind: 'authority', minCells: 24 },
-  { id: 'org-tooling', kind: 'authority', minCells: 10 },
-  { id: 'buckets',     kind: 'funnel', minBuckets: 6 },
-  { id: 'chat-tracker', kind: 'chain', minNodes: 6 },
+  { id: 'chat-recap',   kind: 'chain',     minNodes: 7 },
+  { id: 'chat-tracker', kind: 'chain',     minNodes: 6 },
+  { id: 'org-tooling',  kind: 'authority', minCells: 10 },
+  { id: 'cross-system', kind: 'authority', minCells: 24, dg: 0 },
+  { id: 'cross-system', kind: 'funnel',    minBuckets: 6, dg: 1 },
 ];
+const label = p => p.id + (p.dg != null ? ' [' + p.kind + ']' : '');
 
 for (const page of PAGES) {
+  const at = page.dg || 0;
   const p = await b.newPage({ viewport: { width: 1500, height: 1050 } });
   const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
@@ -28,53 +32,53 @@ for (const page of PAGES) {
   await p.goto(U + '#/p/' + page.id);
   await p.waitForSelector('.dg', { timeout: 8000 });
   await p.waitForTimeout(200);
+  const fig = p.locator('.dg').nth(at);
 
-  const nodeCount = await p.locator('.dg [data-dgid]').count();
+  const nodeCount = await fig.locator('[data-dgid]').count();
   if (page.kind === 'chain') {
-    say(page.id + ': step nodes drawn (' + nodeCount + ')', nodeCount >= page.minNodes);
-    say(page.id + ': at least one failure diamond', (await p.locator('.dg .dgfail').count()) >= 1);
+    say(label(page) + ': step nodes drawn (' + nodeCount + ')', nodeCount >= page.minNodes);
+    say(label(page) + ': at least one failure diamond', (await fig.locator('.dgfail').count()) >= 1);
   } else if (page.kind === 'authority') {
-    say(page.id + ': matrix cells drawn (' + nodeCount + ')', nodeCount >= page.minCells);
-    const ruleText = (await p.locator('.dg .dg-rule').count()) ? (await p.locator('.dg .dg-rule').textContent()).trim() : '';
-    say(page.id + ': rule line printed', ruleText.length > 0);
+    say(label(page) + ': matrix cells drawn (' + nodeCount + ')', nodeCount >= page.minCells);
+    const ruleText = (await fig.locator('.dg-rule').count()) ? (await fig.locator('.dg-rule').textContent()).trim() : '';
+    say(label(page) + ': rule line printed', ruleText.length > 0);
   } else if (page.kind === 'funnel') {
-    const bucketCount = await p.locator('.dg .dgbucket').count();
-    say(page.id + ': buckets drawn (' + bucketCount + ')', bucketCount >= page.minBuckets);
-    say(page.id + ': rule nodes drawn', (await p.locator('.dg .dgrule').count()) >= 1);
+    const bucketCount = await fig.locator('.dgbucket').count();
+    say(label(page) + ': buckets drawn (' + bucketCount + ')', bucketCount >= page.minBuckets);
+    say(label(page) + ': rule nodes drawn', (await fig.locator('.dgrule').count()) >= 1);
   }
 
   // aria-label on the svg is non-empty
-  const ariaLabel = await p.locator('.dg svg').getAttribute('aria-label');
-  say(page.id + ': svg aria-label present', !!(ariaLabel && ariaLabel.trim().length > 0));
+  const ariaLabel = await fig.locator('svg').getAttribute('aria-label');
+  say(label(page) + ': svg aria-label present', !!(ariaLabel && ariaLabel.trim().length > 0));
 
   // clicking a node fills .dg-detail with non-empty text. Not every node has
   // curated detail copy (e.g. a bare "never" matrix cell) — pick one that
   // does, by reading the spec's own detail map straight from the DOM.
-  const before = (await p.locator('.dg-detail').textContent()).trim();
-  say(page.id + ': detail panel non-empty on load', before.length > 0);
-  const detailId = await p.evaluate(() => {
-    const fig = document.querySelector('.dg');
-    const spec = JSON.parse(fig.dataset.dgSpec);
+  const before = (await fig.locator('.dg-detail').textContent()).trim();
+  say(label(page) + ': detail panel non-empty on load', before.length > 0);
+  const detailId = await p.evaluate((i) => {
+    const f = document.querySelectorAll('.dg')[i];
+    const spec = JSON.parse(f.dataset.dgSpec);
     const keys = Object.keys(spec.detail || {});
-    return keys.find(k => fig.querySelector('[data-dgid="' + k.replace(/"/g, '\\"') + '"]')) || null;
-  });
+    return keys.find(k => f.querySelector('[data-dgid="' + k.replace(/"/g, '\\"') + '"]')) || null;
+  }, at);
   if (detailId) {
-    await p.locator('.dg [data-dgid="' + detailId + '"]').first().click();
+    await fig.locator('[data-dgid="' + detailId + '"]').first().click();
     await p.waitForTimeout(100);
   }
-  const afterClick = (await p.locator('.dg-detail').textContent()).trim();
-  say(page.id + ': click fills detail panel', !!detailId && afterClick.length > 0);
+  const afterClick = (await fig.locator('.dg-detail').textContent()).trim();
+  say(label(page) + ': click fills detail panel', !!detailId && afterClick.length > 0);
 
   // keyboard: Tab-reachable, Enter activates
-  const firstNode = p.locator('.dg [data-dgid]').first();
-  await firstNode.focus();
+  await fig.locator('[data-dgid]').first().focus();
   await p.keyboard.press('Enter');
   await p.waitForTimeout(100);
-  const afterEnter = (await p.locator('.dg-detail').textContent()).trim();
-  say(page.id + ': keyboard Enter activates a node', afterEnter.length > 0);
+  const afterEnter = (await fig.locator('.dg-detail').textContent()).trim();
+  say(label(page) + ': keyboard Enter activates a node', afterEnter.length > 0);
 
   // no console errors
-  say(page.id + ': no console errors (' + errs.length + ')', errs.length === 0);
+  say(label(page) + ': no console errors (' + errs.length + ')', errs.length === 0);
   if (errs.length) console.log(errs.slice(0, 4).join('\n'));
 
   await p.close();
@@ -86,16 +90,17 @@ for (const page of PAGES) {
 for (const width of [1500, 1000, 390]) {
   const p = await b.newPage({ viewport: { width, height: 900 } });
   for (const page of PAGES) {
+    const at = page.dg || 0;
     await p.goto(U + '#/p/' + page.id);
     await p.waitForSelector('.dg', { timeout: 8000 });
     await p.waitForTimeout(150);
     const bodyScrollW = await p.evaluate(() => document.body.scrollWidth);
     const winW = await p.evaluate(() => window.innerWidth);
-    say(width + 'px ' + page.id + ': no page-body horizontal scroll', bodyScrollW <= winW + 4);
+    say(width + 'px ' + label(page) + ': no page-body horizontal scroll', bodyScrollW <= winW + 4);
     if (page.kind === 'chain') {
-      const vertical = await p.locator('.dg').getAttribute('data-dg-vertical');
+      const vertical = await p.locator('.dg').nth(at).getAttribute('data-dg-vertical');
       const expected = width < 700 ? '1' : '0';
-      say(width + 'px ' + page.id + ': vertical layout ' + (width < 700 ? 'on' : 'off'), vertical === expected);
+      say(width + 'px ' + label(page) + ': vertical layout ' + (width < 700 ? 'on' : 'off'), vertical === expected);
     }
   }
   await p.close();

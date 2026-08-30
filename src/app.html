@@ -519,14 +519,7 @@ const ZOHO_GROUPS=[
   items:[
    {id:'chat-recap',t:'Meeting recap from chat',kind:'emul',s:'A two-card wizard in a chat client, writing a structured recap into the CRM.'},
    {id:'chat-tracker',t:'Chat to issue tracker',kind:'emul',s:'A tagged reply becomes a public or role-restricted, deduplicated comment on a Jira issue.'},
-   {id:'teams-cards',t:'A wizard in a chat, with nothing held open',kind:'note',s:'Callback subscriptions instead of waiting.'},
-   {id:'webhook-repair',t:'A receiver that repairs its own payload',kind:'note',s:'A rejected write is a lost event.'},
-   {id:'attachments',t:'Attachments as links',kind:'note',s:'After proving the proxy was the problem.'},
-   {id:'transcript-match',t:'Matching transcripts by score, not by key',kind:'note',s:'Overlap as coverage ratios, with a gate above the score.'},
-   {id:'authority',t:'Deciding which system is allowed to be right',kind:'note',s:'Four systems, one meeting, a written rule.'},
-   {id:'authority-meeting',t:'One field, two systems, and a rule about who wins',kind:'note',s:'Held, declined, or still booked.'},
-   {id:'roles-survive',t:'Keeping human input through a resync',kind:'note',s:'The classification is the whole value.'},
-   {id:'buckets',t:'Sorting an export into buckets',kind:'note',s:'Classification instead of matching.'}]}
+   {id:'cross-system',t:'Crossing between systems that do not agree',kind:'note',s:'Eight integrations, and the rule each one needed.'}]}
 ];
 const AI_ITEMS=[
  {id:'loss-analysis',t:'Loss analysis in two stages',kind:'note',s:'Six evidence sources, a 38-cause taxonomy in the prompt, a human-correctable middle stage.'},
@@ -866,7 +859,7 @@ const STORY={
   "t": "Events are not re-sent: a rejected write is a lost event, and the rejection reason is unknown in advance.",
   "b": "A receiver that repairs its own payload: five attempts, reading the failing field out of the CRM error, substituting or dropping it, switching create to update when a duplicate id comes back — with the raw payload retained and everything dropped itemised.",
   "r": "Records arrive degraded-but-visible instead of not at all, and the degradation is on the record rather than in a log nobody reads.",
-  "demo": "webhook-repair",
+  "demo": "cross-system",
   "code": "for (attempt of [1,2,3,4,5]) {\n  res = crm.upsert(payload);\n  if (res.ok) break;\n  field = parseFailingField(res.error);\n  if (!field) break;                 // unknown cause: stop, don’t spin\n  payload = repair(payload, field);  // placeholder | drop | create→update\n}\nreport(dropped, substituted);        // degradation is itemised"
  },
  "rate limiting": {
@@ -1711,10 +1704,19 @@ function vAbout(){
 }
 
 function vZoho(){
+ /* One grid rather than three stacked sections: after the pruning pass the
+    groups were one and two cards wide, which read as gaps rather than
+    structure. The groups still exist in ZOHO_GROUPS — they carry the
+    breadcrumb and the prev/next pager on every item page — they are simply
+    not the shape of this index. Screens first, then the two write-ups. */
+ const all=ZOHO_GROUPS.flatMap(g=>g.items);
+ const live=all.filter(i=>i.kind==='live'||i.kind==='emul');
+ const notes=all.filter(i=>i.kind!=='live'&&i.kind!=='emul');
  return '<p class="eyebrow">Platform</p><h1>Zoho</h1>'
   +'<p class="lede">The core of the last six years: widgets on record pages, tooling for the org itself, '
-  +'and integrations that cross into Teams, Jira and calendars.</p>'
-  +ZOHO_GROUPS.map(g=>'<div class="sechead">'+esc(g.h)+'</div><p class="intro">'+esc(g.intro)+'</p>'+split(g.items)).join('');
+  +'and integrations that cross into Teams, Jira and calendars. Six screens run here in the browser against '
+  +'an emulated platform; the two write-ups carry the diagrams and the trades.</p>'
+  +'<div class="sechead">Work</div>'+cards(live.concat(notes));
 }
 function vAI(){
  return '<p class="eyebrow">Applied, not decorative</p><h1>AI in the CRM</h1>'
@@ -1877,24 +1879,98 @@ const DEMOS = [
 
 const CASES = {
   'Integration and sync':[
-    {id:'transcript-match', t:'Matching transcripts by score, not by key',
-     sub:'No shared identifier, overlapping meetings, and durations that never agree.',
+    {id:'cross-system', t:'Crossing between systems that do not agree',
+     sub:'Eight integrations across Teams, calendars, Jira and conference exports. No shared key, no second delivery, no shared permission model — and, in three of them, a deliberate stop short of full automation.',
+     dgs:[
+      {kind:'authority', at:2,
+       aria:'Ownership matrix: eight meeting fields against Calendar, CRM, Chat and Issue tracker, with the rule Time belongs to the calendar, judgement belongs to the CRM, delivery belongs to the tracker, chat owns nothing',
+       cols:[{id:'cal',n:'Calendar'},{id:'crm',n:'CRM'},{id:'chat',n:'Chat'},{id:'tracker',n:'Issue tracker'}],
+       rows:[
+        {id:'start-end', n:'Start / end time'},
+        {id:'duration', n:'Duration'},
+        {id:'attendees', n:'Attendees'},
+        {id:'meeting-type', n:'Meeting type'},
+        {id:'room-note', n:'Room note'},
+        {id:'recap', n:'Recap'},
+        {id:'delivery-state', n:'Delivery state'},
+        {id:'issue-link', n:'Link to issue'},
+        {id:'unnamed-a', n:'Unnamed (never) 1'},
+        {id:'unnamed-b', n:'Unnamed (never) 2'},
+        {id:'unnamed-c', n:'Unnamed (cut)'}
+       ],
+       cells:{
+        'start-end:cal':'owner', 'start-end:crm':'source', 'start-end:chat':'never', 'start-end:tracker':'never',
+        'duration:cal':'owner', 'duration:crm':'source', 'duration:chat':'never', 'duration:tracker':'never',
+        'attendees:cal':'owner', 'attendees:crm':'source', 'attendees:chat':'source', 'attendees:tracker':'never',
+        'meeting-type:cal':'never', 'meeting-type:crm':'owner', 'meeting-type:chat':'never', 'meeting-type:tracker':'never',
+        'room-note:cal':'never', 'room-note:crm':'owner', 'room-note:chat':'never', 'room-note:tracker':'never',
+        'recap:cal':'never', 'recap:crm':'owner', 'recap:chat':'source', 'recap:tracker':'never',
+        'delivery-state:cal':'never', 'delivery-state:crm':'source', 'delivery-state:chat':'never', 'delivery-state:tracker':'owner',
+        'issue-link:cal':'never', 'issue-link:crm':'source', 'issue-link:chat':'source', 'issue-link:tracker':'never',
+        'unnamed-a:cal':'never', 'unnamed-a:crm':'source', 'unnamed-a:chat':'never', 'unnamed-a:tracker':'never',
+        'unnamed-b:cal':'never', 'unnamed-b:crm':'source', 'unnamed-b:chat':'never', 'unnamed-b:tracker':'never',
+        'unnamed-c:cal':'truncated', 'unnamed-c:crm':'source', 'unnamed-c:chat':'never', 'unnamed-c:tracker':'never'
+       },
+       rule:'Time belongs to the calendar. Judgement belongs to the CRM. Delivery belongs to the tracker. Chat owns nothing.',
+       note:'The three rows above are placeholders, not named fields: the write-up says the payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third — without saying which. This diagram marks that a limit exists without guessing what it applies to. The write-up also says several other fields are written only on creation, so a later sync cannot erase a human edit — again without naming them, so no row here is marked create-only.',
+       detail:{
+        'start-end:cal':{t:'Start / end time — Calendar', d:'The calendar owns time: it is where people accept and move things.'},
+        'meeting-type:cal':{t:'Meeting type — never from the calendar', d:'The meeting type is never taken from the calendar side, even though the calendar has an event type of its own.'},
+        'meeting-type:crm':{t:'Meeting type — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
+        'room-note:crm':{t:'Room note — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
+        'recap:crm':{t:'Recap — CRM owns it', d:'A person typed it. The recap is judgement, not a fact carried in from elsewhere.'},
+        'delivery-state:tracker':{t:'Delivery state — tracker owns it', d:'The issue tracker is authoritative over its own delivery state.'},
+        'chat':{t:'Chat owns nothing', d:'The whole Chat column is source or never — the chat is where a decision gets made in conversation, not where it is stored.'},
+        'unnamed-a:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for one of them.'},
+        'unnamed-b:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for the other one.'},
+        'unnamed-c:cal':{t:'Truncated — field unnamed', d:'The write-up: "one is truncated." It does not say which field, or to what length.'}
+       }
+      },
+      {kind:'funnel', at:6,
+       aria:'Funnel from a conference export through four ordered rules to seven outcome buckets, two of them worked by a person',
+       input:{n:'Conference export', count:'several hundred rows'},
+       rules:[
+        {id:'profile', n:'Profile lookup by slug, path anchor', order:1},
+        {id:'account', n:'Account check', order:2},
+        {id:'email', n:'Email', order:3},
+        {id:'name', n:'Name, tie-break: account then email', order:4}
+       ],
+       buckets:[
+        {id:'matched-profile', n:'Matched by profile', who:'auto'},
+        {id:'matched-disagree', n:'Matched, account disagrees', who:'auto'},
+        {id:'matched-email-name', n:'Matched by email or name', who:'auto'},
+        {id:'needs-enrichment', n:'Needs enrichment', who:'auto'},
+        {id:'created-enrichment', n:'Created from enrichment', who:'auto'},
+        {id:'ambiguous', n:'Ambiguous', who:'human'},
+        {id:'unresolved', n:'Unresolved', who:'human'}
+       ],
+       gates:[{after:'name', n:'no candidate resolves → ambiguous with the candidates attached, never the first one'}],
+       detail:{
+        profile:{t:'Profile lookup by slug, with a path anchor', d:'Done on the slug with a path anchor rather than the whole URL, so an extended slug and a trailing slash both still hit, while the anchor stops a slug matching in the middle of somebody else’s address.'},
+        account:{t:'Account check', d:'First tie-breaker when several candidates come back.'},
+        email:{t:'Email', d:'Second tie-breaker, run only after account.'},
+        name:{t:'Name, fixed tie-break order', d:'Tie-breakers run in a fixed order — account first, then email — and if none resolves it, the row goes to ambiguous with the candidates attached rather than taking the first.'},
+        'matched-profile':{t:'Matched by profile', d:'The strongest signal: a direct profile-URL hit.'},
+        'matched-disagree':{t:'Matched, account disagrees', d:'A profile match exists, but the account on the row does not agree with it — reported rather than silently trusted.'},
+        'matched-email-name':{t:'Matched by email or name', d:'Resolved through the tie-break chain: account first, then email.'},
+        'needs-enrichment':{t:'Needs enrichment', d:'No match yet; queued for the enrichment provider.'},
+        'created-enrichment':{t:'Created from enrichment', d:'A new contact created from what enrichment returned.'},
+        ambiguous:{t:'Ambiguous — worked by a person', d:'The tool deliberately does not push for full automation. No candidate resolves → ambiguous with the candidates attached, never the first one.'},
+        unresolved:{t:'Unresolved — worked by a person', d:'Nothing matched at all; left for a human rather than guessed.'}
+       }
+      }
+     ],
      body:[
-      ['The constraint','A transcript arrives with its own identifier, its own clock and its own attendee list. Time is the only shared signal, and it is weak: a sixty-minute meeting may have run twenty-two, so "same time" becomes an overlap problem between intervals of different length.'],
-      ['What was built','A score rather than a boolean. Overlap is measured as two coverage ratios; the larger is taken so a meeting nested inside another still scores full, and a penalty proportional to the duration gap is subtracted. Modifiers follow: a service hint, e-mail addresses lifted out of the transcript body and intersected with the attendee list, a penalty when a transcript already exists. The strongest modifier is the recording owner — a bonus when they are present, a penalty when the attendee list is populated and they are not. Above the score sits a gate: if the owner is known and the best candidate does not contain them, a second pass runs, and if nothing qualifies the automatic link is refused outright.'],
-      ['The trade','Two thresholds instead of one. The link is written above forty; the transcript text is only copied into the meeting above sixty. "I think this is the meeting" and "I am willing to write data into it" are deliberately different decisions, and every candidate is kept with its score for a human to review.']]},
-    {id:'webhook-repair', t:'A receiver that repairs its own payload',
-     sub:'Six event types, out-of-order delivery, and a rejection means the event is gone.',
-     body:[
-      ['The constraint','Events are not re-sent. A rejected write is a lost event, and the reason is unknown in advance: a date format, a length, a missing mandatory field, or a duplicate rule.'],
-      ['What was built','A five-attempt loop that reads the field name out of the CRM error and rewrites the payload between attempts. A missing mandatory field gets a marked placeholder; any other named field is dropped and the attempt repeats; a duplicate error carrying a record id switches the operation from create to update. When the culprit cannot be identified the loop stops on purpose instead of spinning. Everything dropped or substituted comes back in the response, so the record is saved degraded but visible. Idempotency is separate: a rolling journal of processed event ids on the record itself.'],
-      ['The trade','The rolling journal means a very old event could in theory be processed twice — the alternative was a record and an API call per event. A placeholder in a mandatory field puts marked rubbish in the data, which still beats a missing record.']]},
-    {id:'attachments', t:'Attachments as links, after proving the proxy was the problem',
-     sub:'A 200 with an empty body, and a platform that cannot restrict a file to a role.',
-     body:[
-      ['The constraint','Three at once. The tracker is only reachable through a corporate proxy. The proxy answers the upload endpoint with 200 and an empty body, and no attachment appears. And the tracker itself cannot limit a file by visibility — a comment can be closed to a role, a file is visible to everyone who can see the issue. The files that needed closing were the ones with rates in them.'],
-      ['What was built','First, localisation by experiment rather than guesswork: downloading from storage works; building a multipart body works and 160 KB takes 0.88 seconds, so the bytes really do leave; JSON endpoints through the same proxy answer with content, including validation errors. Conclusion: the multipart body is what is lost. The fix is not a file but a remote link — a JSON call carrying a stable global id. JSON passes the proxy, the global id makes a ten-minute sync idempotent, and the link inherits the permissions of the storage it points at, which solves the third problem too.'],
-      ['The trade','The file is not physically in the tracker; someone without access to the folder hits a login. Accepted deliberately, because the alternative hands rates to everyone who can open the issue.']]}],
+      ['The common shape','Every one of these crosses a boundary the CRM does not own. On the other side sits a calendar that cannot be asked about every meeting, a chat card that cannot fetch a row, an events feed that never re-sends, a tracker whose files cannot be closed to a role, and a conference export whose company column is regularly wrong. None of that can be fixed from this side, so the work is deciding — in writing, before the code — what the CRM is allowed to believe, what it is allowed to overwrite, and where it should stop and hand the row to a person. Eight of those decisions follow, ordered by the question each one answers.'],
+      ['Which system is allowed to be right','A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record. Written down as a table, this settles most arguments before they start. Enforcement lives in the payload builder, where create and update are separated: two fields are never written at all because of length ceilings, and one is truncated. The source gives the mechanism, not the field names, so the three placeholder rows in the matrix below are left unnamed rather than guessed.'],
+      ['One field, two systems, and a rule about who wins','A meeting is held, or declined, or still booked. Deciding it from the calendar means asking the calendar about every meeting, every hour — impossible at any real volume. Deciding it from the CRM alone means never learning about cancellations, because a cancellation happens in the calendar and the CRM row simply becomes a past meeting that looks attended. So: two processes, each authoritative over exactly one thing. The hourly one works only from CRM data, computing an end time from the start plus the duration with two fallbacks, and moves a row from booked to held; it never touches a declined row, because that is a final state. The second and much more expensive one is authoritative over one question only — was this cancelled — and asks the calendar about rows already marked held, where a cancelled flag and a missing event both mean declined. It walks one month per run, capped at a few hundred rows, so a full year takes twelve passes and a cancelled meeting can sit mislabelled for a while: the deliberate price of not calling the calendar hourly for everything. The month is a constant in the code rather than a parameter — crude, but the run is then perfectly reproducible. The write result comes back in three different shapes depending on the path taken, so success is checked three ways in sequence; and a row locked by a state machine refuses the write with a marker buried inside the response body rather than a status code, so those are counted as skipped, not as failures, because they are neither.'],
+      ['Keeping what a human typed through an automatic resync','Every time a meeting updates from the calendar, its participant list is rebuilt: internal people matched against the staff directory, external ones against the account’s contacts. But the calendar knows nothing about buyer roles — economic, technical, user, coach — and those are exactly what somebody sat down and worked out. So existing participants are read first and indexed by a composite key of address and role; for each external address the rebuild checks all four roles for an existing key before assigning anything, and restores the role it finds. Only a genuinely new person gets a default. Historic rows carry the old spelling of those roles, from before the picklist was renamed, so a second pass maps the old values onto the new ones rather than quietly dropping the classification on every record created before the rename. What stays risky is the write path: the roles live in a subform, and a subform is replaced wholesale rather than patched row by row, so anything not in the array being sent stops existing. The role-restoring logic makes the content correct and does nothing about that. Saying so is more useful than implying the problem is solved.'],
+      ['Matching transcripts by score, not by key','A transcript arrives with its own identifier, its own clock and its own attendee list. Time is the only shared signal, and it is weak: a sixty-minute meeting may have run twenty-two, so “same time” becomes an overlap problem between intervals of different length. The answer is a score rather than a boolean. Overlap is measured as two coverage ratios and the larger is taken, so a meeting nested inside another still scores full, with a penalty proportional to the duration gap subtracted. Modifiers follow: a service hint, e-mail addresses lifted out of the transcript body and intersected with the attendee list, a penalty when a transcript already exists. The strongest modifier is the recording owner — a bonus when they are present, a penalty when the attendee list is populated and they are not. Above the score sits a gate: if the owner is known and the best candidate does not contain them, a second pass runs, and if nothing qualifies the automatic link is refused outright. Two thresholds instead of one: the link is written above forty, the transcript text is only copied into the meeting above sixty. “I think this is the meeting” and “I am willing to write data into it” are deliberately different decisions, and every candidate is kept with its score for a human to review.'],
+      ['Sorting a conference export into buckets instead of matching it','Several hundred rows, no shared key with anything, and half the company names in the file are wrong. There is no single identifier: profile URLs are written differently on each side, email is missing for many people, the company column is regularly wrong, and enrichment names are sometimes mangled. So not a match — a classification, worked independently per bucket, as the funnel below sets out. Three write rules are what make the tool safe to run twice: a name is corrected only when the surname differs, because otherwise every Alex becomes an Alexander; title and email are filled only into an empty field and never over a live value; and everything else that merely differs is reported for a human to look at.'],
+      ['A receiver that repairs its own payload','Events are not re-sent. A rejected write is a lost event, and the reason is unknown in advance: a date format, a length, a missing mandatory field, or a duplicate rule. So a five-attempt loop reads the field name out of the CRM error and rewrites the payload between attempts — a missing mandatory field gets a marked placeholder, any other named field is dropped and the attempt repeats, and a duplicate error carrying a record id switches the operation from create to update. When the culprit cannot be identified the loop stops on purpose instead of spinning. Everything dropped or substituted comes back in the response, so the record is saved degraded but visible. Idempotency is separate: a rolling journal of processed event ids on the record itself, which means a very old event could in theory be processed twice — the alternative was a record and an API call per event. A placeholder in a mandatory field puts marked rubbish in the data, which still beats a missing record.'],
+      ['A two-card wizard in a chat, with nothing held open','A person takes minutes to fill in a form; a synchronous call has seconds. The trigger has to answer quickly, and a card is not an application: it has no state, cannot fetch more rows, and ends when it is submitted. Holding the request open while somebody thinks is not slow — it is impossible. So every human step is a callback subscription rather than a wait: the card posts, the flow suspends, the answer arrives as a new event. Around the card sits a loop — the card reports which button was pressed, and if it was a search rather than a submit, the loop reissues the card with fresh results, which is how a search across hundreds of accounts happens inside something that cannot fetch. The loop is bounded, a fixed number of iterations and half an hour, so a card somebody forgot about cannot hold a run open indefinitely. One detail is worth keeping: a dropdown returns exactly one value, so when the opportunity already linked to the meeting belongs to a different account it travels as a marked value — a prefix the saving function recognises and strips — and both ends know the choice was deliberate, through a control that cannot carry a flag. The first design edited the previous card in place, which meant tracking message identifiers and lost a race whenever two events arrived close together; replacing the card instead costs a little clutter in the chat and removes the entire class of problem.'],
+      ['Attachments as links, after proving the proxy was the problem','Three constraints at once. The tracker is only reachable through a corporate proxy; the proxy answers the upload endpoint with 200 and an empty body, and no attachment appears; and the tracker itself cannot limit a file by visibility — a comment can be closed to a role, a file is visible to everyone who can see the issue, and the files that needed closing were the ones with rates in them. Localisation came by experiment rather than guesswork: downloading from storage works; building a multipart body works and 160 KB takes 0.88 seconds, so the bytes really do leave; JSON endpoints through the same proxy answer with content, including validation errors. Conclusion: the multipart body is what is lost. The fix is not a file but a remote link — a JSON call carrying a stable global id. JSON passes the proxy, the global id makes a ten-minute sync idempotent, and the link inherits the permissions of the storage it points at, which solves the third problem too. The file is not physically in the tracker, so someone without access to the folder hits a login — accepted deliberately, because the alternative hands rates to everyone who can open the issue.'],
+      ['What the eight have in common','Three habits, and they are the actual content of this page. Write the ownership rule down before the code, because a rule that lives only in someone’s head gets re-decided on every sync. Separate “I think this is right” from “I am willing to write it” — the two thresholds in the transcript matcher, the create-versus-update split in the payload builder, the fill-only-into-an-empty-field rule in the import. And leave the ambiguous rows to a person on purpose: the funnel above ends in two human buckets, the transcript matcher refuses a link rather than guessing, and the receiver itemises what it dropped instead of hiding it. Each of those costs throughput, and each was the right trade at this volume. Where it is not — the wholesale subform write, the month-long lag on a cancellation, the rolling idempotency journal — is named in the sections above rather than smoothed over.']]}],
   'Platform and tooling':[
     {id:'org-tooling', t:'Building tooling for an org that will not export itself',
      sub:'Five problems, one method: when the platform refuses to answer a question, build the instrument that answers it anyway — and say plainly what it still cannot see.',
@@ -1961,126 +2037,6 @@ const CASES = {
       ['The constraint','This portfolio already shows two kinds of AI work: a pipeline that gathers evidence and calls a model once, twice, at the end (loss analysis); and an agent that writes, gated by validation and a human (the journal above). Neither is what most people mean when they say "AI in the CRM" today — they mean a model working the org directly, the way an assistant with MCP access does. Building that third kind honestly means being precise about where a model earns its place and where it does not, because a CRM pipeline is mostly evidence-gathering, and a model dropped into the wrong part of it produces a plausible, ungrounded answer instead of a correct one.'],
       ['What was built','A three-way split, stated as a rule rather than a feeling. Deterministic operations — a stage change, a lookup, a picklist validation, a query against two hundred records — stay deterministic; nothing about them benefits from a model guessing. Classification and rewriting are where a model belongs: turning a rambling transcript into a recap, placing a loss reason in a taxonomy, correcting a mis-heard company name. MCP is the connecting piece — a typed, scoped surface for exactly the calls a model is allowed to make against org data, with the record shapes and the refusals defined outside the model, not inside its judgement. That is the same idea as the emulator this whole site runs on, aimed the other direction: instead of standing in for the platform so code can run outside it, MCP stands in front of the platform so a model can act on it safely.'],
       ['The trade','MCP is access control, not correctness control — a well-typed tool call can still carry a bad instruction, so the validation and the risk gate shown in the journal above are still the part doing the actual work. Naming the three kinds plainly is the whole contribution here: a portfolio that only ever says "AI" without saying which of the three it means is not saying anything a hiring manager can evaluate.']]}],
-  'Data and identity':[
-    {id:'authority-meeting', t:'One field, two systems, and a rule about who wins',
-     sub:'A meeting is held, or declined, or still booked. Both the calendar and the CRM think they know.',
-     body:[
-      ['The trap','Deciding it from the calendar means asking the calendar about every meeting, every hour — impossible at any real volume. Deciding it from the CRM alone means never learning about cancellations, because a cancellation happens in the calendar and the CRM row simply becomes a past meeting that looks attended.'],
-      ['The split','Two processes, each authoritative over exactly one thing. The hourly one works only from CRM data: it computes an end time from the start plus the duration, with two fallbacks, and moves the row from booked to held. It never touches a declined row, because that is a final state. The second and much more expensive one is authoritative over one question only — was this cancelled — and it asks the calendar about rows already marked held. A cancelled flag or a missing event both mean declined.'],
-      ['The cost, taken deliberately','The expensive process walks one month per run, capped at a few hundred rows, so a full year takes twelve passes and a cancelled meeting can sit mislabelled for a while. That is the price of not calling the calendar hourly for everything, and it is the right trade at this volume. The month is a constant in the code rather than a parameter — crude, but the run is then perfectly reproducible.'],
-      ['The part nobody warns you about','The write result comes back in three different shapes depending on the path taken, so success is checked three ways in sequence. And a row locked by a state machine refuses the write with a marker buried inside the response body rather than a status code — those are counted as skipped, not as failures, because they are neither.']]},
-
-    {id:'roles-survive', t:'Keeping what a human typed through an automatic resync',
-     sub:'The classification is the whole value. The sync that refreshes the data would erase it every time.',
-     body:[
-      ['The setup','Every time a meeting updates from the calendar, its participant list is rebuilt: internal people matched against the staff directory, external ones against the account’s contacts. But the calendar knows nothing about buyer roles — economic, technical, user, coach — and those are exactly what somebody sat down and worked out.'],
-      ['The mechanism','Existing participants are read first and indexed by a composite key of address and role. For each external address the rebuild checks all four roles for an existing key before assigning anything, and restores the role it finds. Only a genuinely new person gets a default.'],
-      ['The migration nobody planned for','Historic rows carry the old spelling of those roles, from before the picklist was renamed. A second pass maps the old values onto the new ones, so a resync does not quietly drop the classification on every record created before the rename.'],
-      ['The risk that remains','The write goes into a subform, and a subform is replaced wholesale rather than patched row by row. Anything not in the array being sent stops existing. The role-restoring logic makes the content correct; it does nothing about that write path, which stays a place to be careful. Saying so is more useful than implying the problem is solved.']]},
-
-    {id:'buckets', t:'Sorting a conference export into buckets instead of matching it',
-     sub:'Several hundred rows, no shared key with anything, and half the company names in the file are wrong.',
-     dg:{kind:'funnel', at:2,
-      aria:'Funnel from a conference export through four ordered rules to seven outcome buckets, two of them worked by a person',
-      input:{n:'Conference export', count:'several hundred rows, no shared key'},
-      rules:[
-       {id:'profile', n:'Profile lookup by slug, path anchor', order:1},
-       {id:'account', n:'Account check', order:2},
-       {id:'email', n:'Email', order:3},
-       {id:'name', n:'Name, tie-break: account then email', order:4}
-      ],
-      buckets:[
-       {id:'matched-profile', n:'Matched by profile', who:'auto'},
-       {id:'matched-disagree', n:'Matched, account disagrees', who:'auto'},
-       {id:'matched-email-name', n:'Matched by email or name', who:'auto'},
-       {id:'needs-enrichment', n:'Needs enrichment', who:'auto'},
-       {id:'created-enrichment', n:'Created from enrichment', who:'auto'},
-       {id:'ambiguous', n:'Ambiguous', who:'human'},
-       {id:'unresolved', n:'Unresolved', who:'human'}
-      ],
-      gates:[{after:'name', n:'no candidate resolves → ambiguous with the candidates attached, never the first one'}],
-      detail:{
-       profile:{t:'Profile lookup by slug, with a path anchor', d:'Done on the slug with a path anchor rather than the whole URL, so an extended slug and a trailing slash both still hit, while the anchor stops a slug matching in the middle of somebody else’s address.'},
-       account:{t:'Account check', d:'First tie-breaker when several candidates come back.'},
-       email:{t:'Email', d:'Second tie-breaker, run only after account.'},
-       name:{t:'Name, fixed tie-break order', d:'Tie-breakers run in a fixed order — account first, then email — and if none resolves it, the row goes to ambiguous with the candidates attached rather than taking the first.'},
-       'matched-profile':{t:'Matched by profile', d:'The strongest signal: a direct profile-URL hit.'},
-       'matched-disagree':{t:'Matched, account disagrees', d:'A profile match exists, but the account on the row does not agree with it — reported rather than silently trusted.'},
-       'matched-email-name':{t:'Matched by email or name', d:'Resolved through the tie-break chain: account first, then email.'},
-       'needs-enrichment':{t:'Needs enrichment', d:'No match yet; queued for the enrichment provider.'},
-       'created-enrichment':{t:'Created from enrichment', d:'A new contact created from what enrichment returned.'},
-       ambiguous:{t:'Ambiguous — worked by a person', d:'The tool deliberately does not push for full automation. No candidate resolves → ambiguous with the candidates attached, never the first one.'},
-       unresolved:{t:'Unresolved — worked by a person', d:'Nothing matched at all; left for a human rather than guessed.'}
-      }
-     },
-     body:[
-      ['Why matching fails','There is no single identifier: profile URLs are written differently on each side, email is missing for many people, the company column is regularly wrong, and enrichment names are sometimes mangled.'],
-      ['The shape of the answer','Not a match — a classification, worked independently per bucket. See the funnel above.'],
-      ['The write rules that keep it safe','A name is corrected only when the surname differs, because otherwise every Alex becomes an Alexander. Title and email are filled only into an empty field and never over a live value. Everything else that merely differs is reported for a human to look at. Those three rules are what make the tool safe to run twice.']]},
-
-  ],
-  'Teams and orchestration':[
-    {id:'teams-cards', t:'A two-card wizard in a chat, with nothing held open',
-     sub:'A person takes minutes to fill in a form. A synchronous call has seconds.',
-     body:[
-      ['The constraint','The trigger has to answer quickly, and a card is not an application: it has no state, cannot fetch more rows, and ends when it is submitted. Holding the request open while somebody thinks is not slow — it is impossible.'],
-      ['The shape','Every human step is a callback subscription rather than a wait. The card posts, the flow suspends, the answer arrives as a new event. Around the card sits a loop: the card reports which button was pressed, and if it was a search rather than a submit, the loop reissues the card with fresh results. That is how a search across hundreds of accounts happens inside something that cannot fetch.'],
-      ['Guard rails','The loop is bounded — a fixed number of iterations and half an hour — so a card somebody forgot about cannot hold a run open indefinitely. Every call into the CRM is short, retried with exponential backoff, and does its heavy lifting server-side; the orchestration layer only sequences.'],
-      ['One string, two meanings','A dropdown returns exactly one value. When the opportunity already linked to the meeting belongs to a different account, it has to be shown, kept and saved knowingly. It travels as a marked value: a prefix the saving function recognises and strips. Both ends know that the choice was deliberate, through a control that cannot carry a flag.'],
-      ['What earlier versions got wrong','The first design edited the previous card in place, which meant tracking message identifiers and lost a race whenever two events arrived close together. Replacing the card instead costs a little clutter in the chat and removes the entire class of problem. Going back a step was also dropped on purpose: it would have meant one loop around both cards and a much larger state machine for a rare action.']]},
-
-    {id:'authority', t:'Deciding which system is allowed to be right',
-     sub:'Four systems touch the same meeting. Without a rule, the last write wins, and the last write is usually a robot.',
-     dg:{kind:'authority', at:1,
-      aria:'Ownership matrix: eight meeting fields against Calendar, CRM, Chat and Issue tracker, with the rule Time belongs to the calendar, judgement belongs to the CRM, delivery belongs to the tracker, chat owns nothing',
-      cols:[{id:'cal',n:'Calendar'},{id:'crm',n:'CRM'},{id:'chat',n:'Chat'},{id:'tracker',n:'Issue tracker'}],
-      rows:[
-       {id:'start-end', n:'Start / end time'},
-       {id:'duration', n:'Duration'},
-       {id:'attendees', n:'Attendees'},
-       {id:'meeting-type', n:'Meeting type'},
-       {id:'room-note', n:'Room note'},
-       {id:'recap', n:'Recap'},
-       {id:'delivery-state', n:'Delivery state'},
-       {id:'issue-link', n:'Link to issue'},
-       {id:'unnamed-a', n:'Unnamed (never) 1'},
-       {id:'unnamed-b', n:'Unnamed (never) 2'},
-       {id:'unnamed-c', n:'Unnamed (cut)'}
-      ],
-      cells:{
-       'start-end:cal':'owner', 'start-end:crm':'source', 'start-end:chat':'never', 'start-end:tracker':'never',
-       'duration:cal':'owner', 'duration:crm':'source', 'duration:chat':'never', 'duration:tracker':'never',
-       'attendees:cal':'owner', 'attendees:crm':'source', 'attendees:chat':'source', 'attendees:tracker':'never',
-       'meeting-type:cal':'never', 'meeting-type:crm':'owner', 'meeting-type:chat':'never', 'meeting-type:tracker':'never',
-       'room-note:cal':'never', 'room-note:crm':'owner', 'room-note:chat':'never', 'room-note:tracker':'never',
-       'recap:cal':'never', 'recap:crm':'owner', 'recap:chat':'source', 'recap:tracker':'never',
-       'delivery-state:cal':'never', 'delivery-state:crm':'source', 'delivery-state:chat':'never', 'delivery-state:tracker':'owner',
-       'issue-link:cal':'never', 'issue-link:crm':'source', 'issue-link:chat':'source', 'issue-link:tracker':'never',
-       'unnamed-a:cal':'never', 'unnamed-a:crm':'source', 'unnamed-a:chat':'never', 'unnamed-a:tracker':'never',
-       'unnamed-b:cal':'never', 'unnamed-b:crm':'source', 'unnamed-b:chat':'never', 'unnamed-b:tracker':'never',
-       'unnamed-c:cal':'truncated', 'unnamed-c:crm':'source', 'unnamed-c:chat':'never', 'unnamed-c:tracker':'never'
-      },
-      rule:'Time belongs to the calendar. Judgement belongs to the CRM. Delivery belongs to the tracker. Chat owns nothing.',
-      note:'The three rows above are placeholders, not named fields: the write-up says the payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third — without saying which. This diagram marks that a limit exists without guessing what it applies to. The write-up also says several other fields are written only on creation, so a later sync cannot erase a human edit — again without naming them, so no row here is marked create-only.',
-      detail:{
-       'start-end:cal':{t:'Start / end time — Calendar', d:'The calendar owns time: it is where people accept and move things.'},
-       'meeting-type:cal':{t:'Meeting type — never from the calendar', d:'The meeting type is never taken from the calendar side, even though the calendar has an event type of its own.'},
-       'meeting-type:crm':{t:'Meeting type — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
-       'room-note:crm':{t:'Room note — CRM owns it', d:'A person typed it. Judgement belongs to the CRM.'},
-       'recap:crm':{t:'Recap — CRM owns it', d:'A person typed it. The recap is judgement, not a fact carried in from elsewhere.'},
-       'delivery-state:tracker':{t:'Delivery state — tracker owns it', d:'The issue tracker is authoritative over its own delivery state.'},
-       'chat':{t:'Chat owns nothing', d:'The whole Chat column is source or never — the chat is where a decision gets made in conversation, not where it is stored.'},
-       'unnamed-a:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for one of them.'},
-       'unnamed-b:cal':{t:'Not written, for length reasons — field unnamed', d:'The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for the other one.'},
-       'unnamed-c:cal':{t:'Truncated — field unnamed', d:'The write-up: "one is truncated." It does not say which field, or to what length.'}
-      }
-     },
-     body:[
-      ['The problem','A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record.'],
-      ['The map','Written down as a table, this settles most arguments before they start.'],
-      ['How it is enforced','In the payload builder, create and update are separated. Two fields are never written at all because of length ceilings, and one is truncated. The write-up gives the mechanism, not the field names, so the three placeholder rows above are left unnamed rather than guessed.'],
-      ['Where it becomes visible','The same rule governs the reconciliation logic behind the event campaign page\'s Calendar sync tab: a third column showing what the record should say, computed from both sources plus this map, and a repair that writes exactly that. The rule is printed under the comparison, so the person clicking it can disagree with it.']]}
-  ],
   'Full-stack':[
     {id:'harness', t:'The test harness this site grew from',
      sub:'A widget only runs inside the CRM, and deploying to production to see if a change works is not verification.',
@@ -2226,7 +2182,7 @@ const REC = [
     ],
     rails:[
      {from:'meeting', to:'meeting', kind:'async', label:'pipeline started on card 1', sub:'nothing waits for it'},
-     {from:'list', to:'list', kind:'branch', label:'fallback: second source', demo:'transcript-match'}
+     {from:'list', to:'list', kind:'branch', label:'fallback: second source', demo:'cross-system'}
     ],
     detail:{
      meeting:{t:'Read meeting record', d:'Pulled from the CRM the moment the chain starts.'},
@@ -2237,7 +2193,7 @@ const REC = [
      model:{t:'Model call', d:'The model call that turns captions into a recap.'},
      write:{t:'Write summary + stage', d:'Writes the recap and the stage the pipeline reached back onto the meeting record.'},
      'rail:meeting:meeting':{t:'Async pipeline start', d:'The whole chain is started the moment a person picks the account on the first card — long before anyone asks for a recap. Nothing waits for it.'},
-     'rail:list:list':{t:'Fallback: second source', d:'When there is no transcript, a second source is matched by score rather than by key, with a gate that refuses the automatic link if the known recording owner is not among the candidates.', demo:'transcript-match'}
+     'rail:list:list':{t:'Fallback: second source', d:'When there is no transcript, a second source is matched by score rather than by key, with a gate that refuses the automatic link if the known recording owner is not among the candidates.', demo:'cross-system'}
     }
    },
    why:'No step holds a synchronous request open while a person thinks; each card is a callback. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only return one string. The recap-fetch pipeline starts the moment the account is picked, long before anyone asks for it — two steps later the field is already filled. When there is no transcript, a second source is matched by score rather than by key, gated so the automatic link is refused if the known recording owner is not among the candidates; the link is written at a lower score than the text itself, because "I believe this is the meeting" and "I am willing to write data into it" are different decisions. Transcript access was switched off at the tenant level with no warning, so the pipeline records the stage it reached on the record itself — the answer to "why is this empty" lives in the data, not a run log.'}
@@ -2439,8 +2395,7 @@ const PAGE={
 
 /* A write-up with a screen behind it says so and links to it. */
 const PAIR={
-  'teams-cards':'chat-recap', 'org-tooling':'orghealth',
-  'buckets':'event', 'roles-survive':'event', 'authority-meeting':'event'
+  'org-tooling':'orghealth', 'cross-system':'event'
 };
 
 function sec(h, inner){ return '<div class="sechead">'+esc(h)+'</div><div class="prose">'+inner+'</div>'; }
@@ -2449,9 +2404,15 @@ function vCase(c){
   let h='';
   if(c.role) h+='<div class="callout acc"><span class="k">My role on this one</span><p>'+c.role+'</p></div>';
   const sections=c.body.map(([head,text])=>sec(head,'<p>'+text+'</p>'));
-  if(c.dg && window.Diagrams){
-    const at=Math.min(c.dg.at!=null?c.dg.at:1, sections.length);
-    sections.splice(at,0,window.Diagrams.render(c.dg));
+  if(window.Diagrams){
+    /* A write-up may carry more than one diagram. Splicing runs from the last
+       position backwards so an earlier insert cannot shift a later index. */
+    const specs=(c.dgs||(c.dg?[c.dg]:[])).slice()
+      .sort((a,b)=>(b.at!=null?b.at:1)-(a.at!=null?a.at:1));
+    specs.forEach(d=>{
+      const at=Math.min(d.at!=null?d.at:1, sections.length);
+      sections.splice(at,0,window.Diagrams.render(d));
+    });
   }
   return h + sections.join('');
 }
