@@ -107,11 +107,10 @@ say('tracker: root message carries the PITCH code', /PITCH-2048/.test(await p.lo
 say('tracker: tagged replies show before any sync ran', (await p.locator('.tmw .msg .tag').count())===2);
 say('tracker: no ticket reaction before synchronization', (await p.locator('.tmw .ticket').count())===0);
 await p.click('.trk-bar [data-act="run"]');
-await p.waitForSelector('.tmw .ticket', {timeout:4000});
-say('tracker: synchronization sets one-time reactions', (await p.locator('.tmw .ticket').count())===2);
-await p.click('.trk-tabs [data-tab="jira"]');
 await p.waitForSelector('.jrw .cmt', {timeout:4000});
+say('tracker: synchronization jumps to Jira so the result is visible', (await p.locator('[data-tab="jira"]').getAttribute('aria-selected'))==='true');
 say('tracker: delivered replies land as Jira comments', (await p.locator('.jrw .cmt').count())===2);
+say('tracker: synchronization sets one-time reactions', (await p.locator('.tmw .ticket').count())===2);
 say('tracker: restricted comment carries a role lock, not just colour', /Restricted to Producers/.test(await p.locator('.jrw .cmt .trk-lock').first().textContent()));
 say('tracker: attachment travels as a link, not an upload', /Estimation_v3\.xlsx/.test(await p.locator('.jrw .cmt .files').textContent()));
 const beforeAgain = await p.locator('.jrw .cmt').count();

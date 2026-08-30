@@ -486,9 +486,11 @@ const Tracker = {
     });
     if (added) {
       this.status((added === 1 ? '1 comment' : added + ' comments') + ' delivered · ticket set on the source message', 'ok');
+      this.tab = 'jira';
       this.paint();
-      await wait(650);
+      await wait(900);
       this.comments.forEach(c => { c.fresh = false; });
+      this.paint();
     } else {
       this.status('Existing Jira marker found · duplicate skipped', 'idle');
       this.flashIds = new Set(Object.keys(this.delivered));
