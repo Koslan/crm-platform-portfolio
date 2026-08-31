@@ -51,6 +51,15 @@ h2{font-weight:600;font-size:19px;letter-spacing:-.02em;margin:0 0 6px}
 .ctas a.sec{border:1px solid #D9DCE5;color:#16181D;background:#fff}
 .ctas a.sec:hover{border-color:#B9BECD}
 .stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:30px}
+/* The Zoho index reuses the hero stat row as a scale strip under the lede:
+   same type, one step down in weight, ruled off rather than floating. */
+.scale{margin:22px 0 4px;padding-top:18px;border-top:1px solid #E7E9F0;gap:30px}
+.scale .stat b{font-size:20px}
+.alsolab{font:400 11.5px "DM Mono",monospace;letter-spacing:.06em;color:#8A8F9C;margin:16px 0 8px}
+/* A piece of work with one screen behind it should not read as a card that
+   failed to find its neighbours: alone, the card takes a deliberate width
+   instead of one auto-fill track with empty space beside it. */
+.bsec .cards:has(.card:only-child){grid-template-columns:minmax(0,min(520px,100%))}
 .stat b{display:block;font-weight:600;font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .stat span{font:400 12px "DM Mono",monospace;color:#8A8F9C}
 
@@ -492,7 +501,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
-const TEST_COUNT=240; // updated by hand after `npm test` — not derivable at runtime, no browser here
+const TEST_COUNT=256; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
@@ -502,24 +511,51 @@ const TABS=[
  {id:'fullstack',t:'Full-stack'}
 ];
 
+/* The Zoho tab is organised by the six pieces of work the platform actually
+   consisted of, not by artefact type. Each group carries the paragraph that
+   describes the work, the pages that exist, the ones still to be written
+   (kind:'plan' — listed so the gap is visible rather than implied), and the
+   pages that live on another tab but belong to this piece of work (`also`). */
 const ZOHO_GROUPS=[
- {h:'Widgets & interfaces',
-  intro:'Screens built inside the CRM — the platform gives you an iframe and a query API, everything else is hand-built.',
+ {h:'Cleaning up contacts, deduplication and enrichment', tag:'CONTACTS',
+  intro:'Contacts had been created situationally for years, so duplicates were everywhere — worst where one person held roles at several sub-companies of the same group. The fix was a model rather than a clean-up script: contacts and accounts joined many-to-many, every existing record migrated onto it, and enrichment wired in so a provider credit is spent once. Every account went through the analysis; new contacts now arrive through the same identity rules.',
+  items:[
+   {id:'enrichment',t:'Contact enrichment',kind:'live',s:'Provider people matched against the CRM through four identity keys before a single one is written.'},
+   {id:'contact-model',t:'One person, several employers',kind:'plan',s:'Junction modules instead of text-field pseudo-relations, and the migration that put every existing contact onto them.'}],
+  also:['sf-lwc'], alsoLabel:'Also on the Salesforce tab'},
+ {h:'Trade shows: booking, meetings, follow-up', tag:'EVENTS',
+  intro:'One system takes an industry event from preparation, through the floor, to post-analysis. Meetings are booked and tracked from the CRM, run from a phone at the venue, and reached through the tools people already live in — with a calendar sync that keeps every side honest.',
   items:[
    {id:'event',t:'Event campaign page',kind:'live',s:'A campaign record with three widgets and the five-step booking wizard.'},
-   {id:'solution',t:'Solution map',kind:'live',s:'Service lines against business units, coloured by the latest deal on each cell.'},
-   {id:'board',t:'Meeting board (mobile)',kind:'live',s:'A phone-sized schedule with lane layout and an on-screen console.'}]},
- {h:'Platform engineering',
-  intro:'Tooling for the org itself: extraction the platform refuses to offer, a config history it never kept, an audit that names the limits of its own method.',
-  items:[
-   {id:'orghealth',t:'Org health report',kind:'live',s:'1,240 functions placed against five entry channels.'},
-   {id:'org-tooling',t:'Building tooling for an org that will not export itself',kind:'note',s:'Extraction, a config snapshot, a function audit, an external-call inventory, a credential boundary — five problems, one method.'}]},
- {h:'Integrations & sync',
-  intro:'Teams, calendars, Jira, enrichment providers — flows that survive timeouts, throttling and payloads that are simply gone if rejected.',
+   {id:'board',t:'Meeting board (mobile)',kind:'live',s:'A phone-sized schedule with lane layout and an on-screen console.'},
+   {id:'calendar-sync',t:'Delta sync across seventeen calendars',kind:'plan',s:'A checkpoint written on every page, because the language has no while loop and a run can die on page forty.'},
+   {id:'mobile-canvas',t:'Building for a surface with no devtools',kind:'plan',s:'An on-screen console with a ring buffer, and the bugs it was the only way to catch.'}]},
+ {h:'AI in the CRM: recaps, loss analysis, drafted text', tag:'AI',
+  intro:'Recaps write themselves from what a meeting left behind, lost deals get a two-stage analysis against a corporate taxonomy, and inside the widgets a model drafts the text where a standard, careful wording matters more than a fast one. Each of them records what it did somewhere a person can argue with it.',
   items:[
    {id:'chat-recap',t:'Meeting recap from chat',kind:'emul',s:'A two-card wizard in a chat client, writing a structured recap into the CRM.'},
+   {id:'ai-in-widgets',t:'Where the widgets let a model write',kind:'plan',s:'The places in the CRM interface where a standard, careful wording matters more than a fast one.'}],
+  also:['loss-analysis','agent-journal'], alsoLabel:'Also on the AI tab'},
+ {h:'Connecting Teams, Slack and Jira to the CRM', tag:'SYNC',
+  intro:'CRM tasks and tracker issues talk to each other directly, and the topic chats in Teams and Slack feed the tracker: comments are collected, filed against the right issue, and never retyped by hand. The hard part is not the transport — it is deciding which system is right when two of them disagree.',
+  items:[
    {id:'chat-tracker',t:'Chat to issue tracker',kind:'emul',s:'A tagged reply becomes a public or role-restricted, deduplicated comment on a Jira issue.'},
-   {id:'cross-system',t:'Crossing between systems that do not agree',kind:'note',s:'Eight integrations, and the rule each one needed.'}]}
+   {id:'cross-system',t:'Crossing between systems that do not agree',kind:'note',s:'Eight integrations, and the rule each one needed.'},
+   {id:'teams-jira',t:'Teams → CRM → Jira, and who owns what',kind:'plan',s:'An ownership matrix across four systems, a text contract as the mapping mechanism, and idempotency on both arms.'}]},
+ {h:'Weekly reports, reminders and workflows', tag:'AUTOMATION',
+  intro:'Hundreds of automations run the routine — workflows, blueprints, schedulers, external flows and server-side jobs. Sales leads get their weekly picture assembled for them; individual salespeople get the reminders that keep records moving, delivered where they already work rather than in an inbox nobody opens.',
+  items:[
+   {id:'cockpit',t:'Sales cockpit',kind:'live',s:'Open value, overdue deals, agreements waiting and tasks past due — for the team or for one person.'},
+   {id:'reporting',t:'The week that reports itself',kind:'plan',s:'Weekly summaries for sales leads and per-person reminders, assembled on a schedule and delivered where people already work.'}]},
+ {h:'Org tooling, CI/CD, deployment and the external server', tag:'PLATFORM',
+  intro:'Tooling for the org itself: extraction the platform refuses to offer, a config history it never kept, an audit that names the limits of its own method — and, for the operations that do not fit inside the org at all, an external server that takes the heavy work and hands the result back.',
+  items:[
+   {id:'orghealth',t:'Org health report',kind:'live',s:'1,240 functions placed against five entry channels.'},
+   {id:'solution',t:'Solution map',kind:'live',s:'Service lines against business units, coloured by the latest deal on each cell.'},
+   {id:'org-tooling',t:'Building tooling for an org that will not export itself',kind:'note',s:'Extraction, a config snapshot, a function audit, an external-call inventory, a credential boundary — five problems, one method.'},
+   {id:'deluge-cicd',t:'A deployment pipeline for a platform with no export',kind:'plan',s:'Snapshot, review, delivery — and a read-back that calls a save successful only when an independent read returns the same hash.'},
+   {id:'widget-system',t:'Seventy widgets as one system',kind:'plan',s:'A shared design system, a versioned component library, and an offline harness that stubs the platform SDK.'},
+   {id:'external-server',t:'The work that does not fit inside the org',kind:'plan',s:'Complex operations moved to an external server, and the line for deciding what goes out.'}]}
 ];
 const AI_ITEMS=[
  {id:'loss-analysis',t:'Loss analysis in two stages',kind:'note',s:'Six evidence sources, a 38-cause taxonomy in the prompt, a human-correctable middle stage.'},
@@ -1703,20 +1739,27 @@ function vAbout(){
   +'</div></div>';
 }
 
+/* The index is the work, not a card wall: a paragraph per piece of work, the
+   pages under it, and — where a page for that work lives on another tab — a
+   row that says so instead of a second copy of it. */
+const SCALE=[['70+','widgets'],['50+','custom modules'],['hundreds','Deluge functions'],
+             ['dozens','canvas layouts &amp; client scripts'],['7+','external systems']];
 function vZoho(){
- /* One grid rather than three stacked sections: after the pruning pass the
-    groups were one and two cards wide, which read as gaps rather than
-    structure. The groups still exist in ZOHO_GROUPS — they carry the
-    breadcrumb and the prev/next pager on every item page — they are simply
-    not the shape of this index. Screens first, then the two write-ups. */
- const all=ZOHO_GROUPS.flatMap(g=>g.items);
- const live=all.filter(i=>i.kind==='live'||i.kind==='emul');
- const notes=all.filter(i=>i.kind!=='live'&&i.kind!=='emul');
+ const also=(ids,label)=>{
+  const list=(ids||[]).map(i=>ALL[i]).filter(Boolean);
+  return list.length?'<p class="alsolab">'+esc(label)+'</p>'+rows(list):'';
+ };
  return '<p class="eyebrow">Platform</p><h1>Zoho</h1>'
-  +'<p class="lede">The core of the last six years: widgets on record pages, tooling for the org itself, '
-  +'and integrations that cross into Teams, Jira and calendars. Six screens run here in the browser against '
-  +'an emulated platform; the two write-ups carry the diagrams and the trades.</p>'
-  +'<div class="sechead">Work</div>'+cards(live.concat(notes));
+  +'<p class="lede">Three years as the sole engineer and accountable owner of a production CRM: data model, '
+  +'widgets, integrations, automation and the release process. The demos here run in your browser against an '
+  +'emulated platform — the same query interpreter, the same limits, the same write validation. Below, the '
+  +'work in the six pieces it actually came in.</p>'
+  +'<div class="stats scale">'+SCALE.map(s=>
+    '<div class="stat"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>').join('')+'</div>'
+  +ZOHO_GROUPS.map(g=>
+    '<section class="bsec rv"><span class="idx">'+esc(g.tag)+'</span><h2>'+esc(g.h)+'</h2>'
+    +'<p class="sub">'+esc(g.intro)+'</p>'
+    +split(g.items)+also(g.also,g.alsoLabel)+'</section>').join('');
 }
 function vAI(){
  return '<p class="eyebrow">Applied, not decorative</p><h1>AI in the CRM</h1>'
@@ -2196,7 +2239,21 @@ const REC = [
      'rail:list:list':{t:'Fallback: second source', d:'When there is no transcript, a second source is matched by score rather than by key, with a gate that refuses the automatic link if the known recording owner is not among the candidates.', demo:'cross-system'}
     }
    },
-   why:'No step holds a synchronous request open while a person thinks; each card is a callback. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only return one string. The recap-fetch pipeline starts the moment the account is picked, long before anyone asks for it — two steps later the field is already filled. When there is no transcript, a second source is matched by score rather than by key, gated so the automatic link is refused if the known recording owner is not among the candidates; the link is written at a lower score than the text itself, because "I believe this is the meeting" and "I am willing to write data into it" are different decisions. Transcript access was switched off at the tenant level with no warning, so the pipeline records the stage it reached on the record itself — the answer to "why is this empty" lives in the data, not a run log.'}
+   why:'No step holds a synchronous request open while a person thinks; each card is a callback. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only return one string. The recap-fetch pipeline starts the moment the account is picked, long before anyone asks for it — two steps later the field is already filled. When there is no transcript, a second source is matched by score rather than by key, gated so the automatic link is refused if the known recording owner is not among the candidates; the link is written at a lower score than the text itself, because "I believe this is the meeting" and "I am willing to write data into it" are different decisions. Transcript access was switched off at the tenant level with no warning, so the pipeline records the stage it reached on the record itself — the answer to "why is this empty" lives in the data, not a run log.'},
+ {id:'enrichment', t:'Contact enrichment',    host:'Enrichment',   arg:()=>'6100000000008',
+  sub:'An account with 142 contacts already on it, and the screen that decides which of the provider’s people are duplicates before a single one is written.',
+  try:['Load from the provider with a seniority or a title filter — people arrive in pages, not all at once.',
+       'Read the statistics strip: direct matches, matches found through the account hierarchy, and matches recovered by profile URL are counted apart, because they are three different kinds of certainty.',
+       'Open Group structure. Existing contacts are gathered across the whole account group, not just this account — a person who moved to a sister company is still the same person.',
+       'Open a profile and read the employment timeline the match was made against.',
+       'Switch to Provider link: the account itself is matched to a provider organisation before any person under it is.'],
+  why:'Duplicates were the normal state rather than an accident — records had been created situationally for years, and the worst cases were people holding roles at several sub-companies of one group. Four identity keys are applied in sequence, the last a normalised profile URL, and that URL search is chunked to fourteen conditions because fourteen is the platform ceiling. Candidates are gathered through the account hierarchy rather than the single account, and provider quota is respected by batching with three retry steps: the aim is to spend a credit once and never ask the same question twice.'},
+ {id:'cockpit',    t:'Sales cockpit',         host:'Cockpit',      arg:()=>null,
+  sub:'The operations screen a head of sales lives in: open value, overdue deals, agreements waiting and tasks past due — for the whole team or for one person.',
+  try:['Switch the scope from Everyone to a single salesperson. Every counter above recalculates against that scope.',
+       'Read the rules in the header: overdue means a closing date already in the past, warning means it closes within seven days. The rule is printed, not implied.',
+       'Move between Pipeline, Legal and Methodology — the same team seen through three different obligations.'],
+  why:'Nothing in the platform draws this screen: the counters, the scope switch and the overdue and warning rules are hand-built over deals, agreements and tasks. The rules sit in the header rather than inside a report definition, because a number nobody can argue with is a number nobody acts on.'}
 ];
 function viewRecord(r){
   return '<div class="pagehead"><h1>'+esc(r.t)+'</h1><p class="sub">'+r.sub+'</p>'
@@ -2212,7 +2269,12 @@ function wireRecord(r){
   if (r.host === '__TEAMS__') { if (window.TeamsFlow) TeamsFlow.mount(host); return; }
   if (r.host === '__BOARD__') { if (window.MobileBoard) MobileBoard.mount(host, r.arg(window.__DATA__)); return; }
   if (r.host === '__TRACKER__') { if (window.TrackerFlow) TrackerFlow.mount(host); return; }
-  const P = window.CRMPages && window.CRMPages[r.host];
+  /* A record page may be hosted by any of the widget bundles, not only
+     CRMPages: two screens that were reachable solely as tabs inside other
+     records now have pages of their own. */
+  const P = (window.CRMPages && window.CRMPages[r.host])
+         || (window.CRMWidgets3 && window.CRMWidgets3[r.host])
+         || (window.CRMWidgets2 && window.CRMWidgets2[r.host]);
   if (P) P.mount(host, r.arg(window.__DATA__));
 }
 
@@ -2377,6 +2439,7 @@ const PAGE={
   orghealth: {render:viewOrgHealth, wide:true,
               wire:()=>{ if(window.OrgHealth) OrgHealth.mount(document.getElementById('oh-host')); }},
   solution:  recPage('solution'),  board:  recPage('board'),
+  enrichment: recPage('enrichment'), cockpit: recPage('cockpit'),
   'chat-recap':   recPage('teams'),
   'chat-tracker': recPage('tracker'),
   site:      {render:vHow},
