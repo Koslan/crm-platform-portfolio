@@ -593,10 +593,10 @@ const AI_GROUPS=[
 const SF_ITEMS=[
  {id:'sf-lwc',t:'One workflow, implemented on two CRM platforms',kind:'live',s:'The same employment-history contract in a Zoho widget and a real Lightning Web Component.'}];
 const FS_ITEMS=[
- {id:'harness',t:'The test harness this site grew from',kind:'note',s:'Playwright, '+TEST_COUNT+' headless checks, failing on any console error.'},
- {id:'generator',t:'A seeded dataset with deliberate defects',kind:'note',s:'Same seed, same data, reviewable diffs — and a build that fails on a dangling reference.'},
- {id:'ci-guards',t:'CI guards against leaks',kind:'note',s:'An identifier scan that fails the build if anything resembling a real org id or key appears.'},
- {id:'site',t:'This site itself',kind:'live',s:'One static file, no backend, hash routing, an emulated platform SDK underneath.'}];
+ {id:'harness',t:'Running CRM interfaces before they reach the CRM',kind:'note',s:'An offline SDK surface and '+TEST_COUNT+' browser checks, failing on any console error.'},
+ {id:'generator',t:'Repeatable test data that still behaves like a real CRM',kind:'note',s:'The same seed produces the same records; deliberate defects keep the demos honest.'},
+ {id:'ci-guards',t:'A build that blocks employer data from reaching the portfolio',kind:'note',s:'Identifier, credential and integrity checks run before anything is published.'},
+ {id:'site',t:'A production-shaped CRM environment in one static file',kind:'live',s:'Production-derived interfaces, synthetic data, an emulated SDK and deliberate failure modes — no backend required.'}];
 
 const ALL={};
 function reg(items,tab,group){items.forEach((it,i)=>ALL[it.id]={...it,tab,group,idx:i,list:items});}
@@ -1817,10 +1817,24 @@ function vAI(){
   +groupSections(AI_GROUPS);
 }
 function vFS(){
- return '<p class="eyebrow">Beyond the CRM</p><h1>Full-stack</h1>'
-  +'<p class="lede">The engineering around the CRM work: the test harness, the dataset generator, '
-  +'the build that fails on a leaked identifier — and this site, which is itself a project.</p>'
-  +'<div class="sechead">Work</div>'+split(FS_ITEMS);
+ return '<p class="eyebrow">The engineering around CRM work</p><h1>Full-stack</h1>'
+  +'<p class="lede">CRM work does not stop at the platform boundary. I build the missing layer around it: '
+  +'external interfaces and standalone sites, Node.js and Python automation, server-side integration services, '
+  +'data-processing tools and workers for operations that do not fit inside Zoho’s execution limits.</p>'
+  /* The four categories below are real work, but the write-ups are not published
+     here yet. Naming them without cards is the honest shape: inventing four case
+     studies to fill a grid would be the one thing this tab must not do. */
+  +'<div class="callout"><span class="k">Not published yet</span>'
+  +'<p style="margin:0">Four categories of this work sit outside the portfolio for now — an external service '
+  +'taking the operations the CRM cannot run, a Node.js and Python integration backend, interfaces built outside '
+  +'the CRM around CRM data, and migration and transformation tooling. Each needs its own write-up with the real '
+  +'boundary, failure model and hand-back, and none of them is worth a card until it has one. What follows is the '
+  +'part that is finished — and it is the same engineering, applied to this site.</p></div>'
+  +'<div class="sechead">How this portfolio is engineered</div>'
+  +'<p class="sub">The portfolio is itself a compact example of the surrounding engineering: production-derived '
+  +'CRM interfaces run against synthetic data, a platform emulator and deliberate failure modes inside one static '
+  +'build.</p>'
+  +split(FS_ITEMS);
 }
 const TABVIEW={about:vAbout,zoho:vZoho,ai:vAI,fullstack:vFS};
 
