@@ -20,7 +20,7 @@ say('zoho: index links every page ('+links+')', links>=20);
 say('zoho: work living on another tab is labelled as such',
     (await p.locator('.alsolab').count())===2);
 const alsoTxt=(await p.locator('.alsolab').allTextContents()).join(' ');
-say('zoho: the other tab is named, not implied', /Salesforce tab/.test(alsoTxt) && /AI tab/.test(alsoTxt));
+say('zoho: the other home is named, not implied', /another platform/i.test(alsoTxt) && /AI tab/.test(alsoTxt));
 say('zoho: planned work is listed, not hidden',
     (await p.locator('.rowlist .rk').allTextContents()).filter(t=>/Planned/.test(t)).length>=8);
 

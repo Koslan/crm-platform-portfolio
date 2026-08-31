@@ -7,7 +7,7 @@ p.on('pageerror', e => errs.push('pageerror: '+e.message));
 await p.goto('file://'+process.cwd()+'/dist/index.html');
 const say = (n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
 
-say('tabs rendered', (await p.locator('.tabs a').count()) === 5);
+say('tabs rendered', (await p.locator('.tabs a').count()) === 4);
 say('about is the front page', (await p.locator('h1').first().textContent()).includes('Kostiantyn'));
 await p.click('.tabs a[href="#/zoho"]');
 await p.waitForTimeout(200);

@@ -501,13 +501,12 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
-const TEST_COUNT=256; // updated by hand after `npm test` — not derivable at runtime, no browser here
+const TEST_COUNT=258; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
  {id:'zoho',t:'Zoho'},
- {id:'ai',t:'AI'},
- {id:'salesforce',t:'Salesforce'},
+ {id:'ai',t:'Applied AI'},
  {id:'fullstack',t:'Full-stack'}
 ];
 
@@ -522,7 +521,7 @@ const ZOHO_GROUPS=[
   items:[
    {id:'enrichment',t:'Contact enrichment',kind:'live',s:'Provider people matched against the CRM through four identity keys before a single one is written.'},
    {id:'contact-model',t:'One person, several employers',kind:'plan',s:'Junction modules instead of text-field pseudo-relations, and the migration that put every existing contact onto them.'}],
-  also:['sf-lwc'], alsoLabel:'Also on the Salesforce tab'},
+  also:['sf-lwc'], alsoLabel:'The same contract on another platform'},
  {h:'Trade shows: booking, meetings, follow-up', tag:'EVENTS',
   intro:'One system takes an industry event from preparation, through the floor, to post-analysis. Meetings are booked and tracked from the CRM, run from a phone at the venue, and reached through the tools people already live in — with a calendar sync that keeps every side honest.',
   items:[
@@ -562,9 +561,13 @@ const AI_ITEMS=[
  {id:'agent-journal',t:'A CRM agent with an action journal',kind:'live',s:'Every action writes a before/after diff to a module. An opaque agent does not survive its first disputed edit.'},
  {id:'ai-workflow',t:'AI-assisted engineering, honestly',kind:'note',s:'How this site and its '+TEST_COUNT+' tests are built and kept green — the gates, and what they cannot catch.'},
  {id:'mcp-product',t:'Three kinds of AI work, and the CRM only had two',kind:'note',s:'Evidence-gathering versus inference, and MCP as the emulator’s own idea pointed at a real org.'}];
+/* The separate Salesforce tab is retired: the experience belongs in About as one
+   CRM track, not as a second specialisation competing with Zoho. One page
+   survives — the cross-platform port — and it lives under the piece of Zoho work
+   whose contract it re-implements. `sf-sync` compared a design rather than
+   showing owned delivery, so it is no longer routed or featured. */
 const SF_ITEMS=[
- {id:'sf-sync',t:'Apex vs Deluge: the same sync, twice',kind:'note',s:'The delta-sync pattern rebuilt on Salesforce primitives.'},
- {id:'sf-lwc',t:'One screen, two platforms',kind:'live',s:'The employment-history widget, ported to a Lightning Web Component, next to the Zoho original.'}];
+ {id:'sf-lwc',t:'One workflow, implemented on two CRM platforms',kind:'live',s:'The same employment-history contract in a Zoho widget and a real Lightning Web Component.'}];
 const FS_ITEMS=[
  {id:'harness',t:'The test harness this site grew from',kind:'note',s:'Playwright, '+TEST_COUNT+' headless checks, failing on any console error.'},
  {id:'generator',t:'A seeded dataset with deliberate defects',kind:'note',s:'Same seed, same data, reviewable diffs — and a build that fails on a dangling reference.'},
@@ -574,7 +577,7 @@ const FS_ITEMS=[
 const ALL={};
 function reg(items,tab,group){items.forEach((it,i)=>ALL[it.id]={...it,tab,group,idx:i,list:items});}
 ZOHO_GROUPS.forEach(g=>reg(g.items,'zoho',g.h));
-reg(AI_ITEMS,'ai','AI in the CRM'); reg(SF_ITEMS,'salesforce','Salesforce'); reg(FS_ITEMS,'fullstack','Full-stack');
+reg(AI_ITEMS,'ai','Applied AI'); reg(SF_ITEMS,'zoho','Cleaning up contacts, deduplication and enrichment'); reg(FS_ITEMS,'fullstack','Full-stack');
 
 /* ---------------- building blocks ---------------- */
 const cards=list=>'<div class="cards">'+list.map(i=>
@@ -1767,27 +1770,13 @@ function vAI(){
   +'most of the code is evidence-gathering, not inference.</p>'
   +'<div class="sechead">Work</div>'+split(AI_ITEMS);
 }
-function vSF(){
- return '<p class="eyebrow">The same discipline, a different platform</p><h1>Salesforce</h1>'
-  +'<p class="lede">Not a second specialisation — proof that the discipline underneath the Zoho work is not tied '
-  +'to one vendor’s SDK. One widget ported end to end, and one sync pattern rebuilt on Salesforce primitives, '
-  +'both offline: an SFDX project with real Apex and a real Lightning Web Component sits in the repository, and '
-  +'the interactive parts of this site run against a browser stand-in, exactly like every other platform demo '
-  +'here.</p>'
-  +'<div class="callout"><span class="k">Status</span>'
-  +'<p style="margin:0">Two pages, deliberately narrow rather than broad: <b>sf-lwc</b> is a real interactive port '
-  +'with a working demo; <b>sf-sync</b> is a write-up comparing the underlying decision, not a second demo of the '
-  +'same sync mechanics already live in the Zoho platform emulator. The format is the same as everywhere else — '
-  +'<b>the constraint, what was built, and the trade</b>, stated plainly.</p></div>'
-  +'<div class="sechead">Work</div>'+split(SF_ITEMS);
-}
 function vFS(){
  return '<p class="eyebrow">Beyond the CRM</p><h1>Full-stack</h1>'
   +'<p class="lede">The engineering around the CRM work: the test harness, the dataset generator, '
   +'the build that fails on a leaked identifier — and this site, which is itself a project.</p>'
   +'<div class="sechead">Work</div>'+split(FS_ITEMS);
 }
-const TABVIEW={about:vAbout,zoho:vZoho,ai:vAI,salesforce:vSF,fullstack:vFS};
+const TABVIEW={about:vAbout,zoho:vZoho,ai:vAI,fullstack:vFS};
 
 /* ---------------- item page ---------------- */
 function pager(it){
@@ -2524,7 +2513,10 @@ function vItem(it){
 /* Old routes stay alive: everything that was ever linked resolves to its new page. */
 const REC2ITEM={solution:'solution',board:'board',tracker:'chat-tracker',teams:'chat-recap'};
 const DEMO2ITEM={'solution-map':'solution','event-contacts':'event','meeting-board':'board'};
-const FIXED={orghealth:'p/orghealth',event:'p/event',how:'p/site'};
+/* `salesforce` was a top-level tab until the Salesforce work moved into About as
+   one CRM track; an old link should land on the section that now carries it
+   rather than silently falling through to the default view. */
+const FIXED={orghealth:'p/orghealth',event:'p/event',how:'p/site',salesforce:'about'};
 function legacyTarget(h){
   const [k,id]=h.split('/');
   if(!k) return null;

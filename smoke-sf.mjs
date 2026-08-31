@@ -51,22 +51,29 @@ say('sf-lwc: failed write rolls back rather than losing which row is main', afte
 await p.click('#sflwc-chaos button[data-m="off"]');
 await p.screenshot({path:'sf1-lwc.png'});
 
-/* --- sf-sync: comparison table (7 rows) and diagram --- */
-await p.goto(U+'#/p/sf-sync');
-await p.waitForSelector('#sfsync-diagram', {timeout:8000});
-const syncText = await p.locator('#view').textContent();
-say('sf-sync: page does not say "not built yet"', !syncText.includes('not built yet'));
-const syncRows = await p.locator('#view table tbody tr').count();
-say('sf-sync: comparison table has seven rows ('+syncRows+')', syncRows === 7);
-const diagramPresent = (await p.locator('#sfsync-diagram svg').count()) > 0;
-say('sf-sync: comparison diagram is drawn', diagramPresent);
-await p.screenshot({path:'sf2-sync.png'});
-
-/* --- Salesforce tab list reflects the new status --- */
-await p.goto(U+'#/salesforce');
+/* --- the Salesforce tab is retired: four tabs, and the old link still lands --- */
+await p.goto(U+'#/about');
 await p.waitForTimeout(300);
-const tabText = await p.locator('#view').textContent();
-say('salesforce tab: no longer says no finished work is published', !tabText.includes('No finished Salesforce work is published yet'));
+const tabLabels = (await p.locator('#tabs a').allTextContents()).map(t=>t.trim());
+say('nav: exactly four tabs ('+tabLabels.join(', ')+')', tabLabels.length === 4);
+say('nav: no standalone Salesforce tab', !tabLabels.some(t=>/salesforce/i.test(t)));
+say('nav: the AI tab is called Applied AI', tabLabels.some(t=>/applied ai/i.test(t)));
+
+await p.goto(U+'#/salesforce');
+await p.waitForTimeout(400);
+say('old #/salesforce link redirects to About ('+p.url().split('#')[1]+')', p.url().endsWith('#/about'));
+
+/* sf-lwc is the one surviving cross-platform page, and it is reachable from Zoho */
+await p.goto(U+'#/zoho');
+await p.waitForTimeout(300);
+const zohoHtml = await p.locator('#view').innerHTML();
+say('zoho index links to the cross-platform port', zohoHtml.includes('#/p/sf-lwc'));
+
+/* sf-sync is no longer routed */
+await p.goto(U+'#/p/sf-sync');
+await p.waitForTimeout(300);
+const goneText = await p.locator('#view').textContent();
+say('sf-sync is no longer a public page', !goneText.includes('Apex vs Deluge'));
 
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,5).join('\n'));
