@@ -1430,7 +1430,7 @@ function termAnswer(q){
  if(c==='contact') return 'email    buriak.kostiantyn@gmail.com\nwhatsapp wa.me/48732579181\nlinkedin linkedin.com/in/kburiak\ngithub   github.com/koslan\nlocation Warsaw, Poland (CET) · remote/hybrid · EU work authorization';
  if(c==='certs') return 'Salesforce Certified Platform Developer I   2021 · current\nSalesforce Certified Administrator          2021 · current\nSalesforce Certified JavaScript Developer I 2022 · current\nverify: trailblazer.me/id/kburiak';
  if(c==='projects') return 'Live on this site:\n'+[ALL['event'],ALL['solution'],ALL['board'],ALL['chat-tracker'],ALL['chat-recap'],ALL['orghealth']].map(i=>'  '+i.t+'  →  #/p/'+i.id).join('\n')+'\n…and '+(Object.keys(ALL).length-6)+' more — see the tabs above.';
- if(c==='site') return 'One static file. No backend. The CRM under the widgets is emulated in your browser;\n'+TEST_COUNT+' headless tests keep it honest. Everything you click is the production code.';
+ if(c==='site') return 'One static file. No backend. The CRM under the widgets is emulated in your browser;\n'+TEST_COUNT+' headless tests keep it honest. Everything you click is a production-derived interface, not a mock-up of one.';
  if(c==='skills'){
   const map={zoho:0,salesforce:1,integrations:2,data:3,languages:4,ai:5};
   if(arg&&map[arg]!==undefined){const r=MATRIX[map[arg]];
@@ -1512,28 +1512,30 @@ function vAbout(){
  const demoCount=Object.values(ALL).filter(i=>i.kind==="live"||i.kind==="emul").length;
  const writeupCount=Object.values(ALL).filter(i=>i.kind==="note"&&CASE_BY_ID[i.id]).length;
  return '<div class="hero"><div>'
-  +'<p class="eyebrow">CRM Platform Engineer &middot; Warsaw, Poland (CET) &middot; remote / hybrid</p>'
+  +'<p class="eyebrow">Zoho CRM Engineer / Technical Lead &middot; Integrations &middot; Applied AI</p>'
   +'<h1 style="font-size:clamp(34px,5vw,52px)">Kostiantyn Buriak</h1>'
-  +'<p class="lede">Seven years in commercial software engineering: six on CRM platforms — Zoho and Salesforce — '
-  +'building <span class="hl">interfaces inside the CRM</span>, <span class="hl">integrations that survive real '
-  +'failure</span>, and <span class="hl">tooling for orgs that do not export themselves</span>. The demos on this '
-  +'site are the production code, running in your browser against invented data.</p>'
+  +'<p class="lede">Seven years in software engineering and more than five working with CRM platforms, including '
+  +'more than three years as the <span class="hl">primary engineer and technical owner</span> of Zoho CRM. I own '
+  +'the platform end to end: <span class="hl">data architecture, automation, integrations, interfaces</span>, '
+  +'release engineering and production support. This portfolio runs <span class="hl">production-derived '
+  +'interfaces</span> against synthetic data, so the decisions, failure paths and trade-offs can be explored '
+  +'without exposing an employer’s environment.</p>'
   +'<div class="ctas"><a class="pri" href="Kostiantyn_Buriak_CV.pdf" download>Download CV</a>'
   +'<a class="sec" href="https://www.linkedin.com/in/kburiak" target="_blank" rel="noopener">LinkedIn</a>'
   +'<a class="sec" href="https://github.com/koslan" target="_blank" rel="noopener">GitHub</a>'
   +'<a class="sec" href="https://wa.me/48732579181" target="_blank" rel="noopener">WhatsApp</a>'
   +'<a class="sec" href="mailto:buriak.kostiantyn@gmail.com">Email</a></div>'
   +'<div class="stats">'
-  +'<div class="stat"><b>7 yrs</b><span>in software</span></div>'
-  +'<div class="stat"><b>15</b><span>live demos</span></div>'
-  +'<div class="stat"><b>21</b><span>write-ups</span></div>'
+  +'<div class="stat"><b>7 yrs</b><span>software engineering</span></div>'
+  +'<div class="stat"><b>5+ yrs</b><span>across CRM platforms</span></div>'
+  +'<div class="stat"><b>3+ yrs</b><span>owning Zoho CRM</span></div>'
   +'<div class="stat"><b>3</b><span>SF certifications</span></div></div></div>'
   +'<img class="photo" src="'+PHOTO+'" alt="Kostiantyn Buriak"></div>'
 
   +'<div class="bsec rv"><span class="idx">01 / DEMOS</span><h2>If you have five minutes</h2>'
-  +'<p class="sub">Three screens that show the range fastest — a record page with live widgets, a hand-built matrix, '
-  +'and an audit of an entire org.</p>'
-  +cards([ALL['event'],ALL['solution'],ALL['orghealth']])+'</div>'
+  +'<p class="sub">Three screens that show the target role fastest — a platform-scale CRM product, a cross-system '
+  +'integration and an audit of an entire org.</p>'
+  +cards([ALL['event'],ALL['chat-tracker'],ALL['orghealth']])+'</div>'
 
   +'<div class="bsec rv"><span class="idx">02 / THE SYSTEM</span><h2>What I actually connected</h2>'
   +'<p class="sub">Skills as a working system, not a word list. Every line on this map is something I designed, '
@@ -1545,14 +1547,17 @@ function vAbout(){
   +'<b>Click</b> — pins the full story with the result and, for the flagship ones, a code fragment.</p>'
   +skillsFlat()+'</div>'
 
-  +'<div class="bsec"><span class="idx">04 / EXPERIENCE</span><h2>Where the six years happened</h2>'
-  +'<p class="sub">From a support desk in Odesa, through Java backends and three years of Salesforce consulting, '
-  +'to owning a production CRM platform end to end. Newest first.</p>'
+  +'<div class="bsec"><span class="idx">04 / EXPERIENCE</span><h2>Where the seven years happened</h2>'
+  +'<p class="sub">More than five years across CRM platforms, read as one track rather than two specialisations: '
+  +'three consulting years delivering Salesforce, then ownership of a production Zoho platform end to end. That '
+  +'earlier Salesforce work — Apex, Lightning Web Components, integrations, security and release pipelines — is '
+  +'the cross-platform foundation behind the architecture and delivery decisions shown throughout this portfolio. '
+  +'Newest first.</p>'
 
   +job({cur:true,yr:'2023 — now',dur:'3+ years',co:'Room 8 Group',role:'CRM Engineer / Platform Owner',
    meta:'remote · global game development services company',
    tech:['Zoho CRM','Deluge','JavaScript','Python','COQL','MS Graph','Teams','Jira','Apollo','Slack','Git','GitHub Actions'],
-   body:'<p><b>Sole developer and accountable owner</b> of a production Zoho CRM platform serving sales operations, '
+   body:'<p><b>Primary engineer and technical owner</b> of a production Zoho CRM platform serving sales operations, '
    +'business development and regional teams across multiple countries — data model, automation, widgets, '
    +'integrations, migrations, release process and post-go-live support. Own the digital roadmap: gather demand '
    +'from commercial and operations stakeholders, prioritise against business impact and delivery capacity, and '
@@ -1745,18 +1750,23 @@ function vAbout(){
 /* The index is the work, not a card wall: a paragraph per piece of work, the
    pages under it, and — where a page for that work lives on another tab — a
    row that says so instead of a second copy of it. */
-const SCALE=[['70+','widgets'],['50+','custom modules'],['hundreds','Deluge functions'],
-             ['dozens','canvas layouts &amp; client scripts'],['7+','external systems']];
+/* 10+ is the public scale claim for connected systems: the named ones carry the
+   integration narrative, the rest are secondary mentions rather than a longer list. */
+const SCALE=[['70+','production widgets'],['50+','custom modules'],['hundreds','Deluge functions'],
+             ['dozens','canvas layouts &amp; client scripts'],['10+','connected systems']];
 function vZoho(){
  const also=(ids,label)=>{
   const list=(ids||[]).map(i=>ALL[i]).filter(Boolean);
   return list.length?'<p class="alsolab">'+esc(label)+'</p>'+rows(list):'';
  };
  return '<p class="eyebrow">Platform</p><h1>Zoho</h1>'
-  +'<p class="lede">Three years as the sole engineer and accountable owner of a production CRM: data model, '
-  +'widgets, integrations, automation and the release process. The demos here run in your browser against an '
-  +'emulated platform — the same query interpreter, the same limits, the same write validation. Below, the '
-  +'work in the six pieces it actually came in.</p>'
+  +'<p class="lede">More than three years as the primary engineer and technical owner of a production Zoho CRM '
+  +'platform: data architecture, automation, integrations, interfaces, the release process and post-release '
+  +'support — together with the engineering practice that lets a platform scale, from source control and review '
+  +'to automated testing and controlled promotion. Zoho is the operating core of an ecosystem spanning more than '
+  +'ten external systems. The demos here run in your browser against an emulated platform — the same query '
+  +'interpreter, the same limits, the same write validation. Below, the work in the six pieces it actually came '
+  +'in.</p>'
   +'<div class="stats scale">'+SCALE.map(s=>
     '<div class="stat"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>').join('')+'</div>'
   +ZOHO_GROUPS.map(g=>
@@ -2074,7 +2084,7 @@ const CASES = {
      sub:'A widget only runs inside the CRM, and deploying to production to see if a change works is not verification.',
      body:[
       ['The constraint','Every widget on this site is an iframe the platform loads, initialised through an SDK it controls. There is no offline mode, no local server that behaves like the platform, and no sanctioned way to run a widget without a live org in front of it — so the only feedback loop on offer was pushing to production and watching.'],
-      ['What was built','A stand: stubbed SDK primitives plus a headless browser, so every widget on this site runs the same code it would run inside the CRM, against a generated dataset, with nothing live behind it. Checks spread across many files cover routing, the record pages, both booking wizards and the chat flow. The suite fails on any console error, not only a failed assertion — a widget that quietly logs and carries on is still a bug. `test/browser.mjs` locates Playwright wherever it happens to live, a local devDependency or a global CI install, so the same test files run unmodified in both places.'],
+      ['What was built','An offline test harness: stubbed SDK primitives plus a headless browser, so every widget on this site runs the same code it would run inside the CRM, against a generated dataset, with nothing live behind it. Checks spread across many files cover routing, the record pages, both booking wizards and the chat flow. The suite fails on any console error, not only a failed assertion — a widget that quietly logs and carries on is still a bug. `test/browser.mjs` locates Playwright wherever it happens to live, a local devDependency or a global CI install, so the same test files run unmodified in both places.'],
       ['The trade','The stand reproduces the surface of the SDK, not the platform underneath it. Anything a widget does through an undocumented call, a quirk of the real iframe host, or a platform-side limit this stand does not model will pass here and still need a first run against a real org — this catches regressions in what is already understood, not everything the platform can do.']]},
     {id:'generator', t:'A seeded dataset with deliberate defects',
      sub:'Random data makes every diff noisy; clean data makes the demo dishonest, because a real CRM is never this tidy.',
