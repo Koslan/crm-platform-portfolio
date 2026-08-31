@@ -87,6 +87,24 @@ await p.goto(U+'#/p/agent-journal'); await p.waitForTimeout(400);
 const ajPageText = await p.locator('#view').textContent();
 say('agent-journal page has no placeholder text', !/not built yet/.test(ajPageText) && !/write-up pending/.test(ajPageText));
 
+/* --- the Applied AI index is three layers plus the access layer --- */
+await p.goto(U+'#/ai');
+await p.waitForTimeout(300);
+const aiTags = (await p.locator('#view section.bsec .idx').allTextContents()).map(t=>t.trim());
+say('applied ai: four sections ('+aiTags.join(', ')+')', aiTags.length===4);
+say('applied ai: the three layers are named',
+    ['ENGINEERING','WORKFLOWS','INTERFACES'].every(t=>aiTags.includes(t)));
+say('applied ai: the access layer is a section of its own', aiTags.includes('ACCESS'));
+const aiHtml = await p.locator('#view').innerHTML();
+say('applied ai: the recap page is homed here', aiHtml.includes('#/p/chat-recap'));
+say('applied ai: engineering layer points back at the Zoho tooling', aiHtml.includes('#/p/org-tooling'));
+
+/* the Zoho AI section says where its write-ups live rather than duplicating them */
+await p.goto(U+'#/zoho');
+await p.waitForTimeout(300);
+const zohoAlso = (await p.locator('#view .alsolab').allTextContents()).join(' ');
+say('zoho: the AI section names Applied AI as the home of its write-ups', /Applied AI tab/.test(zohoAlso));
+
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,4).join('\n'));
 await b.close();

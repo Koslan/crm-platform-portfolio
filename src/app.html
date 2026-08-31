@@ -501,7 +501,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
-const TEST_COUNT=258; // updated by hand after `npm test` — not derivable at runtime, no browser here
+const TEST_COUNT=264; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
@@ -530,11 +530,9 @@ const ZOHO_GROUPS=[
    {id:'calendar-sync',t:'Delta sync across seventeen calendars',kind:'plan',s:'A checkpoint written on every page, because the language has no while loop and a run can die on page forty.'},
    {id:'mobile-canvas',t:'Building for a surface with no devtools',kind:'plan',s:'An on-screen console with a ring buffer, and the bugs it was the only way to catch.'}]},
  {h:'AI in the CRM: recaps, loss analysis, drafted text', tag:'AI',
-  intro:'Recaps write themselves from what a meeting left behind, lost deals get a two-stage analysis against a corporate taxonomy, and inside the widgets a model drafts the text where a standard, careful wording matters more than a fast one. Each of them records what it did somewhere a person can argue with it.',
-  items:[
-   {id:'chat-recap',t:'Meeting recap from chat',kind:'emul',s:'A two-card wizard in a chat client, writing a structured recap into the CRM.'},
-   {id:'ai-in-widgets',t:'Where the widgets let a model write',kind:'plan',s:'The places in the CRM interface where a standard, careful wording matters more than a fast one.'}],
-  also:['loss-analysis','agent-journal'], alsoLabel:'Also on the AI tab'},
+  intro:'Recaps write themselves from what a meeting left behind, lost deals get a two-stage analysis against a corporate taxonomy, and inside the widgets a model drafts the text where a standard, careful wording matters more than a fast one. Each of them records what it did somewhere a person can argue with it. This is one of the six pieces of platform work, but the pages themselves are written up as one capability on the Applied AI tab rather than split across two indexes.',
+  items:[],
+  also:['chat-recap','loss-analysis','ai-interface-assistance','agent-journal'], alsoLabel:'Written up on the Applied AI tab'},
  {h:'Connecting Teams, Slack and Jira to the CRM', tag:'SYNC',
   intro:'CRM tasks and tracker issues talk to each other directly, and the topic chats in Teams and Slack feed the tracker: comments are collected, filed against the right issue, and never retyped by hand. The hard part is not the transport — it is deciding which system is right when two of them disagree.',
   items:[
@@ -556,11 +554,37 @@ const ZOHO_GROUPS=[
    {id:'widget-system',t:'Seventy widgets as one system',kind:'plan',s:'A shared design system, a versioned component library, and an offline harness that stubs the platform SDK.'},
    {id:'external-server',t:'The work that does not fit inside the org',kind:'plan',s:'Complex operations moved to an external server, and the line for deciding what goes out.'}]}
 ];
-const AI_ITEMS=[
- {id:'loss-analysis',t:'Loss analysis in two stages',kind:'note',s:'Six evidence sources, a 38-cause taxonomy in the prompt, a human-correctable middle stage.'},
- {id:'agent-journal',t:'A CRM agent with an action journal',kind:'live',s:'Every action writes a before/after diff to a module. An opaque agent does not survive its first disputed edit.'},
- {id:'ai-workflow',t:'AI-assisted engineering, honestly',kind:'note',s:'How this site and its '+TEST_COUNT+' tests are built and kept green — the gates, and what they cannot catch.'},
- {id:'mcp-product',t:'Three kinds of AI work, and the CRM only had two',kind:'note',s:'Evidence-gathering versus inference, and MCP as the emulator’s own idea pointed at a real org.'}];
+/* AI is a capability across three layers of the platform, not a collection of
+   prompts: the engineering of the system itself, the business workflows run on
+   evidence, and the assistance offered inside the interfaces people already use.
+   A fourth section carries the access layer, because what a model is allowed to
+   do is a separate decision from what it is asked to do. Same shape as
+   ZOHO_GROUPS, so a page that belongs to two tabs is linked (`also`) rather than
+   registered twice. */
+const AI_GROUPS=[
+ {h:'AI in engineering', tag:'ENGINEERING',
+  intro:'Zoho keeps most of its code behind browser editors and disconnected configuration screens, so the extraction and analysis layer had to exist before a model could be useful against it. With the org in one searchable system, AI designs functions and interfaces, generates Deluge, JavaScript and Python, reviews existing code, expands tests, identifies regression risk and analyses dependencies. Generation was never the bottleneck; verification is, so Git review, controlled deployment and automated checks decide what ships.',
+  items:[
+   {id:'code-intelligence',t:'Code intelligence for a CRM that never exposed its codebase',kind:'plan',s:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.'},
+   {id:'ai-workflow',t:'How AI-assisted delivery is verified',kind:'note',s:'Generated work passes source review, behavioural tests, leak guards and controlled promotion before production.'}],
+  also:['org-tooling','deluge-cicd'], alsoLabel:'The tooling this runs on, on the Zoho tab'},
+ {h:'AI as a business solution', tag:'WORKFLOWS',
+  intro:'An AI feature in a CRM is an integration and control system before it is a model call. Evidence has to be gathered, identities resolved, permissions enforced, outputs validated and failures made recoverable; the model receives one bounded interpretation task inside that system. Meetings held in Teams use Teams transcripts, meetings held elsewhere use Krisp, and a source adapter keeps the process open to further providers without changing the recap standard or the write-back.',
+  items:[
+   {id:'chat-recap',t:'From transcript to a corporate-standard meeting recap',kind:'emul',s:'Teams, Krisp and future sources feed one governed evidence-to-recap pipeline.'},
+   {id:'loss-analysis',t:'From six evidence sources to one governed loss reason',kind:'note',s:'A two-stage classification pipeline with a human-correctable intermediate record.'},
+   {id:'team-intelligence',t:'Recurring team intelligence, delivered automatically',kind:'plan',s:'AI-generated reports and management summaries with deterministic scheduling and delivery controls.'}]},
+ {h:'AI assistance inside CRM interfaces', tag:'INTERFACES',
+  intro:'AI is embedded in more than ten interfaces where it lowers the cost of keeping CRM data useful — drafting, rewriting and standardising text without sending a salesperson to a separate tool. The strongest case is short reporting from a phone, where the interface reduces the input cost and the model turns a rough note into the structure the business expects. Assistance stays bounded: the interface fixes the target record and the allowed operation, validation decides what may be saved, human-written fields are not silently replaced, and the result can be reviewed or undone.',
+  items:[
+   {id:'ai-interface-assistance',t:'AI at the point of CRM input',kind:'plan',s:'Drafting and rewriting across 10+ interfaces, especially short reports from mobile devices.'},
+   {id:'agent-journal',t:'Controlled write-back with an action journal',kind:'live',s:'Every proposed change carries a before/after diff and a human gate for high-risk fields.'}],
+  also:['board'], alsoLabel:'The mobile recap this sits inside, on the Zoho tab'},
+ {h:'Control and access', tag:'ACCESS',
+  intro:'Claude works with CRM records and related operations through a scoped MCP surface connected to the surrounding Zoho tooling, and reusable skills combine record operations with function pull, analysis, deploy and run — turning one-off prompts into repeatable development, audit and operational workflows. MCP decides which operations exist; it does not make a model correct. Permissions, validation, risk gates, confirmation and the audit trail stay outside model judgement.',
+  items:[
+   {id:'mcp-product',t:'Scoped AI access to CRM',kind:'note',s:'Typed operations for records and platform tooling, with permissions and validation outside the model.'}]}
+];
 /* The separate Salesforce tab is retired: the experience belongs in About as one
    CRM track, not as a second specialisation competing with Zoho. One page
    survives — the cross-platform port — and it lives under the piece of Zoho work
@@ -577,7 +601,8 @@ const FS_ITEMS=[
 const ALL={};
 function reg(items,tab,group){items.forEach((it,i)=>ALL[it.id]={...it,tab,group,idx:i,list:items});}
 ZOHO_GROUPS.forEach(g=>reg(g.items,'zoho',g.h));
-reg(AI_ITEMS,'ai','Applied AI'); reg(SF_ITEMS,'zoho','Cleaning up contacts, deduplication and enrichment'); reg(FS_ITEMS,'fullstack','Full-stack');
+AI_GROUPS.forEach(g=>reg(g.items,'ai',g.h));
+reg(SF_ITEMS,'zoho','Cleaning up contacts, deduplication and enrichment'); reg(FS_ITEMS,'fullstack','Full-stack');
 
 /* ---------------- building blocks ---------------- */
 const cards=list=>'<div class="cards">'+list.map(i=>
@@ -1754,11 +1779,19 @@ function vAbout(){
    integration narrative, the rest are secondary mentions rather than a longer list. */
 const SCALE=[['70+','production widgets'],['50+','custom modules'],['hundreds','Deluge functions'],
              ['dozens','canvas layouts &amp; client scripts'],['10+','connected systems']];
+/* Both platform indexes are the same shape — a paragraph per piece of work, the
+   pages under it, and a named row for the ones whose write-up lives on the other
+   tab — so the section renderer is shared rather than written twice. */
+const alsoRows=(ids,label)=>{
+ const list=(ids||[]).map(i=>ALL[i]).filter(Boolean);
+ return list.length?'<p class="alsolab">'+esc(label)+'</p>'+rows(list):'';
+};
+const groupSections=groups=>groups.map(g=>
+  '<section class="bsec rv"><span class="idx">'+esc(g.tag)+'</span><h2>'+esc(g.h)+'</h2>'
+  +'<p class="sub">'+esc(g.intro)+'</p>'
+  +split(g.items)+alsoRows(g.also,g.alsoLabel)+'</section>').join('');
+
 function vZoho(){
- const also=(ids,label)=>{
-  const list=(ids||[]).map(i=>ALL[i]).filter(Boolean);
-  return list.length?'<p class="alsolab">'+esc(label)+'</p>'+rows(list):'';
- };
  return '<p class="eyebrow">Platform</p><h1>Zoho</h1>'
   +'<p class="lede">More than three years as the primary engineer and technical owner of a production Zoho CRM '
   +'platform: data architecture, automation, integrations, interfaces, the release process and post-release '
@@ -1769,16 +1802,19 @@ function vZoho(){
   +'in.</p>'
   +'<div class="stats scale">'+SCALE.map(s=>
     '<div class="stat"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>').join('')+'</div>'
-  +ZOHO_GROUPS.map(g=>
-    '<section class="bsec rv"><span class="idx">'+esc(g.tag)+'</span><h2>'+esc(g.h)+'</h2>'
-    +'<p class="sub">'+esc(g.intro)+'</p>'
-    +split(g.items)+also(g.also,g.alsoLabel)+'</section>').join('');
+  +groupSections(ZOHO_GROUPS);
 }
 function vAI(){
- return '<p class="eyebrow">Applied, not decorative</p><h1>AI in the CRM</h1>'
-  +'<p class="lede">Where a model earns its place in a CRM pipeline — and where the honest answer is that '
-  +'most of the code is evidence-gathering, not inference.</p>'
-  +'<div class="sechead">Work</div>'+split(AI_ITEMS);
+ return '<p class="eyebrow">Architecture and implementation, not a prompt gallery</p><h1>Applied AI</h1>'
+  +'<p class="lede">I design and implement AI across three layers of the CRM platform: engineering the system '
+  +'itself, running evidence-based business workflows, and assisting salespeople inside the interfaces they '
+  +'already use. The model handles interpretation and drafting; the surrounding architecture handles data '
+  +'collection, permissions, validation, scheduling, human review, write-back and auditability.</p>'
+  +'<div class="callout"><span class="k">The boundary</span>'
+  +'<p style="margin:0">Grounded in evidence, bounded by deterministic controls, auditable after every write. '
+  +'Where a model is trusted with a judgement, the page says so; where the surrounding code does the work and '
+  +'the model only drafts, it says that too.</p></div>'
+  +groupSections(AI_GROUPS);
 }
 function vFS(){
  return '<p class="eyebrow">Beyond the CRM</p><h1>Full-stack</h1>'
