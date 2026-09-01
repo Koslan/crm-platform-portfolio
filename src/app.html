@@ -34,6 +34,8 @@ h1{font-weight:600;font-size:clamp(30px,4.4vw,44px);line-height:1.12;letter-spac
 h2{font-weight:600;font-size:19px;letter-spacing:-.02em;margin:0 0 6px}
 .lede{font-size:17px;line-height:1.65;color:#5D636E;max-width:58ch;margin:0 0 24px}
 .pagelead{font-size:16px;line-height:1.7;color:var(--ink-2);max-width:66ch;margin:0 0 26px}
+.whyh{font:600 15px/1.4 "Instrument Sans",system-ui,sans-serif;margin:22px 0 6px}
+.whyh:first-child{margin-top:0}
 .intro{font-size:15.5px;line-height:1.65;color:#5D636E;max-width:62ch;margin:0 0 18px}
 .sechead{font:500 11.5px "DM Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#8A8F9C;margin:48px 0 16px;
   display:flex;align-items:baseline;gap:12px}
@@ -2255,7 +2257,20 @@ const REC = [
      'rail:marker:marker':{t:'Marker already exists', d:'When the search on the marker step finds a hit, posting and the reaction are both skipped — the run reports a duplicate rather than writing a second comment.'}
     }
    },
-   why:'The mapping lives on the thread\'s root message, not the channel, because one channel carries several PITCH discussions — the channel registry (in Zoho Analytics) only says which channels to read at all. A hidden marker inside each comment body, plus an In_Jira flag on the stored message, is what makes a run every ten minutes idempotent. Attachments never upload: only their names travel across, as links back to Teams — a Jira comment can be closed to a role, but a file on that same issue cannot. Visibility is a Jira project role, not a client-side toggle, so a restricted comment is only as safe as the tracker\'s own permission model — and the sync runs one way on purpose, so a reply made straight on the Jira issue never finds its way back into the thread. A PITCH code typed only into a reply, never the root, is invisible to the router by design: trusting a later message would mean re-deciding the routing on every reply instead of once per thread.'},
+   /* Four decisions, not one paragraph. As a single block the routing rule, the
+      duplicate check, the attachment limit and the one-way choice read as a list
+      of caveats; they are four separate design decisions, and the last one is a
+      cost rather than a feature. */
+   whyParts:[
+    ['Routing belongs to the thread root',
+     'The mapping lives on the thread\'s root message, not the channel, because one channel carries several PITCH discussions — the channel registry only says which channels to read at all. A PITCH code typed into a reply but never into the root is invisible to the router by design: honouring a later message would mean re-deciding the routing on every reply instead of once per thread, and a thread whose destination can change halfway is a thread nobody can audit. A root with no code is skipped and reported, never guessed at.'],
+    ['Idempotency exists in both systems',
+     'A run every ten minutes has to be safe to repeat, and one marker is not enough for that. The CRM holds a delivery flag on the stored message; each posted comment holds a hidden marker in its own body. Before posting, the run searches the issue for that marker, and finding one skips the comment and the acknowledgement together. The two survive different accidents — the CRM flag outlives a deleted Jira comment, the marker outlives a rebuilt CRM row — so the pair is what makes a replay a no-op rather than a second comment.'],
+    ['Restricted comments do not make files private',
+     'A comment can be locked to a Jira project role. A file attached to the same issue cannot. So attachments are never uploaded: only their names travel, as links back to the thread they came from, where the original permission model still applies. This is a limitation stated rather than solved — a restricted comment is exactly as private as the tracker\'s own role model, which is a weaker guarantee than the chat thread it was copied out of, and anyone using it should know that before they type.'],
+    ['The integration is one-way on purpose',
+     'Replies flow from the thread to the issue and never back. Two-way would mean deciding, on every edit, which side is authoritative for a comment both systems now hold, and that question has no good default — only a choice about whose edit gets silently discarded. The cost of refusing it is real and worth naming: someone who answers on the Jira issue has answered only on the Jira issue, and the thread will not show it.']
+   ]},
   {id:'teams',     t:'Meeting recap from chat',host:'__TEAMS__',     arg:()=>null,
    sub:'The chat client on the left, the CRM record on the right, and a two-card flow between them. A trace panel shows every call as it is made.',
    try:['Pick the first chat and send the message to the CRM. The account is already resolved, and the card says which key resolved it.',
@@ -2311,7 +2326,11 @@ function viewRecord(r){
    + '<section class="block"><h2>The record</h2><div id="rec-host"></div></section>'
    + '<section class="block"><h2>What to try</h2><ul>'+r.try.map(x=>'<li>'+x+'</li>').join('')+'</ul></section>'
    + (r.dg && window.Diagrams ? '<section class="block"><h2>How it works</h2>'+window.Diagrams.render(r.dg)+'</section>' : '')
-   + '<section class="block"><h2>Why it was not straightforward</h2><p>'+r.why+'</p></section>';
+   + (r.whyParts
+      ? '<section class="block"><h2>Why it was not straightforward</h2>'
+        + r.whyParts.map(([h,t])=>'<h3 class="whyh">'+esc(h)+'</h3><p>'+t+'</p>').join('')
+        + '</section>'
+      : '<section class="block"><h2>Why it was not straightforward</h2><p>'+r.why+'</p></section>');
 }
 function wireRecord(r){
   const host = document.getElementById('rec-host');
