@@ -21,8 +21,15 @@ say('zoho: work living on another tab is labelled as such',
     (await p.locator('.alsolab').count())===2);
 const alsoTxt=(await p.locator('.alsolab').allTextContents()).join(' ');
 say('zoho: the other home is named, not implied', /another platform/i.test(alsoTxt) && /AI tab/.test(alsoTxt));
-say('zoho: planned work is listed, not hidden',
-    (await p.locator('.rowlist .rk').allTextContents()).filter(t=>/Planned/.test(t)).length>=8);
+const zohoKinds=(await p.locator('.rowlist .rk').allTextContents());
+say('zoho: planned work is still listed, not hidden ('+zohoKinds.filter(t=>/Planned/.test(t)).length+')',
+    zohoKinds.filter(t=>/Planned/.test(t)).length>=5);
+/* Pages that got written must stop advertising themselves as unbuilt. */
+const written=['contact-model','deluge-cicd','widget-system'];
+for (const id of written) {
+  const kind=await p.locator(`a[href="#/p/${id}"] .rk`).first().textContent();
+  say(`zoho: ${id} is listed as written, not planned`, kind==='Write-up');
+}
 
 /* Contact enrichment — the account is the one with a full contact list on it,
    so the duplicate problem the page describes is actually visible. */

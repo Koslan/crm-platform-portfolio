@@ -84,6 +84,21 @@ await p.waitForSelector('.trk-tech table', {timeout:3000});
 say('tracker: technical details drawer lists the hidden markers', /crm-teams-msg/.test(await p.locator('.trk-tech').textContent()));
 await p.screenshot({path:'p5-tracker.png'});
 
+/* --- every page the navigation offers is either written or honestly planned --- */
+await p.goto(U+'#/'); await p.waitForTimeout(400);
+const registry = await p.evaluate(() => Object.values(ALL).map(i => ({ id:i.id, kind:i.kind })));
+const bodies = [];
+for (const it of registry) {
+  await p.goto(U+'#/p/'+it.id); await p.waitForTimeout(260);
+  bodies.push({ ...it, text: await p.locator('#view').textContent() });
+}
+const stranded = bodies.filter(x => x.kind !== 'plan' && /write-up pending|not built yet/.test(x.text));
+say('no page claims to be written and then renders a placeholder ('+stranded.map(x=>x.id).join(',')+')', stranded.length===0);
+const unlabelled = bodies.filter(x => x.kind === 'plan' && !/not built yet/.test(x.text));
+say('every planned page says so on the page itself ('+unlabelled.map(x=>x.id).join(',')+')', unlabelled.length===0);
+const thin = bodies.filter(x => x.kind !== 'plan' && x.text.split(/\s+/).length < 120);
+say('no written page is a stub ('+thin.map(x=>x.id).join(',')+')', thin.length===0);
+
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,5).join('\n'));
 await b.close();

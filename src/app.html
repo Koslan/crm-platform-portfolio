@@ -510,7 +510,7 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const KIND={live:'Live demo',emul:'Emulated flow',note:'Write-up',plan:'Planned'};
 const kchip=k=>'<span class="chip'+(k==='live'?' acc':k==='emul'?' warn':'')+'">'+KIND[k]+'</span>';
 
-const TEST_COUNT=267; // updated by hand after `npm test` — not derivable at runtime, no browser here
+const TEST_COUNT=273; // updated by hand after `npm test` — not derivable at runtime, no browser here
 /* ---------------- data: полный маппинг существующих страниц ---------------- */
 const TABS=[
  {id:'about',t:'About me'},
@@ -529,7 +529,7 @@ const ZOHO_GROUPS=[
   intro:'Contacts had been created situationally for years, so duplicates were everywhere — worst where one person held roles at several sub-companies of the same group. The fix was a model rather than a clean-up script: contacts and accounts joined many-to-many, every existing record migrated onto it, and enrichment wired in so a provider credit is spent once. Every account went through the analysis; new contacts now arrive through the same identity rules.',
   items:[
    {id:'enrichment',t:'Contact enrichment',kind:'live',s:'Provider people matched against the CRM through four identity keys before a single one is written.'},
-   {id:'contact-model',t:'One person, several companies — without duplicate identities',kind:'plan',s:'A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.'}],
+   {id:'contact-model',t:'One person, several companies — without duplicate identities',kind:'note',s:'A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.'}],
   also:['sf-lwc'], alsoLabel:'The same contract on another platform'},
  {h:'Trade shows: booking, meetings, follow-up', tag:'EVENTS',
   intro:'One system takes an industry event from preparation, through the floor, to post-analysis. Meetings are booked and tracked from the CRM, run from a phone at the venue, and reached through the tools people already live in — with a calendar sync that keeps every side honest.',
@@ -559,8 +559,8 @@ const ZOHO_GROUPS=[
    {id:'orghealth',t:'An org audit that names what it cannot see',kind:'live',s:'A generated 1,240-function org reconciled against five entry channels, with blind spots stated first.'},
    {id:'solution',t:'A business map the standard CRM could not draw',kind:'live',s:'Service lines against business units, with live pipeline and opportunity creation in the same matrix.'},
    {id:'org-tooling',t:'The engineering layer Zoho did not provide',kind:'note',s:'Pull the org into one searchable system, map dependencies and turn browser-only change into reviewed delivery.'},
-   {id:'deluge-cicd',t:'From browser-only code to reviewed delivery',kind:'plan',s:'Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.'},
-   {id:'widget-system',t:'Seventy widgets as one product system',kind:'plan',s:'Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.'},
+   {id:'deluge-cicd',t:'From browser-only code to reviewed delivery',kind:'note',s:'Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.'},
+   {id:'widget-system',t:'Seventy widgets as one product system',kind:'note',s:'Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.'},
    {id:'external-server',t:'The work that does not fit inside the org',kind:'plan',s:'Complex operations moved to an external server, and the line for deciding what goes out.'}]}
 ];
 /* AI is a capability across three layers of the platform, not a collection of
@@ -574,7 +574,7 @@ const AI_GROUPS=[
  {h:'AI in engineering', tag:'ENGINEERING',
   intro:'Zoho keeps most of its code behind browser editors and disconnected configuration screens, so the extraction and analysis layer had to exist before a model could be useful against it. With the org in one searchable system, AI designs functions and interfaces, generates Deluge, JavaScript and Python, reviews existing code, expands tests, identifies regression risk and analyses dependencies. Generation was never the bottleneck; verification is, so Git review, controlled deployment and automated checks decide what ships.',
   items:[
-   {id:'code-intelligence',t:'Code intelligence across the whole org',kind:'plan',s:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.'},
+   {id:'code-intelligence',t:'Code intelligence across the whole org',kind:'note',s:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.'},
    {id:'ai-workflow',t:'How AI-assisted delivery is verified',kind:'note',s:'Generated work passes source review, behavioural tests, leak guards and controlled promotion before production.'}],
   also:['org-tooling','deluge-cicd'], alsoLabel:'The tooling this runs on, on the Zoho tab'},
  {h:'AI as a business solution', tag:'WORKFLOWS',
@@ -582,7 +582,7 @@ const AI_GROUPS=[
   items:[
    {id:'chat-recap',t:'From transcript to a corporate-standard meeting recap',kind:'emul',s:'Teams, Krisp and future sources feed one governed evidence-to-recap pipeline.'},
    {id:'loss-analysis',t:'From six evidence sources to one governed loss reason',kind:'note',s:'A two-stage classification pipeline with a human-correctable intermediate record.'},
-   {id:'team-intelligence',t:'Recurring team intelligence, delivered automatically',kind:'plan',s:'AI-generated reports and management summaries with deterministic scheduling and delivery controls.'}]},
+   {id:'team-intelligence',t:'Recurring team intelligence, delivered automatically',kind:'note',s:'AI-generated reports and management summaries with deterministic scheduling and delivery controls.'}]},
  {h:'AI assistance inside CRM interfaces', tag:'INTERFACES',
   intro:'AI is embedded in more than ten interfaces where it lowers the cost of keeping CRM data useful — drafting, rewriting and standardising text without sending a salesperson to a separate tool. The strongest case is short reporting from a phone, where the interface reduces the input cost and the model turns a rough note into the structure the business expects. Assistance stays bounded: the interface fixes the target record and the allowed operation, validation decides what may be saved, human-written fields are not silently replaced, and the result can be reviewed or undone.',
   items:[
@@ -1979,6 +1979,71 @@ const DEMOS = [
 
 
 const CASES = {
+  /* Pages promised on the index and now written. Each follows the same
+     three obligations as the rest of the site: name the constraint before
+     the solution, and say what the solution cost. */
+  'Written up from the platform work':[
+    {id:'contact-model', t:'One person, several companies — without duplicate identities',
+     sub:'A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.',
+     body:[
+      ['One person, several employers, and a field that holds one',
+       'A contact record stores one company. That is fine until the client is a group: somebody holds a role at the parent, a second at a subsidiary, and a history at a third that was acquired two years ago. A single company field forces a choice between losing that history and creating a second person to carry it, and years of records made situationally had settled on the second. The result was not an untidy database. It was duplicates concentrated precisely where the money is — on the multi-entity accounts — and enrichment credits being spent on identities the CRM already held.'],
+      ['A junction, not a bigger text field',
+       'The person and the company became separate identities joined through a junction module, so a role is a record in its own right: which company, over what period, and whether it is the current main one. Nothing survives as a pseudo-relation inside a text field, which means employment history can be queried rather than read, and “who do we know across this group” has an answer that does not depend on which subsidiary somebody happened to type on the day.'],
+      ['Migrating records that were already wrong',
+       'The existing records had to move onto the model, and they were not clean when they moved, so the migration was a reconciliation rather than a copy. Candidates were gathered across the whole account hierarchy instead of the single account, then matched on ordered evidence — authoritative identifiers first, normalised contact evidence next, a normalised profile URL last — and anything that could not be proved was left for a person rather than merged on a likelihood. The asymmetry is deliberate: a surviving duplicate is visible and irritating, while a wrong merge quietly destroys somebody’s history and leaves no trace that it happened.'],
+      ['What every inbound path now has to do',
+       'A model is only worth having if every route obeys it. Identity resolution runs before creation on every inbound path, and enrichment runs only after resolution — so a provider credit is spent once, on a person the CRM has established it genuinely does not know. Ambiguous matches stay visible as ambiguous instead of being settled by whichever integration happened to run last, and a new integration does not get to arrive with its own private definition of a duplicate.'],
+      ['The trade',
+       'The relationship layer is real complexity, and every consumer — widget, report, integration — has to understand it. That cost is taken deliberately, because the simplicity it replaced existed only in the schema. Users were already carrying the complexity as duplicate records, lost employment history and a question about a group account that nobody could answer; they were simply carrying it without any of the tools this model hands back.']]},
+    {id:'deluge-cicd', t:'From browser-only code to reviewed delivery',
+     sub:'Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.',
+     body:[
+      ['A browser editor is not a development environment',
+       'The platform presents functions one at a time in a browser editor. That is enough to change a line. It is not enough to search the estate for a pattern that repeats, to review a change touching four functions as one change, to know what else calls the thing being edited, or to establish afterwards that production received what was approved. Without those, deployment means somebody pasting text into a form and remembering that they did.'],
+      ['Pull, and normalise into something reviewable',
+       'The estate is pulled into a local searchable codebase and normalised into the same analysis system that carries the dependency and invocation index, so a change is read against what calls it rather than on its own. This is the extraction the org tooling is built on; the pipeline is what happens to that code afterwards.'],
+      ['Review as the gate, git as the record',
+       'Changes are made under git review. That is unremarkable anywhere else and is the entire point here: it gives the platform an authored change history it does not otherwise have, and a place where a second person can disagree before production sees anything. It also makes the reasoning durable — why a criterion was changed outlives the conversation in which somebody decided to change it.'],
+      ['Deploy, run, and prove it landed',
+       'Delivery does not end with a successful request. The platform will accept a save and then serve something else, so a deployment counts as landed only when an independent read returns the same content, compared by hash rather than by eye. The function is then run through the same tooling with its output captured against the version that produced it, which makes a failure attributable to a specific change instead of to somebody’s recollection of one.'],
+      ['What the pipeline rests on',
+       'It stands on platform surfaces that are less complete and less stable than a real source API: some endpoints are undocumented, the versions were found empirically, and part of the flow depends on a session that expires. So every unsupported path and manual fallback is written down and kept visible rather than being allowed to settle into tribal knowledge. A pipeline whose failure modes are undocumented is a pipeline that strands whoever inherits it, which is the same problem it was built to solve.']]},
+    {id:'code-intelligence', t:'Code intelligence across the whole org',
+     sub:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.',
+     body:[
+      ['One function at a time is the wrong unit',
+       'Reviewing a pasted function cannot reveal a pattern duplicated across two hundred others, a missing failure policy repeated at every call site, or a change that breaks an invocation path three systems away. The unit of the problem is the estate, not the file. The code has to exist as one system before anything — a model or a person — can reason about the system rather than about the snippet on screen.'],
+      ['The workflow',
+       'With the estate extracted and joined to dependency, invocation and configuration evidence, AI is pointed at the work that scales badly for a person: reviewing for missing error handling, finding patterns that disagree with each other across modules, flagging where a proposed change carries regression risk, tracing what a rename actually touches, and drafting documentation nobody wants to write twice. Findings are review material. Nothing travels from a finding straight into production.'],
+      ['From finding to change',
+       'Approved work goes down the ordinary delivery path — source review, tests, controlled deployment, verification by read-back. Reusable skills encode the review stages and the platform’s own constraints, so the process is a file that gets changed deliberately rather than a prompt somebody rebuilds from memory and slightly differently each time.'],
+      ['What it cannot decide',
+       'It can find suspicious code and explain why the code deserves attention. It cannot decide what the business meant, and it cannot prove a function is unused from code alone — that needs the five entry channels, and even then the answer is bounded by the one class of function the extraction cannot see. The output worth worrying about here is not a wrong finding, which review catches, but a confident silence over the part of the estate nobody realised was missing from it.']]},
+    {id:'team-intelligence', t:'Recurring team intelligence, delivered automatically',
+     sub:'AI-generated reports and management summaries with deterministic scheduling and delivery controls.',
+     body:[
+      ['A report nobody has time to assemble',
+       'A sales lead needs a regular picture of what moved, what stalled and what now needs a decision. Assembled by hand it costs the most expensive hour of the week and gets dropped whenever the week is busy — which is reliably the week it mattered. Handed naively to a model, it produces confident prose over whatever data happened to be reachable, which is worse, because it reads exactly like the version that was checked.'],
+      ['Deterministic evidence, bounded interpretation',
+       'So the evidence is assembled by deterministic code: the period selected, the records pulled, access and data-quality rules applied, and the package built before a model is involved at all. The model then receives one bounded task over a governed input — turn this into the narrative the team reads — and nothing else. Scheduling, delivery, staleness detection and failure reporting all stay outside it, because none of them get better when they are guessed.'],
+      ['Delivery, and the failure that has to be visible',
+       'The output names its period and its sources, separates what is missing from what is interpreted, and keeps links back to the records behind each claim, so a reader who disbelieves a sentence can reach the deal it came from. When generation fails or the evidence is incomplete, that becomes a visible state rather than a shorter report that still looks finished — a report which silently narrows its own scope is the dangerous one, because it is still trusted. The same machinery points at individuals as well as teams: the reminders that keep records moving, delivered where people already work rather than into an inbox nobody opens.'],
+      ['The trade',
+       'A generated narrative is easier to read and harder to compare than a table. So the structured metrics stay structured and remain the source of truth; the narrative explains them and never replaces the fields underneath. The risk this design exists to hold off is a team that gradually starts reporting on the prose instead of the numbers, and it is held off by keeping the numbers visibly in charge rather than by trusting anybody to remember.']]},
+    {id:'widget-system', t:'Seventy widgets as one product system',
+     sub:'Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.',
+     body:[
+      ['Seventy widgets, or seventy copies of the same table',
+       'Seventy independent widgets are seventy versions of the same table, the same validation rule, the same failure message and the same date formatting, each drifting on its own schedule. The visible estate grows and delivery slows with every copy, because a fix has to be found in seventy places before it can be applied in one — and the seventieth is always the one nobody remembers.'],
+      ['A shared layer, with rules about changing it',
+       'The widgets share component patterns, service wrappers around the platform SDK, a common error envelope and one visual language. What makes that a system rather than a folder of helpers is the rules attached to it: versioning, and a stated compatibility policy for changing something seventy screens depend on.'],
+      ['Three surfaces, one set of decisions',
+       'Desktop, Canvas and mobile are three hosts with different space, different input, and on a phone no developer tools at all. They reuse the same decisions — the same data access, the same validation, the same failure behaviour — and adapt only the presentation to the host, rather than forking the logic once per surface and then maintaining three versions of the same bug.'],
+      ['Quality at a scale nobody can click through',
+       'Nobody reviews seventy widgets by hand before a release. The offline SDK harness runs them against seeded data and deliberate failures, and browser checks run at desktop and phone widths, failing on any console error rather than only on a failed assertion. The aim is not a coverage number; it is that a change to the shared layer is verified somewhere other than in production, on somebody else’s afternoon.'],
+      ['The trade',
+       'A shared layer makes local changes safer and platform-wide changes more consequential: one careless edit to a shared component reaches every screen at once. That is exactly why versioning and compatibility rules are part of the product rather than cleanup deferred to later. The cost is real and worth naming — a change that would take an afternoon inside one isolated widget takes longer here, and that slower path is what buys the other sixty-nine screens not breaking.']]}],
   'Integration and sync':[
     {id:'cross-system', t:'Crossing between systems that do not agree',
      sub:'Eight integrations across Teams, calendars, Jira and conference exports. No shared key, no second delivery, no shared permission model — and, in three of them, a deliberate stop short of full automation.',
@@ -2600,7 +2665,12 @@ const MAT={
  generator:['Architecture write-up'],
  'ci-guards':['Architecture write-up'],
  site:['Public production-shaped build'],
- 'sf-lwc':['Cross-platform implementation demo']
+ 'sf-lwc':['Cross-platform implementation demo'],
+ 'contact-model':['Architecture write-up'],
+ 'deluge-cicd':['Working internal tool','Architecture write-up'],
+ 'code-intelligence':['Working internal tool','Architecture write-up'],
+ 'team-intelligence':['Architecture write-up'],
+ 'widget-system':['Architecture write-up']
 };
 const LEAD={
  event:'One campaign record carries the event from preparation to follow-up: several hundred target contacts, a meeting schedule, a booking flow that checks people and rooms, and mobile interfaces for the team on the floor. The widgets share one data model, so every view is another operating surface over the same event rather than a separate tool.',
