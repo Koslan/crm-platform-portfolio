@@ -474,6 +474,7 @@ const SolutionMap = {
       <div class="pane"><dl class="kvs">
         <dt>Colour</dt><dd>The stage of the latest deal on the cell, not a blend: won, confirmation, proposal, qualification, prospecting and lost each get their own colour, plus a pale blue for a business unit that only has unworked pipeline and a light purple for a deal still sitting on the Recommendation stage.</dd>
         <dt>Pale blue</dt><dd>No deal exists yet for this service line. There is only unworked budget nobody has picked up.</dd>
+        <dt>Text colour</dt><dd>Every stage prints white on its own colour except prospecting, whose pale yellow needs dark text to stay readable. It is the one exception in the scheme, which is exactly why it is written down here rather than left to be noticed.</dd>
         <dt>Row order</dt><dd>Service lines with a deal come first, ranked by amount; then service lines with only unworked potential, ranked the same way; anything left is alphabetical.</dd>
         <dt>Column order</dt><dd>Business units are alphabetical, and each header totals its whole potential — booked, in-flight and unworked together — not just what has already been won.</dd>
         <dt>Matching</dt><dd>A deal is attached to a business unit and a service line by an exact field on the deal record, because the link is modelled directly rather than guessed from free text.</dd>
