@@ -2207,11 +2207,17 @@ function viewEventPage(){
    + '<li>Book a meeting and it appears in the Meetings tab, marked <i>not in calendar</i> — because sending the '
    + 'invitation is a server-side step, and pretending otherwise would be the exact lie this kind of screen should not tell.</li>'
    + '</ul></section>'
-   + '<section class="block"><h2>Why this shape</h2>'
-   + '<p>A widget shown on its own is a screenshot. A record page with tabs is the thing people actually use: '
-   + 'the same campaign, seen five ways, with one set of data underneath. Everything here runs on the platform '
-   + 'emulator — the same query interpreter, the same two-hundred-record ceiling, the same write validation. '
-   + 'The wizard’s booking really is rejected if a mandatory field is missing.</p></section>';
+   + '<section class="block"><h2>Why this is a platform task</h2>'
+   + '<p>Three widgets and a wizard is a description of the artefacts, not of the work. The work is that one '
+   + 'campaign record has to carry an event from a target list through booking, through the floor, to the '
+   + 'follow-up afterwards — and that every surface touching it reads and writes the same data model. Build '
+   + 'them as four separate tools and the schedule disagrees with the booking within a day; build them over one '
+   + 'model and a conflict is a query rather than a phone call.</p>'
+   + '<p>That is also what makes the ceilings unavoidable rather than incidental. Everything here runs on the '
+   + 'platform emulator — the same query interpreter, the same two-hundred-record page limit, the same write '
+   + 'validation — so the target list pages, the wizard genuinely refuses an incomplete booking, and a meeting '
+   + 'that has not reached a calendar says so instead of pretending. A screen that hides its platform is a '
+   + 'screenshot; this one has to survive it.</p></section>';
 }
 function wireEventPage(){
   const host = document.getElementById('ecp-host');
@@ -2618,6 +2624,14 @@ const PAIR={
   'org-tooling':'orghealth', 'cross-system':'event'
 };
 
+/* `PAIR` answers "where can I see this running" and takes exactly one
+   answer. A page also sits next to its neighbours — the same system on
+   another surface, the sync underneath it, the component layer it is built
+   from — and those are a list, not a single destination. */
+const RELATED={
+  event:['board','calendar-sync','widget-system']
+};
+
 function sec(h, inner, id){ return '<div class="sechead"'+(id?' id="sec-'+id+'"':'')+'>'+esc(h)+'</div><div class="prose">'+inner+'</div>'; }
 
 function vCase(c){
@@ -2682,6 +2696,10 @@ function vItem(it){
   if(pair && ALL[pair])
     h+='<div class="sechead">See it live</div><div class="callout acc"><span class="k">Related demo</span>'
       +'<p style="margin:0"><a href="#/p/'+pair+'">'+esc(ALL[pair].t)+' &rarr;</a></p></div>';
+
+  const near=(RELATED[it.id]||[]).filter(id=>ALL[id]);
+  if(near.length)
+    h+='<div class="sechead">Related</div>'+rows(near.map(id=>ALL[id]));
 
   return h+pager(it);
 }
