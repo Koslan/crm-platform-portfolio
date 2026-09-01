@@ -18,7 +18,7 @@ The engineering around CRM work Full-stack CRM work does not stop at the platfor
 
 | id | Заголовок (`t`) | Подпись (`s`) | Вид |
 | --- | --- | --- | --- |
-| [`harness`](../pages/harness.md) | Running CRM interfaces before they reach the CRM | An offline SDK surface and 273 browser checks, failing on any console error. | note |
+| [`harness`](../pages/harness.md) | Running CRM interfaces before they reach the CRM | An offline SDK surface and 279 browser checks, failing on any console error. | note |
 | [`generator`](../pages/generator.md) | Repeatable test data that still behaves like a real CRM | The same seed produces the same records; deliberate defects keep the demos honest. | note |
 | [`ci-guards`](../pages/ci-guards.md) | A build that blocks employer data from reaching the portfolio | Identifier, credential and integrity checks run before anything is published. | note |
 | [`site`](../pages/site.md) | A production-shaped CRM environment in one static file | Production-derived interfaces, synthetic data, an emulated SDK and deliberate failure modes — no backend required. | live |

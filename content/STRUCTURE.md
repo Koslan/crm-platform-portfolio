@@ -20,7 +20,7 @@ dist/index.html       полный документ для GitHub Pages
 dist/artifact.html    тот же контент фрагментом
 ```
 
-Проверки: `npm test` — 273 headless-проверки Playwright в десяти `smoke*.mjs`, падают на любой
+Проверки: `npm test` — 279 headless-проверок Playwright в одиннадцати `smoke*.mjs`, падают на любой
 console error. Сама сборка отказывается писать страницу, если хоть один инлайн-скрипт не парсится.
 CI (`.github/workflows/deploy.yml`) прогоняет три гейта: целостность датасета → скан на утёкшие
 идентификаторы и креды → тесты.

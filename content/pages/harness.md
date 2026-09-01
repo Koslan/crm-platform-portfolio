@@ -15,7 +15,7 @@ source:
 # Running CRM interfaces before they reach the CRM
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> An offline SDK surface and 273 browser checks, failing on any console error.
+> An offline SDK surface and 279 browser checks, failing on any console error.
 >
 > **Material labels** (`MAT`): Architecture write-up
 >

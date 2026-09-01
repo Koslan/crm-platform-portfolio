@@ -257,7 +257,7 @@ I review other developers’ CRM work at Room 8 against the platform’s enginee
 
 ### automated testing
 
-273 headless Playwright checks run this site on every build, failing on any console error; production widgets get browser tests at phone widths and an offline harness that stubs the Zoho SDK.
+279 headless Playwright checks run this site on every build, failing on any console error; production widgets get browser tests at phone widths and an offline harness that stubs the Zoho SDK.
 
 ### release management
 
@@ -301,7 +301,7 @@ The database behind my backend work and side tooling — schema design included.
 
 ### AI-assisted development
 
-AI is my delivery multiplier, not a toy: this site — an SDK emulator, 11 live widgets, 273 tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.
+AI is my delivery multiplier, not a toy: this site — an SDK emulator, 11 live widgets, 279 tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.
 
 ### Claude
 

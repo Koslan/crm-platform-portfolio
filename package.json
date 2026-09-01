@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node data/generate.mjs",
     "build": "npm run generate && node build.mjs",
-    "test": "node smoke.mjs && node smoke-event.mjs && node smoke-pages.mjs && node smoke-board.mjs && node smoke-w2.mjs && node smoke-w4.mjs && node smoke-diagrams.mjs && node smoke-ai.mjs && node smoke-sf.mjs && node smoke-zoho.mjs",
+    "test": "node smoke.mjs && node smoke-event.mjs && node smoke-pages.mjs && node smoke-board.mjs && node smoke-w2.mjs && node smoke-w4.mjs && node smoke-diagrams.mjs && node smoke-ai.mjs && node smoke-sf.mjs && node smoke-zoho.mjs && node smoke-responsive.mjs",
     "verify": "npm run build && npm test",
     "serve": "node -e \"import('node:http').then(({default:h})=>import('node:fs').then(({readFileSync})=>h.createServer((q,s)=>{s.setHeader('content-type','text/html');s.end(readFileSync('dist/index.html'))}).listen(8080,()=>console.log('http://localhost:8080'))))\""
   },

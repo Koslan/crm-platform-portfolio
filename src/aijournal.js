@@ -15,7 +15,14 @@ const S = window.ECPShared;
 const { E, el, q, qa, coqlAll } = S;
 
 const CSS_AJ = `
-.aj{--gap:14px;display:grid;gap:var(--gap)}
+.aj{--gap:14px;display:grid;gap:var(--gap);min-width:0}
+/* Grid and flex children default to min-width:auto, so one long preset command
+   was setting the width of the whole page: at 390px the panel measured 899px
+   and the document scrolled sideways. Let them shrink, and let a command that
+   still does not fit break rather than push. */
+.aj > *{min-width:0}
+.aj .cmdrow input{min-width:0}
+.aj .presets button{max-width:100%;overflow-wrap:anywhere}
 .aj .cmdrow{display:flex;gap:8px;margin-bottom:10px}
 .aj .cmdrow input{flex:1;font:400 13.5px/1.3 "IBM Plex Sans",sans-serif;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
 .aj .presets{display:flex;flex-wrap:wrap;gap:7px}

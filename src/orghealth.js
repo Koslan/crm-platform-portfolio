@@ -124,6 +124,10 @@ const OrgHealth = {
             <div class="b"><span>Never executed</span><div class="t"><u style="width:${neverRan.length/R.length*100}%;background:var(--crit)"></u></div><span class="n">${neverRan.length}</span></div>
             <div class="b"><span>Silent over a year</span><div class="t"><u style="width:${stale.length/R.length*100}%;background:var(--warn)"></u></div><span class="n">${stale.length}</span></div>
             <div class="b"><span>Duplicate criteria</span><div class="t"><u style="width:${dupGroups.size/R.length*100}%;background:var(--warn)"></u></div><span class="n">${dupGroups.size} groups</span></div>
+          </div>
+          <div class="cap" style="margin:12px 0 0">${secrets} functions carry a credential inline. There is no single
+            place to rotate one, because the connection name has to be a literal.</div>
+        </div>
         <div class="card"><h5>By module and category</h5>
           <div class="cap">Click nothing — this is a heat map. Dark means many, and the empty cells are as
             informative as the full ones.</div>
