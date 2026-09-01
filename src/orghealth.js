@@ -79,6 +79,13 @@ const OrgHealth = {
             <div style="font-size:12.5px;font-weight:500;margin-top:2px">${E(l)}</div><div class="sub">${E(s2)}</div></div>`).join('')}
       </div>
 
+      <div class="warn"><h5>Read this before trusting anything below</h5>
+        One class of function is unreachable by this method: those bound to schedules live in a different identifier
+        namespace, and matching them by display name succeeds for one in twenty-two. ${cnt('MISSING_FROM_SNAPSHOT')} functions
+        are counted here as visible-but-unread. Anything called <i>only</i> from one of them is misclassified as dead
+        in the panels that follow. The gap is stated rather than smoothed over, and three ways to close it are written up beside the
+        report — an audit that names the limit of its own method is worth more than one that reads clean.</div>
+
       <div class="card">
         <h5>Where every function stands</h5>
         <div class="cap">Five entry channels were checked for each one: a workflow rule, a schedule, a custom button,
@@ -88,17 +95,6 @@ const OrgHealth = {
         <div class="keys" id="oh-keys">${Object.entries(STATUS).map(([k,[c,d]]) =>
           `<span data-s="${k}" aria-pressed="false" title="${E(d)}"><b style="background:${c}"></b>${E(k.replace(/_/g,' ').toLowerCase())} <em>${cnt(k)}</em></span>`).join('')}</div>
         <div id="oh-detail" style="margin-top:12px"></div>
-      </div>
-
-      <div class="row">
-        <div class="card"><h5>By module and category</h5>
-          <div class="cap">Click nothing — this is a heat map. Dark means many, and the empty cells are as
-            informative as the full ones.</div>
-          <div style="overflow-x:auto" id="oh-matrix"></div></div>
-        <div class="card"><h5>Calls out, and how many are protected</h5>
-          <div class="cap">The pale bar is every call to that service. The solid part is the share wrapped in error
-            handling. A transient failure on an unguarded call takes the whole rule down with it.</div>
-          <div class="bars" id="oh-calls"></div></div>
       </div>
 
       <div class="row">
@@ -113,6 +109,13 @@ const OrgHealth = {
           ${brokenUsed.length ? `<div class="warn" style="margin-top:12px"><h5>${brokenUsed.reduce((a,c)=>a+c.uses,0)} call sites will fail at runtime</h5>
             ${brokenUsed.map(c=>`<div><b>${E(c.name)}</b> — ${c.uses} uses, authentication expired</div>`).join('')}</div>` : ''}
         </div>
+        <div class="card"><h5>Calls out, and how many are protected</h5>
+          <div class="cap">The pale bar is every call to that service. The solid part is the share wrapped in error
+            handling. A transient failure on an unguarded call takes the whole rule down with it.</div>
+          <div class="bars" id="oh-calls"></div></div>
+      </div>
+
+      <div class="row">
         <div class="card"><h5>Rules that never fire</h5>
           <div class="cap">A rule can be marked active and have run precisely never. The platform does not check that
             a criterion still refers to a field that exists.</div>
@@ -121,23 +124,16 @@ const OrgHealth = {
             <div class="b"><span>Never executed</span><div class="t"><u style="width:${neverRan.length/R.length*100}%;background:var(--crit)"></u></div><span class="n">${neverRan.length}</span></div>
             <div class="b"><span>Silent over a year</span><div class="t"><u style="width:${stale.length/R.length*100}%;background:var(--warn)"></u></div><span class="n">${stale.length}</span></div>
             <div class="b"><span>Duplicate criteria</span><div class="t"><u style="width:${dupGroups.size/R.length*100}%;background:var(--warn)"></u></div><span class="n">${dupGroups.size} groups</span></div>
-          </div>
-          <div class="cap" style="margin:12px 0 0">${secrets} functions carry a credential inline. There is no single
-            place to rotate one, because the connection name has to be a literal.</div>
-        </div>
+        <div class="card"><h5>By module and category</h5>
+          <div class="cap">Click nothing — this is a heat map. Dark means many, and the empty cells are as
+            informative as the full ones.</div>
+          <div style="overflow-x:auto" id="oh-matrix"></div></div>
       </div>
 
       <div class="card"><h5>Who calls whom</h5>
         <div class="cap">Functions grouped by module, sized by how many others call them. The cluster on the right is
           the shared layer — small, heavily depended on, and the reason nothing there can be deleted casually.</div>
         <svg class="graph" id="oh-graph" viewBox="0 0 900 230" preserveAspectRatio="xMidYMid meet"></svg></div>
-
-      <div class="warn"><h5>Read this before trusting the numbers above</h5>
-        One class of function is unreachable by this method: those bound to schedules live in a different identifier
-        namespace, and matching them by display name succeeds for one in twenty-two. ${cnt('MISSING_FROM_SNAPSHOT')} functions
-        are counted here as visible-but-unread. Anything called <i>only</i> from one of them is misclassified as dead
-        on this page. The gap is stated rather than smoothed over, and three ways to close it are written up beside the
-        report — an audit that names the limit of its own method is worth more than one that reads clean.</div>
     </div>`;
 
     this.drawMatrix(); this.drawCalls(); this.drawGraph();
