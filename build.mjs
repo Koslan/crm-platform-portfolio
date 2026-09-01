@@ -73,9 +73,38 @@ ${body.replace(/<title>[^<]*<\/title>\s*/, '')}
 </html>
 `;
 
+/* The page is one HTML file whose behaviour lives in inline <script> blocks, so
+   a stray quote inside a copy string is not a build error — it is a blank page
+   at runtime, and the test suite only reaches it after Playwright has started.
+   Parsing every inline script here turns that into a failed build with a line
+   number. `new Function` compiles without executing, which is exactly the check
+   wanted: syntax only, no side effects. */
+function checkInlineScripts(html, label){
+  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+  let m, i = 0, bad = 0;
+  while ((m = re.exec(html))) {
+    i++;
+    const code = m[1];
+    if (!code.trim()) continue;
+    try { new Function(code); }
+    catch (e) {
+      bad++;
+      const upto = html.slice(0, m.index).split('\n').length;
+      console.error(`${label}: inline script #${i} (opens near line ${upto}) does not parse — ${e.message}`);
+    }
+  }
+  if (bad) {
+    console.error(`${label}: ${bad} inline script(s) failed to parse. Refusing to write a page that cannot run.`);
+    process.exit(1);
+  }
+  return i;
+}
+const scriptCount = checkInlineScripts(body, 'dist/artifact.html');
+
 mkdirSync('dist',{recursive:true});
 cpSync('public','dist',{recursive:true});
 writeFileSync('dist/index.html', doc);
 writeFileSync('dist/artifact.html', body);
 console.log('dist/index.html   ', (doc.length/1024).toFixed(0)+' KB  (full document, for Pages)');
 console.log('dist/artifact.html', (body.length/1024).toFixed(0)+' KB  (fragment)');
+console.log('inline scripts     ', scriptCount, 'parsed');

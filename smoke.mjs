@@ -16,7 +16,7 @@ say('a tab lists its pages ('+zohoLinks+')', zohoLinks >= 8);
 
 await p.goto('file://'+process.cwd()+'/dist/index.html#/p/org-tooling');
 await p.waitForTimeout(300);
-say('write-up page routes', (await p.locator('h1').textContent()).includes('Building tooling'));
+say('write-up page routes', (await p.locator('h1').textContent()).includes('The engineering layer'));
 
 // the routes the site used to publish still resolve
 await p.goto('file://'+process.cwd()+'/dist/index.html#/case/org-tooling');

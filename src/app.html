@@ -33,6 +33,7 @@ button{font:inherit;cursor:pointer}
 h1{font-weight:600;font-size:clamp(30px,4.4vw,44px);line-height:1.12;letter-spacing:-.035em;margin:0 0 16px;text-wrap:balance}
 h2{font-weight:600;font-size:19px;letter-spacing:-.02em;margin:0 0 6px}
 .lede{font-size:17px;line-height:1.65;color:#5D636E;max-width:58ch;margin:0 0 24px}
+.pagelead{font-size:16px;line-height:1.7;color:var(--ink-2);max-width:66ch;margin:0 0 26px}
 .intro{font-size:15.5px;line-height:1.65;color:#5D636E;max-width:62ch;margin:0 0 18px}
 .sechead{font:500 11.5px "DM Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:#8A8F9C;margin:48px 0 16px;
   display:flex;align-items:baseline;gap:12px}
@@ -520,13 +521,13 @@ const ZOHO_GROUPS=[
   intro:'Contacts had been created situationally for years, so duplicates were everywhere — worst where one person held roles at several sub-companies of the same group. The fix was a model rather than a clean-up script: contacts and accounts joined many-to-many, every existing record migrated onto it, and enrichment wired in so a provider credit is spent once. Every account went through the analysis; new contacts now arrive through the same identity rules.',
   items:[
    {id:'enrichment',t:'Contact enrichment',kind:'live',s:'Provider people matched against the CRM through four identity keys before a single one is written.'},
-   {id:'contact-model',t:'One person, several employers',kind:'plan',s:'Junction modules instead of text-field pseudo-relations, and the migration that put every existing contact onto them.'}],
+   {id:'contact-model',t:'One person, several companies — without duplicate identities',kind:'plan',s:'A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.'}],
   also:['sf-lwc'], alsoLabel:'The same contract on another platform'},
  {h:'Trade shows: booking, meetings, follow-up', tag:'EVENTS',
   intro:'One system takes an industry event from preparation, through the floor, to post-analysis. Meetings are booked and tracked from the CRM, run from a phone at the venue, and reached through the tools people already live in — with a calendar sync that keeps every side honest.',
   items:[
-   {id:'event',t:'Event campaign page',kind:'live',s:'A campaign record with three widgets and the five-step booking wizard.'},
-   {id:'board',t:'Meeting board (mobile)',kind:'live',s:'A phone-sized schedule with lane layout and an on-screen console.'},
+   {id:'event',t:'One event system, end to end',kind:'live',s:'Targeting, booking, conflict checks, mobile execution and reconciliation on one campaign record.'},
+   {id:'board',t:'The event floor, designed for a phone',kind:'live',s:'A room-by-room schedule, team load and assisted recap flow for a surface with no developer tools.'},
    {id:'calendar-sync',t:'Delta sync across seventeen calendars',kind:'plan',s:'A checkpoint written on every page, because the language has no while loop and a run can die on page forty.'},
    {id:'mobile-canvas',t:'Building for a surface with no devtools',kind:'plan',s:'An on-screen console with a ring buffer, and the bugs it was the only way to catch.'}]},
  {h:'AI in the CRM: recaps, loss analysis, drafted text', tag:'AI',
@@ -536,8 +537,8 @@ const ZOHO_GROUPS=[
  {h:'Connecting Teams, Slack and Jira to the CRM', tag:'SYNC',
   intro:'CRM tasks and tracker issues talk to each other directly, and the topic chats in Teams and Slack feed the tracker: comments are collected, filed against the right issue, and never retyped by hand. The hard part is not the transport — it is deciding which system is right when two of them disagree.',
   items:[
-   {id:'chat-tracker',t:'Chat to issue tracker',kind:'emul',s:'A tagged reply becomes a public or role-restricted, deduplicated comment on a Jira issue.'},
-   {id:'cross-system',t:'Crossing between systems that do not agree',kind:'note',s:'Eight integrations, and the rule each one needed.'},
+   {id:'chat-tracker',t:'One thread across Teams, Zoho and Jira',kind:'emul',s:'CRM owns routing and delivery state; stable markers make every ten-minute run safe to replay.'},
+   {id:'cross-system',t:'Who is allowed to be right?',kind:'note',s:'Field authority, reconciliation and refusal rules for systems that disagree.'},
    {id:'teams-jira',t:'Teams → CRM → Jira, and who owns what',kind:'plan',s:'An ownership matrix across four systems, a text contract as the mapping mechanism, and idempotency on both arms.'}]},
  {h:'Weekly reports, reminders and workflows', tag:'AUTOMATION',
   intro:'Hundreds of automations run the routine — workflows, blueprints, schedulers, external flows and server-side jobs. Sales leads get their weekly picture assembled for them; individual salespeople get the reminders that keep records moving, delivered where they already work rather than in an inbox nobody opens.',
@@ -547,11 +548,11 @@ const ZOHO_GROUPS=[
  {h:'Org tooling, CI/CD, deployment and the external server', tag:'PLATFORM',
   intro:'Tooling for the org itself: extraction the platform refuses to offer, a config history it never kept, an audit that names the limits of its own method — and, for the operations that do not fit inside the org at all, an external server that takes the heavy work and hands the result back.',
   items:[
-   {id:'orghealth',t:'Org health report',kind:'live',s:'1,240 functions placed against five entry channels.'},
-   {id:'solution',t:'Solution map',kind:'live',s:'Service lines against business units, coloured by the latest deal on each cell.'},
-   {id:'org-tooling',t:'Building tooling for an org that will not export itself',kind:'note',s:'Extraction, a config snapshot, a function audit, an external-call inventory, a credential boundary — five problems, one method.'},
-   {id:'deluge-cicd',t:'A deployment pipeline for a platform with no export',kind:'plan',s:'Snapshot, review, delivery — and a read-back that calls a save successful only when an independent read returns the same hash.'},
-   {id:'widget-system',t:'Seventy widgets as one system',kind:'plan',s:'A shared design system, a versioned component library, and an offline harness that stubs the platform SDK.'},
+   {id:'orghealth',t:'An org audit that names what it cannot see',kind:'live',s:'A generated 1,240-function org reconciled against five entry channels, with blind spots stated first.'},
+   {id:'solution',t:'A business map the standard CRM could not draw',kind:'live',s:'Service lines against business units, with live pipeline and opportunity creation in the same matrix.'},
+   {id:'org-tooling',t:'The engineering layer Zoho did not provide',kind:'note',s:'Pull the org into one searchable system, map dependencies and turn browser-only change into reviewed delivery.'},
+   {id:'deluge-cicd',t:'From browser-only code to reviewed delivery',kind:'plan',s:'Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.'},
+   {id:'widget-system',t:'Seventy widgets as one product system',kind:'plan',s:'Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.'},
    {id:'external-server',t:'The work that does not fit inside the org',kind:'plan',s:'Complex operations moved to an external server, and the line for deciding what goes out.'}]}
 ];
 /* AI is a capability across three layers of the platform, not a collection of
@@ -565,7 +566,7 @@ const AI_GROUPS=[
  {h:'AI in engineering', tag:'ENGINEERING',
   intro:'Zoho keeps most of its code behind browser editors and disconnected configuration screens, so the extraction and analysis layer had to exist before a model could be useful against it. With the org in one searchable system, AI designs functions and interfaces, generates Deluge, JavaScript and Python, reviews existing code, expands tests, identifies regression risk and analyses dependencies. Generation was never the bottleneck; verification is, so Git review, controlled deployment and automated checks decide what ships.',
   items:[
-   {id:'code-intelligence',t:'Code intelligence for a CRM that never exposed its codebase',kind:'plan',s:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.'},
+   {id:'code-intelligence',t:'Code intelligence across the whole org',kind:'plan',s:'Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.'},
    {id:'ai-workflow',t:'How AI-assisted delivery is verified',kind:'note',s:'Generated work passes source review, behavioural tests, leak guards and controlled promotion before production.'}],
   also:['org-tooling','deluge-cicd'], alsoLabel:'The tooling this runs on, on the Zoho tab'},
  {h:'AI as a business solution', tag:'WORKFLOWS',
@@ -2483,6 +2484,51 @@ function wireSFSync(){
   host.innerHTML = sfSyncFallbackSVG();
 }
 
+/* PAGE-COPY-MAP gives every case page a one-paragraph lead and an honest
+   material label. Neither had a home before: `vItem` prints the navigation
+   title and subtitle and then strips each renderer's own `.pagehead`, so a lead
+   written inside a renderer was never shown to anybody. Both registries are
+   keyed by page id and are optional — a page without an entry renders exactly
+   as it did. */
+const MAT={
+ event:['Production-derived demo'],
+ board:['Production-derived demo'],
+ solution:['Production-derived demo'],
+ orghealth:['Production-derived demo','Working audit tooling'],
+ 'org-tooling':['Working internal tool','Architecture write-up'],
+ 'chat-tracker':['Production-derived demo'],
+ 'cross-system':['Architecture write-up'],
+ 'chat-recap':['Production-derived demo'],
+ 'loss-analysis':['Architecture write-up','Contributed design'],
+ 'agent-journal':['Portfolio prototype','Pre-recorded parsing','Emulator writes only'],
+ 'mcp-product':['Working internal tool','Architecture write-up'],
+ 'ai-workflow':['Architecture write-up'],
+ harness:['Architecture write-up'],
+ generator:['Architecture write-up'],
+ 'ci-guards':['Architecture write-up'],
+ site:['Public production-shaped build'],
+ 'sf-lwc':['Cross-platform implementation demo']
+};
+const LEAD={
+ event:'One campaign record carries the event from preparation to follow-up: several hundred target contacts, a meeting schedule, a booking flow that checks people and rooms, and mobile interfaces for the team on the floor. The widgets share one data model, so every view is another operating surface over the same event rather than a separate tool.',
+ board:'The same event platform on the device people carry at the venue: a room timeline, team load, conflict and travel warnings, and a recap flow that writes back to CRM. The interface is designed for short interactions, unreliable attention and a host environment with no mobile developer tools.',
+ solution:'A programme record becomes an account-planning surface: business units on one axis, service lines on the other, and the latest deal visible in every cell. Unworked potential stays visible alongside pipeline, and a new opportunity starts from the exact row and column where the gap was found.',
+ orghealth:'A mature CRM accumulates automation nobody can fully account for. This report reconciles every function against rules, schedules, buttons, widgets and other functions, then distinguishes reachable code, unsupported assumptions and genuine audit gaps. The public dataset is generated; the instrument and the method are the real work.',
+ 'org-tooling':'Zoho exposes the running platform, but not the complete codebase, dependency graph or change history an engineering team needs. I built the missing layer around it: function extraction, configuration snapshots, dependency and invocation analysis, external-call inventory, Git review, and tools that deploy and run approved functions.',
+ 'chat-tracker':'A tagged Teams reply becomes the correct Jira comment without manual re-entry. The thread carries context, CRM carries routing and delivery state, and Jira owns the issue and its visibility. Every run is safe to replay, and missing routing data is skipped rather than guessed.',
+ 'cross-system':'Integration becomes dangerous when transport is implemented before ownership. These cases start by naming which system owns each field, what may fill an empty value, what must never overwrite a person, and when automation must refuse rather than guess.',
+ 'chat-recap':'Meetings held in Teams use Teams transcripts; meetings held elsewhere use Krisp. Both enter the same process: resolve the meeting and the account, gather the evidence, generate a recap to the corporate standard, validate it and write the structured result back to CRM. The source boundary is open to further providers without changing the workflow around it.',
+ 'loss-analysis':'A free-text explanation cannot be compared across deals. This design gathers evidence from six sources, materialises a human-correctable intermediate record, then asks the model to place the case inside the company’s own taxonomy. Evidence collection and classification are deliberately separated, so a correction does not require repeating the whole pipeline.',
+ 'agent-journal':'A write-capable agent needs more than a chat history. This portfolio prototype resolves a command against the live field list, validates the target, pauses on high-risk changes, and writes every proposed action to a filterable journal with the before and after state.',
+ 'mcp-product':'Claude works with CRM records and related operations through a scoped MCP surface connected to the surrounding Zoho tooling. Reusable skills combine record operations with function pull, analysis, deploy and run capabilities, turning one-off prompts into repeatable development, audit and operational workflows.',
+ 'ai-workflow':'AI is used throughout delivery: designing new functions and interfaces, generating Deluge, JavaScript and Python, reviewing existing code, expanding tests, identifying regression risk, analysing dependencies and maintaining documentation. The extracted org provides the context; Git review, controlled deployment and automated checks provide the acceptance boundary.',
+ harness:'A widget normally runs only inside a live CRM and the SDK it controls. I built an offline test harness around the subset the widget estate actually uses: lifecycle, record APIs, queries, function calls, connection calls, validation and failure envelopes. Production-derived interfaces can now be exercised before deployment, against repeatable data and deliberate failures.',
+ generator:'Random data makes every review noisy, while perfectly clean data removes the cases CRM software must survive. The generator solves both: a fixed seed makes every diff reproducible, and explicit defect injection creates missing emails, conflicting meetings and duplicate-looking identities on purpose.',
+ 'ci-guards':'Every public replica begins with private source material, so every file is a possible leak. The build checks generated-data integrity, scans source for values shaped like real org identifiers, hosts, domains or credentials, and runs the full behavioural suite before publication.',
+ site:'This site turns the offline widget harness into a public environment: production-derived interfaces run against synthetic records, an emulated platform SDK and deliberate latency, throttling, token and validation failures. The company and the surrounding application shells are invented; no employer endpoint, credential or internal identifier is present.',
+ 'sf-lwc':'The workflow is the constant: change the main employer with two ordered writes, restore the old state if the second fails, and surface field-access errors as user-facing messages. The Zoho widget and the Salesforce Lightning Web Component implement that same contract through different platform primitives.'
+};
+
 const PAGE={
   event:     {render:viewEventPage, wire:wireEventPage, wide:true},
   orghealth: {render:viewOrgHealth, wide:true,
@@ -2550,7 +2596,9 @@ function vItem(it){
   let h='<a class="back" href="#/'+it.tab+'">&larr; '+esc(it.group)+'</a>'
    +'<h1 style="font-size:clamp(26px,3.6vw,36px)">'+esc(it.t)+'</h1>'
    +'<p class="lede">'+esc(it.s)+'</p>'
-   +'<div style="margin:0 0 8px">'+kchip(it.kind)+'<span class="chip">'+esc(it.group)+'</span></div>';
+   +'<div style="margin:0 0 8px">'+kchip(it.kind)+'<span class="chip">'+esc(it.group)+'</span>'
+   +(MAT[it.id]||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+'</div>'
+   +(LEAD[it.id]?'<p class="pagelead">'+esc(LEAD[it.id])+'</p>':'');
 
   if(p)        h+='<div class="legacy">'+withoutPagehead(p.render())+'</div>';
   else if(c)   h+=vCase(c);
