@@ -77,7 +77,13 @@ await p.goto(U+'#/p/ai-workflow'); await p.waitForTimeout(400);
 const wfText = await p.locator('#view').textContent();
 say('ai-workflow has no "not built yet" placeholder', !/not built yet/.test(wfText));
 say('ai-workflow has no "write-up pending" placeholder', !/write-up pending/.test(wfText));
-say('ai-workflow reads constraint / built / trade', /constraint/i.test(wfText) && /built/i.test(wfText) && /trade/i.test(wfText));
+say('ai-workflow names the bottleneck before the tooling', /Generation is not the bottleneck/.test(wfText));
+say('ai-workflow states an acceptance boundary', /acceptance boundary/i.test(wfText));
+say('ai-workflow says what the gates cannot catch', /cannot catch/i.test(wfText));
+// the count in the prose is TEST_COUNT, not a number typed twice and drifted
+const wfCount = (wfText.match(/(\d+) headless checks/) || [])[1];
+say('ai-workflow quotes the same test count the page header uses ('+wfCount+')',
+    wfCount === await p.evaluate(() => String(TEST_COUNT)));
 
 await p.goto(U+'#/p/mcp-product'); await p.waitForTimeout(400);
 const mcpText = await p.locator('#view').textContent();
