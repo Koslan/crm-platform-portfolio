@@ -1,6 +1,6 @@
 ---
 page: "ci-guards"
-title: "CI guards against leaks"
+title: "A build that blocks employer data from reaching the portfolio"
 type: "write-up (CASES → vCase)"
 tab: "fullstack"
 group: "Full-stack"
@@ -12,12 +12,17 @@ source:
   body_case: "src/app.html · CASES['Full-stack'][2]"
 ---
 
-# CI guards against leaks
+# A build that blocks employer data from reaching the portfolio
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> An identifier scan that fails the build if anything resembling a real org id or key appears.
+> Identifier, credential and integrity checks run before anything is published.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Architecture write-up
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> Every public replica begins with private source material, so every file is a possible leak. The build checks generated-data integrity, scans source for values shaped like real org identifiers, hosts, domains or credentials, and runs the full behavioural suite before publication.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > A portfolio that leaks a real employer’s data is worse than no portfolio at all.
 
 ## The constraint

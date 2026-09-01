@@ -1,23 +1,28 @@
 ---
 page: "chat-recap"
-title: "Meeting recap from chat"
+title: "From transcript to a corporate-standard meeting recap"
 type: "live-demo (общий шаблон viewRecord)"
-tab: "zoho"
-group: "Integrations & sync"
+tab: "ai"
+group: "AI as a business solution"
 route: "#/p/chat-recap"
 kind: "emul"
 diagrams: 1
 source:
-  nav: "src/app.html · ZOHO_GROUPS · id=\"chat-recap\""
+  nav: "src/app.html · AI_GROUPS · id=\"chat-recap\""
   body: "src/app.html · REC · id=\"teams\""
 ---
 
-# Meeting recap from chat
+# From transcript to a corporate-standard meeting recap
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> A two-card wizard in a chat client, writing a structured recap into the CRM.
+> Teams, Krisp and future sources feed one governed evidence-to-recap pipeline.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Production-derived demo
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> Meetings held in Teams use Teams transcripts; meetings held elsewhere use Krisp. Both enter the same process: resolve the meeting and the account, gather the evidence, generate a recap to the corporate standard, validate it and write the structured result back to CRM. The source boundary is open to further providers without changing the workflow around it.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > The chat client on the left, the CRM record on the right, and a two-card flow between them. A trace panel shows every call as it is made.
 
 ## What to try
@@ -190,4 +195,18 @@ _Alt-текст (`aria`, читается скринридером):_ Seven-hop 
 
 ## Why it was not straightforward
 
-No step holds a synchronous request open while a person thinks; each card is a callback. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only return one string. The recap-fetch pipeline starts the moment the account is picked, long before anyone asks for it — two steps later the field is already filled. When there is no transcript, a second source is matched by score rather than by key, gated so the automatic link is refused if the known recording owner is not among the candidates; the link is written at a lower score than the text itself, because "I believe this is the meeting" and "I am willing to write data into it" are different decisions. Transcript access was switched off at the tenant level with no warning, so the pipeline records the stage it reached on the record itself — the answer to "why is this empty" lives in the data, not a run log.
+### Choosing the source is a different decision from writing the recap
+
+Meetings held in Teams have a Teams transcript. Meetings held anywhere else do not, and Krisp covers those. That choice is its own step with its own failure modes, not a branch buried inside the recap logic: read the meeting record, resolve the organiser to a directory identity, turn the join link into an online-meeting id, then ask whichever source owns that meeting for its captions. Everything downstream — the standard, the validation, the write-back — is identical whichever source answered, which is what makes a third provider a change to one step instead of a change to the workflow. Where no transcript exists at all, a candidate is matched by score rather than by key, and the automatic link is refused outright when the known recording owner is not among the candidates. The link is written at a lower score than the text is, because “I believe this is the meeting” and “I am willing to write data into it” are different decisions and deserve different thresholds.
+
+### What the corporate standard requires, and why the model does not choose it
+
+A recap here is not a summary. The company’s own standard fixes which sections a recap must contain, requires commitments to be pulled out as action items rather than left inside the narrative, and sets the register — plain, factual, no hedging and no commitment nobody actually made — because these are read by people who were not in the room and cannot check. Each part is written to its own CRM field instead of one long note, so the next stage of the deal can be filtered and reported on rather than read one record at a time. The model’s task is bounded to producing that structure from the captions it was handed; the structure itself is not its to invent. A draft that comes back missing a required section, or too short to be a recap of anything, is refused with the reason on screen rather than saved short.
+
+### The trace panel is the observability
+
+Every call the flow makes is written to the trace as it is made: the record read, the identity resolved, the source that answered, the step it stopped on. That panel is the primary proof this page offers, and it exists because of a real failure rather than a design preference. Transcript access was switched off at the tenant level with no warning and every listing call began returning a permission error; the pipeline records the stage it reached on the record itself, so “why is this empty” is answered by the data instead of by a run log nobody can reach. The same panel shows what the flow is not doing: no step holds a synchronous request open while a person thinks. Each card is a callback, and the recap pipeline starts the moment the account is picked — long before anyone asks for a recap — so two steps later the field is already filled.
+
+### A person corrects it before anything is saved
+
+Nothing goes from the model straight into the record. The draft returns to the card the person is already looking at, and the save is a deliberate act rather than the end of a pipeline. When the linked opportunity belongs to a different account, that choice travels as a marked value through a control that can only hand back one string — awkward, and still better than inferring it. The cost is named rather than hidden: this flow cannot run unattended. A meeting nobody opens gets no recap, and a backlog of un-reviewed drafts is ordinary operating reality here, not an edge case. Buying auditability with somebody’s attention is the trade, and it is only worth it because the output is written into fields the business reports on.

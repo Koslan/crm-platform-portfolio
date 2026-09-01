@@ -1,25 +1,30 @@
 ---
 page: "agent-journal"
-title: "A CRM agent with an action journal"
+title: "Controlled write-back with an action journal"
 type: "live-demo (свой рендерер PAGE)"
 tab: "ai"
-group: "AI in the CRM"
+group: "AI assistance inside CRM interfaces"
 route: "#/p/agent-journal"
 kind: "live"
 diagrams: 0
 source:
-  nav: "src/app.html · AI_ITEMS · id=\"agent-journal\""
+  nav: "src/app.html · AI_GROUPS · id=\"agent-journal\""
   body_case: "src/app.html · CASES['AI in the CRM'][1]"
   body_render: "src/app.html · PAGE['agent-journal'].render()"
 warning: "CASES-запись для этой страницы НЕ рендерится: PAGE перекрывает CASES в vItem()"
 ---
 
-# A CRM agent with an action journal
+# Controlled write-back with an action journal
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> Every action writes a before/after diff to a module. An opaque agent does not survive its first disputed edit.
+> Every proposed change carries a before/after diff and a human gate for high-risk fields.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Portfolio prototype · Pre-recorded parsing · Emulator writes only
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> A write-capable agent needs more than a chat history. This portfolio prototype resolves a command against the live field list, validates the target, pauses on high-risk changes, and writes every proposed action to a filterable journal with the before and after state.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > Designed and built for this portfolio; not run against a production org. Said plainly, because it would come out anyway.
 
 ## Текст страницы

@@ -1,9 +1,9 @@
 ---
 page: "chat-tracker"
-title: "Chat to issue tracker"
+title: "One thread across Teams, Zoho and Jira"
 type: "live-demo (общий шаблон viewRecord)"
 tab: "zoho"
-group: "Integrations & sync"
+group: "Connecting Teams, Slack and Jira to the CRM"
 route: "#/p/chat-tracker"
 kind: "emul"
 diagrams: 1
@@ -12,12 +12,17 @@ source:
   body: "src/app.html · REC · id=\"tracker\""
 ---
 
-# Chat to issue tracker
+# One thread across Teams, Zoho and Jira
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> A tagged reply becomes a public or role-restricted, deduplicated comment on a Jira issue.
+> CRM owns routing and delivery state; stable markers make every ten-minute run safe to replay.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Production-derived demo
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> A tagged Teams reply becomes the correct Jira comment without manual re-entry. The thread carries context, CRM carries routing and delivery state, and Jira owns the issue and its visibility. Every run is safe to replay, and missing routing data is skipped rather than guessed.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > Two recreated application screens, not one CRM shell: a Teams thread on one side, the Jira issue it routes to on the other.
 
 ## What to try
@@ -162,4 +167,18 @@ _Alt-текст (`aria`, читается скринридером):_ Six-step c
 
 ## Why it was not straightforward
 
-The mapping lives on the thread's root message, not the channel, because one channel carries several PITCH discussions — the channel registry (in Zoho Analytics) only says which channels to read at all. A hidden marker inside each comment body, plus an In_Jira flag on the stored message, is what makes a run every ten minutes idempotent. Attachments never upload: only their names travel across, as links back to Teams — a Jira comment can be closed to a role, but a file on that same issue cannot. Visibility is a Jira project role, not a client-side toggle, so a restricted comment is only as safe as the tracker's own permission model — and the sync runs one way on purpose, so a reply made straight on the Jira issue never finds its way back into the thread. A PITCH code typed only into a reply, never the root, is invisible to the router by design: trusting a later message would mean re-deciding the routing on every reply instead of once per thread.
+### Routing belongs to the thread root
+
+The mapping lives on the thread's root message, not the channel, because one channel carries several PITCH discussions — the channel registry only says which channels to read at all. A PITCH code typed into a reply but never into the root is invisible to the router by design: honouring a later message would mean re-deciding the routing on every reply instead of once per thread, and a thread whose destination can change halfway is a thread nobody can audit. A root with no code is skipped and reported, never guessed at.
+
+### Idempotency exists in both systems
+
+A run every ten minutes has to be safe to repeat, and one marker is not enough for that. The CRM holds a delivery flag on the stored message; each posted comment holds a hidden marker in its own body. Before posting, the run searches the issue for that marker, and finding one skips the comment and the acknowledgement together. The two survive different accidents — the CRM flag outlives a deleted Jira comment, the marker outlives a rebuilt CRM row — so the pair is what makes a replay a no-op rather than a second comment.
+
+### Restricted comments do not make files private
+
+A comment can be locked to a Jira project role. A file attached to the same issue cannot. So attachments are never uploaded: only their names travel, as links back to the thread they came from, where the original permission model still applies. This is a limitation stated rather than solved — a restricted comment is exactly as private as the tracker's own role model, which is a weaker guarantee than the chat thread it was copied out of, and anyone using it should know that before they type.
+
+### The integration is one-way on purpose
+
+Replies flow from the thread to the issue and never back. Two-way would mean deciding, on every edit, which side is authoritative for a comment both systems now hold, and that question has no good default — only a choice about whose edit gets silently discarded. The cost of refusing it is real and worth naming: someone who answers on the Jira issue has answered only on the Jira issue, and the thread will not show it.

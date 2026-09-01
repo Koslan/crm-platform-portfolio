@@ -1,6 +1,6 @@
 ---
 page: "generator"
-title: "A seeded dataset with deliberate defects"
+title: "Repeatable test data that still behaves like a real CRM"
 type: "write-up (CASES → vCase)"
 tab: "fullstack"
 group: "Full-stack"
@@ -12,12 +12,17 @@ source:
   body_case: "src/app.html · CASES['Full-stack'][1]"
 ---
 
-# A seeded dataset with deliberate defects
+# Repeatable test data that still behaves like a real CRM
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> Same seed, same data, reviewable diffs — and a build that fails on a dangling reference.
+> The same seed produces the same records; deliberate defects keep the demos honest.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Architecture write-up
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> Random data makes every review noisy, while perfectly clean data removes the cases CRM software must survive. The generator solves both: a fixed seed makes every diff reproducible, and explicit defect injection creates missing emails, conflicting meetings and duplicate-looking identities on purpose.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > Random data makes every diff noisy; clean data makes the demo dishonest, because a real CRM is never this tidy.
 
 ## The constraint

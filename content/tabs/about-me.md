@@ -16,17 +16,17 @@ source:
 
 ## HERO
 
-CRM Platform Engineer · Warsaw, Poland (CET) · remote / hybrid
+Zoho CRM Engineer / Technical Lead · Integrations · Applied AI
 
 # Kostiantyn Buriak
 
-Seven years in commercial software engineering: six on CRM platforms — Zoho and Salesforce — building interfaces inside the CRM, integrations that survive real failure, and tooling for orgs that do not export themselves. The demos on this site are the production code, running in your browser against invented data.
+Seven years in software engineering and more than five working with CRM platforms, including more than three years as the primary engineer and technical owner of Zoho CRM. I own the platform end to end: data architecture, automation, integrations, interfaces, release engineering and production support. This portfolio runs production-derived interfaces against synthetic data, so the decisions, failure paths and trade-offs can be explored without exposing an employer’s environment.
 
 [Download CV](Kostiantyn_Buriak_CV.pdf)[LinkedIn](https://www.linkedin.com/in/kburiak)[GitHub](https://github.com/koslan)[WhatsApp](https://wa.me/48732579181)[Email](mailto:buriak.kostiantyn@gmail.com)
 
-- **7 yrs** in software
-- **15** live demos
-- **21** write-ups
+- **7 yrs** software engineering
+- **5+ yrs** across CRM platforms
+- **3+ yrs** owning Zoho CRM
 - **3** SF certifications
 
 _[изображение: Kostiantyn Buriak]_
@@ -37,25 +37,25 @@ _[изображение: Kostiantyn Buriak]_
 
 ## If you have five minutes
 
-Three screens that show the range fastest — a record page with live widgets, a hand-built matrix, and an audit of an entire org.
+Three screens that show the target role fastest — a platform-scale CRM product, a cross-system integration and an audit of an entire org.
 
 [
 
-### Event campaign page
+### One event system, end to end
 
-A campaign record with three widgets and the five-step booking wizard.
+Targeting, booking, conflict checks, mobile execution and reconciliation on one campaign record.
 
 Live demo](#/p/event)[
 
-### Solution map
+### One thread across Teams, Zoho and Jira
 
-Service lines against business units, coloured by the latest deal on each cell.
+CRM owns routing and delivery state; stable markers make every ten-minute run safe to replay.
 
-Live demo](#/p/solution)[
+Emulated flow](#/p/chat-tracker)[
 
-### Org health report
+### An org audit that names what it cannot see
 
-1,240 functions placed against five entry channels.
+A generated 1,240-function org reconciled against five entry channels, with blind spots stated first.
 
 Live demo](#/p/orghealth)
 
@@ -107,9 +107,9 @@ business analysisRoom 8, SoftServe · since 2021Requests arrive as “add a fiel
 
 ## 04 / EXPERIENCE
 
-## Where the six years happened
+## Where the seven years happened
 
-From a support desk in Odesa, through Java backends and three years of Salesforce consulting, to owning a production CRM platform end to end. Newest first.
+More than five years across CRM platforms, read as one track rather than two specialisations: three consulting years delivering Salesforce, then ownership of a production Zoho platform end to end. That earlier Salesforce work — Apex, Lightning Web Components, integrations, security and release pipelines — is the cross-platform foundation behind the architecture and delivery decisions shown throughout this portfolio. Newest first.
 
 2023 — now
 
@@ -121,7 +121,7 @@ current
 
 remote · global game development services company
 
-**Sole developer and accountable owner** of a production Zoho CRM platform serving sales operations, business development and regional teams across multiple countries — data model, automation, widgets, integrations, migrations, release process and post-go-live support. Own the digital roadmap: gather demand from commercial and operations stakeholders, prioritise against business impact and delivery capacity, and sequence releases so change lands without disrupting live operations.
+**Primary engineer and technical owner** of a production Zoho CRM platform serving sales operations, business development and regional teams across multiple countries — data model, automation, widgets, integrations, migrations, release process and post-go-live support. Own the digital roadmap: gather demand from commercial and operations stakeholders, prioritise against business impact and delivery capacity, and sequence releases so change lands without disrupting live operations.
 
 **Inherited — April 2023** — 
 

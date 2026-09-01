@@ -1,9 +1,9 @@
 ---
 page: "cross-system"
-title: "Crossing between systems that do not agree"
+title: "Who is allowed to be right?"
 type: "write-up (CASES → vCase)"
 tab: "zoho"
-group: "Integrations & sync"
+group: "Connecting Teams, Slack and Jira to the CRM"
 route: "#/p/cross-system"
 kind: "note"
 diagrams: 2
@@ -12,23 +12,38 @@ source:
   body_case: "src/app.html · CASES['Integration and sync'][0]"
 ---
 
-# Crossing between systems that do not agree
+# Who is allowed to be right?
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> Eight integrations, and the rule each one needed.
+> Field authority, reconciliation and refusal rules for systems that disagree.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Architecture write-up
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> Integration becomes dangerous when transport is implemented before ownership. These cases start by naming which system owns each field, what may fill an empty value, what must never overwrite a person, and when automation must refuse rather than guess.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > Eight integrations across Teams, calendars, Jira and conference exports. No shared key, no second delivery, no shared permission model — and, in three of them, a deliberate stop short of full automation.
+
+## Блок содержания (`contents`)
+
+- **Who owns the field?** (`sec-who-owns`) — Authority, reconciliation, and the human edit that has to survive an automatic resync.
+- **How does the sync resume?** (`sec-resume`) — Checkpoints, callbacks, and isolating a failure to the system that actually caused it.
+- **When should automation refuse?** (`sec-refuse`) — Score thresholds, ambiguous matches, and the queue a person works instead.
 
 ## The common shape
 
 Every one of these crosses a boundary the CRM does not own. On the other side sits a calendar that cannot be asked about every meeting, a chat card that cannot fetch a row, an events feed that never re-sends, a tracker whose files cannot be closed to a role, and a conference export whose company column is regularly wrong. None of that can be fixed from this side, so the work is deciding — in writing, before the code — what the CRM is allowed to believe, what it is allowed to overwrite, and where it should stop and hand the row to a person. Eight of those decisions follow, ordered by the question each one answers.
 
+## Who owns the field?
+
+Three of these are the same argument in different clothes: two systems hold a value, both have a legitimate claim to it, and something has to decide which one is allowed to be right. The answer is never “whichever wrote last”, because that rule silently prefers the system that runs most often over the one that knows most.
+
 ## Which system is allowed to be right
 
 A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record. Written down as a table, this settles most arguments before they start. Enforcement lives in the payload builder, where create and update are separated: two fields are never written at all because of length ceilings, and one is truncated. The source gives the mechanism, not the field names, so the three placeholder rows in the matrix below are left unnamed rather than guessed.
 
-<!-- diagram · authority · вставляется после секции body[1] · источник: CASES · dgs[0] -->
+<!-- diagram · authority · вставляется после секции body[2] · источник: CASES · dgs[0] -->
 
 ### Диаграмма — матрица владения
 
@@ -81,7 +96,7 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
 ```json
 {
  "kind": "authority",
- "at": 2,
+ "at": 3,
  "aria": "Ownership matrix: eight meeting fields against Calendar, CRM, Chat and Issue tracker, with the rule Time belongs to the calendar, judgement belongs to the CRM, delivery belongs to the tracker, chat owns nothing",
  "cols": [
   {
@@ -250,6 +265,26 @@ A meeting is held, or declined, or still booked. Deciding it from the calendar m
 
 Every time a meeting updates from the calendar, its participant list is rebuilt: internal people matched against the staff directory, external ones against the account’s contacts. But the calendar knows nothing about buyer roles — economic, technical, user, coach — and those are exactly what somebody sat down and worked out. So existing participants are read first and indexed by a composite key of address and role; for each external address the rebuild checks all four roles for an existing key before assigning anything, and restores the role it finds. Only a genuinely new person gets a default. Historic rows carry the old spelling of those roles, from before the picklist was renamed, so a second pass maps the old values onto the new ones rather than quietly dropping the classification on every record created before the rename. What stays risky is the write path: the roles live in a subform, and a subform is replaced wholesale rather than patched row by row, so anything not in the array being sent stops existing. The role-restoring logic makes the content correct and does nothing about that. Saying so is more useful than implying the problem is solved.
 
+## How does the sync resume?
+
+Three more are about what happens after a run stops halfway. Events are not re-sent, a person filling in a form is slower than any request will wait, and a corporate proxy fails in a way that looks exactly like the other system rejecting you. Each of these needed a checkpoint, a callback, or a way to prove which side actually broke.
+
+## A receiver that repairs its own payload
+
+Events are not re-sent. A rejected write is a lost event, and the reason is unknown in advance: a date format, a length, a missing mandatory field, or a duplicate rule. So a five-attempt loop reads the field name out of the CRM error and rewrites the payload between attempts — a missing mandatory field gets a marked placeholder, any other named field is dropped and the attempt repeats, and a duplicate error carrying a record id switches the operation from create to update. When the culprit cannot be identified the loop stops on purpose instead of spinning. Everything dropped or substituted comes back in the response, so the record is saved degraded but visible. Idempotency is separate: a rolling journal of processed event ids on the record itself, which means a very old event could in theory be processed twice — the alternative was a record and an API call per event. A placeholder in a mandatory field puts marked rubbish in the data, which still beats a missing record.
+
+## A two-card wizard in a chat, with nothing held open
+
+A person takes minutes to fill in a form; a synchronous call has seconds. The trigger has to answer quickly, and a card is not an application: it has no state, cannot fetch more rows, and ends when it is submitted. Holding the request open while somebody thinks is not slow — it is impossible. So every human step is a callback subscription rather than a wait: the card posts, the flow suspends, the answer arrives as a new event. Around the card sits a loop — the card reports which button was pressed, and if it was a search rather than a submit, the loop reissues the card with fresh results, which is how a search across hundreds of accounts happens inside something that cannot fetch. The loop is bounded, a fixed number of iterations and half an hour, so a card somebody forgot about cannot hold a run open indefinitely. One detail is worth keeping: a dropdown returns exactly one value, so when the opportunity already linked to the meeting belongs to a different account it travels as a marked value — a prefix the saving function recognises and strips — and both ends know the choice was deliberate, through a control that cannot carry a flag. The first design edited the previous card in place, which meant tracking message identifiers and lost a race whenever two events arrived close together; replacing the card instead costs a little clutter in the chat and removes the entire class of problem.
+
+## Attachments as links, after proving the proxy was the problem
+
+Three constraints at once. The tracker is only reachable through a corporate proxy; the proxy answers the upload endpoint with 200 and an empty body, and no attachment appears; and the tracker itself cannot limit a file by visibility — a comment can be closed to a role, a file is visible to everyone who can see the issue, and the files that needed closing were the ones with rates in them. Localisation came by experiment rather than guesswork: downloading from storage works; building a multipart body works and 160 KB takes 0.88 seconds, so the bytes really do leave; JSON endpoints through the same proxy answer with content, including validation errors. Conclusion: the multipart body is what is lost. The fix is not a file but a remote link — a JSON call carrying a stable global id. JSON passes the proxy, the global id makes a ten-minute sync idempotent, and the link inherits the permissions of the storage it points at, which solves the third problem too. The file is not physically in the tracker, so someone without access to the folder hits a login — accepted deliberately, because the alternative hands rates to everyone who can open the issue.
+
+## When should automation refuse?
+
+The last two are the ones where the correct behaviour was to stop. Both had enough evidence to make a confident guess and not enough to be right, and a confident wrong link is more expensive than no link at all — it gets believed. Both end in a queue a person works rather than a decision the system made alone.
+
 ## Matching transcripts by score, not by key
 
 A transcript arrives with its own identifier, its own clock and its own attendee list. Time is the only shared signal, and it is weak: a sixty-minute meeting may have run twenty-two, so “same time” becomes an overlap problem between intervals of different length. The answer is a score rather than a boolean. Overlap is measured as two coverage ratios and the larger is taken, so a meeting nested inside another still scores full, with a penalty proportional to the duration gap subtracted. Modifiers follow: a service hint, e-mail addresses lifted out of the transcript body and intersected with the attendee list, a penalty when a transcript already exists. The strongest modifier is the recording owner — a bonus when they are present, a penalty when the attendee list is populated and they are not. Above the score sits a gate: if the owner is known and the best candidate does not contain them, a second pass runs, and if nothing qualifies the automatic link is refused outright. Two thresholds instead of one: the link is written above forty, the transcript text is only copied into the meeting above sixty. “I think this is the meeting” and “I am willing to write data into it” are deliberately different decisions, and every candidate is kept with its score for a human to review.
@@ -258,7 +293,7 @@ A transcript arrives with its own identifier, its own clock and its own attendee
 
 Several hundred rows, no shared key with anything, and half the company names in the file are wrong. There is no single identifier: profile URLs are written differently on each side, email is missing for many people, the company column is regularly wrong, and enrichment names are sometimes mangled. So not a match — a classification, worked independently per bucket, as the funnel below sets out. Three write rules are what make the tool safe to run twice: a name is corrected only when the surname differs, because otherwise every Alex becomes an Alexander; title and email are filled only into an empty field and never over a live value; and everything else that merely differs is reported for a human to look at.
 
-<!-- diagram · funnel · вставляется после секции body[5] · источник: CASES · dgs[0] -->
+<!-- diagram · funnel · вставляется после секции body[11] · источник: CASES · dgs[0] -->
 
 ### Диаграмма — воронка
 
@@ -315,7 +350,7 @@ _Alt-текст (`aria`, читается скринридером):_ Funnel fro
 ```json
 {
  "kind": "funnel",
- "at": 6,
+ "at": 12,
  "aria": "Funnel from a conference export through four ordered rules to seven outcome buckets, two of them worked by a person",
  "input": {
   "n": "Conference export",
@@ -437,22 +472,10 @@ _Alt-текст (`aria`, читается скринридером):_ Funnel fro
 
 </details>
 
-## A receiver that repairs its own payload
-
-Events are not re-sent. A rejected write is a lost event, and the reason is unknown in advance: a date format, a length, a missing mandatory field, or a duplicate rule. So a five-attempt loop reads the field name out of the CRM error and rewrites the payload between attempts — a missing mandatory field gets a marked placeholder, any other named field is dropped and the attempt repeats, and a duplicate error carrying a record id switches the operation from create to update. When the culprit cannot be identified the loop stops on purpose instead of spinning. Everything dropped or substituted comes back in the response, so the record is saved degraded but visible. Idempotency is separate: a rolling journal of processed event ids on the record itself, which means a very old event could in theory be processed twice — the alternative was a record and an API call per event. A placeholder in a mandatory field puts marked rubbish in the data, which still beats a missing record.
-
-## A two-card wizard in a chat, with nothing held open
-
-A person takes minutes to fill in a form; a synchronous call has seconds. The trigger has to answer quickly, and a card is not an application: it has no state, cannot fetch more rows, and ends when it is submitted. Holding the request open while somebody thinks is not slow — it is impossible. So every human step is a callback subscription rather than a wait: the card posts, the flow suspends, the answer arrives as a new event. Around the card sits a loop — the card reports which button was pressed, and if it was a search rather than a submit, the loop reissues the card with fresh results, which is how a search across hundreds of accounts happens inside something that cannot fetch. The loop is bounded, a fixed number of iterations and half an hour, so a card somebody forgot about cannot hold a run open indefinitely. One detail is worth keeping: a dropdown returns exactly one value, so when the opportunity already linked to the meeting belongs to a different account it travels as a marked value — a prefix the saving function recognises and strips — and both ends know the choice was deliberate, through a control that cannot carry a flag. The first design edited the previous card in place, which meant tracking message identifiers and lost a race whenever two events arrived close together; replacing the card instead costs a little clutter in the chat and removes the entire class of problem.
-
-## Attachments as links, after proving the proxy was the problem
-
-Three constraints at once. The tracker is only reachable through a corporate proxy; the proxy answers the upload endpoint with 200 and an empty body, and no attachment appears; and the tracker itself cannot limit a file by visibility — a comment can be closed to a role, a file is visible to everyone who can see the issue, and the files that needed closing were the ones with rates in them. Localisation came by experiment rather than guesswork: downloading from storage works; building a multipart body works and 160 KB takes 0.88 seconds, so the bytes really do leave; JSON endpoints through the same proxy answer with content, including validation errors. Conclusion: the multipart body is what is lost. The fix is not a file but a remote link — a JSON call carrying a stable global id. JSON passes the proxy, the global id makes a ten-minute sync idempotent, and the link inherits the permissions of the storage it points at, which solves the third problem too. The file is not physically in the tracker, so someone without access to the folder hits a login — accepted deliberately, because the alternative hands rates to everyone who can open the issue.
-
 ## What the eight have in common
 
 Three habits, and they are the actual content of this page. Write the ownership rule down before the code, because a rule that lives only in someone’s head gets re-decided on every sync. Separate “I think this is right” from “I am willing to write it” — the two thresholds in the transcript matcher, the create-versus-update split in the payload builder, the fill-only-into-an-empty-field rule in the import. And leave the ambiguous rows to a person on purpose: the funnel above ends in two human buckets, the transcript matcher refuses a link rather than guessing, and the receiver itemises what it dropped instead of hiding it. Each of those costs throughput, and each was the right trade at this volume. Where it is not — the wholesale subform write, the month-long lag on a cancellation, the rolling idempotency journal — is named in the sections above rather than smoothed over.
 
 ## See it live
 
-Блок-callout внизу страницы ведёт на `#/p/event` — Event campaign page.
+Блок-callout внизу страницы ведёт на `#/p/event` — One event system, end to end.

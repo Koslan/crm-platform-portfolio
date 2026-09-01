@@ -1,21 +1,26 @@
 ---
 page: "sf-lwc"
-title: "One screen, two platforms"
+title: "One workflow, implemented on two CRM platforms"
 type: "live-demo (свой рендерер PAGE)"
-tab: "salesforce"
-group: "Salesforce"
+tab: "zoho"
+group: "Cleaning up contacts, deduplication and enrichment"
 route: "#/p/sf-lwc"
 kind: "live"
 diagrams: 0
 source:
-  nav: "src/app.html · SF_ITEMS · id=\"sf-lwc\""
+  nav: "src/app.html · ZOHO_GROUPS · id=\"sf-lwc\""
   body_render: "src/app.html · PAGE['sf-lwc'].render()"
 ---
 
-# One screen, two platforms
+# One workflow, implemented on two CRM platforms
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> The employment-history widget, ported to a Lightning Web Component, next to the Zoho original.
+> The same employment-history contract in a Zoho widget and a real Lightning Web Component.
+>
+> **Material labels** (`MAT`): Cross-platform implementation demo
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> The workflow is the constant: change the main employer with two ordered writes, restore the old state if the second fails, and surface field-access errors as user-facing messages. The Zoho widget and the Salesforce Lightning Web Component implement that same contract through different platform primitives.
 
 ## Текст страницы
 

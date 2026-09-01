@@ -1,6 +1,6 @@
 ---
 page: "site"
-title: "This site itself"
+title: "A production-shaped CRM environment in one static file"
 type: "live-demo (свой рендерер PAGE)"
 tab: "fullstack"
 group: "Full-stack"
@@ -12,10 +12,15 @@ source:
   body_render: "src/app.html · PAGE['site'].render()"
 ---
 
-# This site itself
+# A production-shaped CRM environment in one static file
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> One static file, no backend, hash routing, an emulated platform SDK underneath.
+> Production-derived interfaces, synthetic data, an emulated SDK and deliberate failure modes — no backend required.
+>
+> **Material labels** (`MAT`): Public production-shaped build
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> This site turns the offline widget harness into a public environment: production-derived interfaces run against synthetic records, an emulated platform SDK and deliberate latency, throttling, token and validation failures. The company and the surrounding application shells are invented; no employer endpoint, credential or internal identifier is present.
 
 ## Текст страницы
 

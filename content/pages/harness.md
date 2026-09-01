@@ -1,6 +1,6 @@
 ---
 page: "harness"
-title: "The test harness this site grew from"
+title: "Running CRM interfaces before they reach the CRM"
 type: "write-up (CASES → vCase)"
 tab: "fullstack"
 group: "Full-stack"
@@ -12,12 +12,17 @@ source:
   body_case: "src/app.html · CASES['Full-stack'][0]"
 ---
 
-# The test harness this site grew from
+# Running CRM interfaces before they reach the CRM
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> Playwright, 240 headless checks, failing on any console error.
+> An offline SDK surface and 273 browser checks, failing on any console error.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Architecture write-up
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> A widget normally runs only inside a live CRM and the SDK it controls. I built an offline test harness around the subset the widget estate actually uses: lifecycle, record APIs, queries, function calls, connection calls, validation and failure envelopes. Production-derived interfaces can now be exercised before deployment, against repeatable data and deliberate failures.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > A widget only runs inside the CRM, and deploying to production to see if a change works is not verification.
 
 ## The constraint
@@ -26,7 +31,7 @@ Every widget on this site is an iframe the platform loads, initialised through a
 
 ## What was built
 
-A stand: stubbed SDK primitives plus a headless browser, so every widget on this site runs the same code it would run inside the CRM, against a generated dataset, with nothing live behind it. Checks spread across many files cover routing, the record pages, both booking wizards and the chat flow. The suite fails on any console error, not only a failed assertion — a widget that quietly logs and carries on is still a bug. `test/browser.mjs` locates Playwright wherever it happens to live, a local devDependency or a global CI install, so the same test files run unmodified in both places.
+An offline test harness: stubbed SDK primitives plus a headless browser, so every widget on this site runs the same code it would run inside the CRM, against a generated dataset, with nothing live behind it. Checks spread across many files cover routing, the record pages, both booking wizards and the chat flow. The suite fails on any console error, not only a failed assertion — a widget that quietly logs and carries on is still a bug. `test/browser.mjs` locates Playwright wherever it happens to live, a local devDependency or a global CI install, so the same test files run unmodified in both places.
 
 ## The trade
 

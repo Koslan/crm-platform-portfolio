@@ -89,18 +89,19 @@ const D = await p.evaluate(() => {
     about.push({ idx, html: sec.innerHTML });
   });
   const own = {};
-  for (const id of ['event','orghealth','sf-lwc','sf-sync','agent-journal','site']) {
+  for (const id of ['event','orghealth','sf-lwc','agent-journal','site']) {
     const w = document.createElement('div'); w.innerHTML = PAGE[id].render();
     w.querySelectorAll('script,.dg-detail').forEach(n=>n.remove());
     own[id] = w.innerHTML;
   }
   return { CASES:clone(CASES), REC:clone(REC), STORY:clone(STORY), TIPS:clone(TIPS),
     ABOUT:clone(ABOUT), EDGES:clone(EDGES), CO:clone(CO), PAIR:clone(PAIR),
-    ZOHO_GROUPS:clone(ZOHO_GROUPS), AI_ITEMS:clone(AI_ITEMS), SF_ITEMS:clone(SF_ITEMS), FS_ITEMS:clone(FS_ITEMS),
+    ZOHO_GROUPS:clone(ZOHO_GROUPS), AI_GROUPS:clone(AI_GROUPS), SF_ITEMS:clone(SF_ITEMS), FS_ITEMS:clone(FS_ITEMS),
+    LEAD:clone(LEAD), MAT:clone(MAT), RELATED:clone(RELATED),
     ALL:Object.fromEntries(Object.entries(ALL).map(([k,v])=>[k,{t:v.t,s:v.s,kind:v.kind,tab:v.tab,group:v.group}])),
     pageIds:Object.keys(PAGE), about, own, TEST_COUNT,
     ledes:{ zoho:strip(vZoho().split('<div class="sechead"')[0]), ai:strip(vAI().split('<div class="sechead"')[0]),
-            salesforce:strip(vSF().split('<div class="sechead"')[0]), fullstack:strip(vFS().split('<div class="sechead"')[0]) }
+            fullstack:strip(vFS().split('<div class="sechead"')[0]) }
   };
 });
 await b.close();
@@ -113,7 +114,7 @@ const put = (f, s) => { writeFileSync(root+'/'+f, s.replace(/\n{4,}/g,'\n\n\n'))
 const CASE_BY_ID = {}; const CAT_BY_ID = {};
 for (const [cat,l] of Object.entries(D.CASES)) l.forEach((c,i)=>{ CASE_BY_ID[c.id]=c; CAT_BY_ID[c.id]=[cat,i]; });
 const REC_BY_PAGE = { solution:'solution', board:'board', 'chat-recap':'teams', 'chat-tracker':'tracker' };
-const OWN = ['event','orghealth','sf-lwc','sf-sync','agent-journal','site'];
+const OWN = ['event','orghealth','sf-lwc','agent-journal','site'];
 
 /* ---------- страницы ---------- */
 for (const [id, meta] of Object.entries(D.ALL)) {
@@ -125,7 +126,7 @@ for (const [id, meta] of Object.entries(D.ALL)) {
   const type = rec ? 'live-demo (общий шаблон viewRecord)'
              : isOwn ? (meta.kind === 'note' ? 'write-up (свой рендерер PAGE)' : 'live-demo (свой рендерер PAGE)')
              : c ? 'write-up (CASES → vCase)' : '—';
-  const src = { nav:`src/app.html · ${meta.tab==='zoho'?'ZOHO_GROUPS':meta.tab==='ai'?'AI_ITEMS':meta.tab==='salesforce'?'SF_ITEMS':'FS_ITEMS'} · id="${id}"` };
+  const src = { nav:`src/app.html · ${meta.tab==='zoho'?'ZOHO_GROUPS':meta.tab==='ai'?'AI_GROUPS':'FS_ITEMS'} · id="${id}"` };
   if (rec)   src.body = `src/app.html · REC · id="${rec.id}"`;
   if (c)     src.body_case = `src/app.html · CASES['${CAT_BY_ID[id][0]}'][${CAT_BY_ID[id][1]}]`;
   if (isOwn) src.body_render = `src/app.html · PAGE['${id}'].render()`;
@@ -136,16 +137,30 @@ for (const [id, meta] of Object.entries(D.ALL)) {
     ...(shadowed?{warning:'CASES-запись для этой страницы НЕ рендерится: PAGE перекрывает CASES в vItem()'}:{}) });
 
   s += `\n# ${meta.t}\n\n> **Подпись в навигации** (\`s\`) — видна на карточке в списке:\n> ${meta.s}\n`;
-  if (rec) s += `>\n> **Подзаголовок страницы** (\`sub\`):\n> ${rec.sub}\n`;
-  if (c)   s += `>\n> **Подзаголовок страницы** (\`sub\`):\n> ${c.sub}\n`;
+  if (D.MAT[id])  s += `>\n> **Material labels** (\`MAT\`): ${D.MAT[id].join(' · ')}\n`;
+  if (D.LEAD[id]) s += `>\n> **Лид страницы** (\`LEAD\`) — абзац под подписью:\n> ${D.LEAD[id]}\n`;
+  /* `sub` больше не виден на сайте: vItem срезает .pagehead целиком, а лид берётся
+     из LEAD. Оставлен в экспорте как исходный материал, но помечен честно. */
+  if (rec) s += `>
+> **`+'`sub`'+` — НЕ рендерится, см. LEAD:**
+> ${rec.sub}
+`;
+  if (c)   s += `>
+> **`+'`sub`'+` — НЕ рендерится, см. LEAD:**
+> ${c.sub}
+`;
 
   if (rec) {
     s += `\n## What to try\n\n` + rec.try.map(t=>`- ${t}`).join('\n') + '\n';
     if (rec.dg) s += diagramMd(rec.dg, `REC['${rec.id}'].dg`);
-    s += `\n## Why it was not straightforward\n\n${rec.why}\n`;
+    s += `\n## Why it was not straightforward\n`;
+    if (rec.whyParts) rec.whyParts.forEach(([h,t])=>{ s += `\n### ${h}\n\n${t}\n`; });
+    else s += `\n${rec.why}\n`;
   }
   if (c && !shadowed) {
     if (c.role) s += `\n> **My role on this one:** ${c.role}\n`;
+    if (c.contents) s += `\n## Блок содержания (\`contents\`)\n\n`
+      + c.contents.map(([aid,q,blurb])=>`- **${q}** (\`sec-${aid}\`) — ${blurb}`).join('\n') + '\n';
     const specs = (c.dgs || (c.dg?[c.dg]:[])).slice().sort((a,b)=>(a.at??1)-(b.at??1));
     c.body.forEach(([h,t],i)=>{
       specs.filter(d=>(d.at??1)===i).forEach((d,j)=>{ s += diagramMd(d, `CASES · dgs[${j}]`); });
@@ -164,23 +179,46 @@ for (const [id, meta] of Object.entries(D.ALL)) {
     c.body.forEach(([h,t])=>{ s += `### ${h}\n\n${t}\n\n`; });
   }
   if (D.PAIR[id]) s += `\n## See it live\n\nБлок-callout внизу страницы ведёт на \`#/p/${D.PAIR[id]}\` — ${D.ALL[D.PAIR[id]].t}.\n`;
+  if (D.RELATED[id]) s += `\n## Related\n\n`
+    + D.RELATED[id].filter(r=>D.ALL[r]).map(r=>`- [\`${r}\`](./${r}.md) — ${D.ALL[r].t}`).join('\n') + '\n';
   put(`pages/${id}.md`, s);
 }
 
 /* ---------- табы ---------- */
-const tabItems = { zoho:D.ZOHO_GROUPS.flatMap(g=>g.items), ai:D.AI_ITEMS, salesforce:D.SF_ITEMS, fullstack:D.FS_ITEMS };
-const tabTitle = { zoho:'Zoho', ai:'AI in the CRM', salesforce:'Salesforce', fullstack:'Full-stack' };
+/* sf-lwc lives under a Zoho group rather than on a tab of its own, so it is
+   appended to the Zoho listing the same way `reg()` appends it in the site. */
+const tabItems = { zoho:[...D.ZOHO_GROUPS.flatMap(g=>g.items), ...D.SF_ITEMS],
+                   ai:D.AI_GROUPS.flatMap(g=>g.items), fullstack:D.FS_ITEMS };
+const tabTitle = { zoho:'Zoho', ai:'Applied AI', fullstack:'Full-stack' };
 for (const [tab, items] of Object.entries(tabItems)) {
   let s = fm({ tab, title:tabTitle[tab], route:`#/${tab}`, items:items.length,
-    source:{ lede:`src/app.html · v${tab==='zoho'?'Zoho':tab==='ai'?'AI':tab==='salesforce'?'SF':'FS'}()`,
-             items:`src/app.html · ${tab==='zoho'?'ZOHO_GROUPS':tab==='ai'?'AI_ITEMS':tab==='salesforce'?'SF_ITEMS':'FS_ITEMS'}` } });
+    source:{ lede:`src/app.html · v${tab==='zoho'?'Zoho':tab==='ai'?'AI':'FS'}()`,
+             items:`src/app.html · ${tab==='zoho'?'ZOHO_GROUPS':tab==='ai'?'AI_GROUPS':'FS_ITEMS'}` } });
   s += `\n# ${tabTitle[tab]}\n\n## Лид страницы\n\n${D.ledes[tab]}\n\n## Карточки\n\n`;
   s += '| id | Заголовок (`t`) | Подпись (`s`) | Вид |\n| --- | --- | --- | --- |\n';
   items.forEach(i=>{ s += `| [\`${i.id}\`](../pages/${i.id}.md) | ${i.t} | ${i.s} | ${i.kind} |\n`; });
-  if (tab==='zoho') {
-    s += `\n## Группы (сейчас не показываются на индексе)\n\nИндекс Zoho рендерится одной сеткой; группы остались в \`ZOHO_GROUPS\` `
-       + `и дают хлебную крошку и prev/next на страницах элементов.\n\n`;
-    D.ZOHO_GROUPS.forEach(g=>{ s += `### ${g.h}\n\n${g.intro}\n\nВходят: ${g.items.map(i=>'`'+i.id+'`').join(', ')}\n\n`; });
+  const groups = tab==='zoho' ? D.ZOHO_GROUPS : tab==='ai' ? D.AI_GROUPS : null;
+  if (groups) {
+    s += `
+## Группы
+
+Каждая группа несёт свой абзац (\`intro\`), список написанных страниц и — через \`also\` — `
+       + `страницы, которые относятся к этой работе, но живут на другой вкладке.
+
+`;
+    groups.forEach(g=>{
+      s += `### ${g.h}
+
+${g.intro}
+
+`;
+      if (g.items.length) s += `Входят: ${g.items.map(i=>'`'+i.id+'`').join(', ')}
+
+`;
+      if (g.also) s += `${g.alsoLabel || 'Также относится'}: ${g.also.map(i=>'`'+i+'`').join(', ')}
+
+`;
+    });
   }
   put(`tabs/${tab}.md`, s);
 }

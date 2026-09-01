@@ -1,23 +1,28 @@
 ---
 page: "loss-analysis"
-title: "Loss analysis in two stages"
+title: "From six evidence sources to one governed loss reason"
 type: "write-up (CASES → vCase)"
 tab: "ai"
-group: "AI in the CRM"
+group: "AI as a business solution"
 route: "#/p/loss-analysis"
 kind: "note"
 diagrams: 0
 source:
-  nav: "src/app.html · AI_ITEMS · id=\"loss-analysis\""
+  nav: "src/app.html · AI_GROUPS · id=\"loss-analysis\""
   body_case: "src/app.html · CASES['AI in the CRM'][0]"
 ---
 
-# Loss analysis in two stages
+# From six evidence sources to one governed loss reason
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> Six evidence sources, a 38-cause taxonomy in the prompt, a human-correctable middle stage.
+> A two-stage classification pipeline with a human-correctable intermediate record.
 >
-> **Подзаголовок страницы** (`sub`):
+> **Material labels** (`MAT`): Architecture write-up · Contributed design
+>
+> **Лид страницы** (`LEAD`) — абзац под подписью:
+> A free-text explanation cannot be compared across deals. This design gathers evidence from six sources, materialises a human-correctable intermediate record, then asks the model to place the case inside the company’s own taxonomy. Evidence collection and classification are deliberately separated, so a correction does not require repeating the whole pipeline.
+>
+> **`sub` — НЕ рендерится, см. LEAD:**
 > A free-text answer is useless for reporting. It has to land in the company’s own categories.
 
 > **My role on this one:** Prototyped the direction and contributed to the design; another engineer implemented and owned it.
