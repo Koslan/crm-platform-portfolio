@@ -4,7 +4,7 @@ const p = await b.newPage({ viewport:{ width:1500, height:1050 } });
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message));
 p.on('console',m=>{ if(m.type()==='error' && !/ERR_TUNNEL|fonts.googleapis/.test(m.text())) errs.push(m.text()); });
 const say=(n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
-const U='file://'+process.cwd()+'/dist/index.html';
+const U='file://'+process.cwd()+'/dist-all/index.html'; // the all-sections build — see build.mjs
 
 await p.goto(U+'#/p/agent-journal');
 await p.waitForSelector('#aj-tw table.d',{timeout:8000}); await p.waitForTimeout(500);
@@ -105,11 +105,10 @@ const aiHtml = await p.locator('#view').innerHTML();
 say('applied ai: the recap page is homed here', aiHtml.includes('#/p/chat-recap'));
 say('applied ai: engineering layer points back at the Zoho tooling', aiHtml.includes('#/p/org-tooling'));
 
-/* the Zoho AI section says where its write-ups live rather than duplicating them */
+/* the Zoho page carries the recap flow as an example of the Teams case, and the AI tab keeps the write-ups */
 await p.goto(U+'#/zoho');
 await p.waitForTimeout(300);
-const zohoAlso = (await p.locator('#view .alsolab').allTextContents()).join(' ');
-say('zoho: the AI section names Applied AI as the home of its write-ups', /Applied AI tab/.test(zohoAlso));
+say('zoho: the recap flow is reachable from the Zoho page', (await p.locator('#view a[href="#/p/chat-recap"]').count())>=1);
 
 say('no console errors ('+errs.length+')', errs.length===0);
 if(errs.length) console.log(errs.slice(0,4).join('\n'));

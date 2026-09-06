@@ -23,6 +23,17 @@ const dg   = readFileSync('src/diagrams.js','utf8');
 const aij  = readFileSync('src/aijournal.js','utf8');
 const mksf = readFileSync('platform/mockSF.js','utf8');
 const sflw = readFileSync('src/sflwc.js','utf8');
+const cases= readFileSync('src/cases.js','utf8');
+
+/* Which sections the build switches on. The public site is Zoho + profile +
+   contact; `node build.mjs --all` (npm run build:all) turns everything on and
+   writes to dist-all/, so the hidden sections keep building and keep their
+   tests, without ever being reachable on the published site. */
+const ALL_SECTIONS = process.argv.includes('--all');
+const SECTIONS = ALL_SECTIONS
+  ? { about:true, zoho:true, contact:true, ai:true, salesforce:true, fullstack:true }
+  : { about:true, zoho:true, contact:true, ai:false, salesforce:false, fullstack:false };
+const OUT = ALL_SECTIONS ? 'dist-all' : 'dist';
 
 const body = tpl
   .replace('/*__MOCKZOHO__*/',   () => mock)
@@ -37,10 +48,12 @@ const body = tpl
   .replace('/*__APOLLO__*/',     () => ap)
   .replace('/*__DIAGRAMS__*/',   () => dg)
   .replace('/*__AIJOURNAL__*/',  () => aij)
-  .replace('/*__SFLWC__*/',      () => mksf + '\n' + sflw);
+  .replace('/*__SFLWC__*/',      () => mksf + '\n' + sflw)
+  .replace('/*__CASES__*/',      () => cases)
+  .replace(/\/\*__SECTIONS__\*\/\{[^}]*\}/, () => JSON.stringify(SECTIONS));
 
 const title = (/<title>([^<]*)<\/title>/.exec(body) || [,'CRM platform field notes'])[1];
-const desc = 'CRM platform engineering: widgets, integrations and org tooling, running outside the CRM against generated data.';
+const desc = 'Zoho CRM platform and integration engineering: custom interfaces, multi-system synchronisation, Teams and Jira integrations, enrichment, platform tooling — seven case studies with interactive examples on synthetic data.';
 const site = 'https://koslan.github.io/crm-platform-portfolio/';
 const icon = 'data:image/svg+xml,'+encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
@@ -99,12 +112,12 @@ function checkInlineScripts(html, label){
   }
   return i;
 }
-const scriptCount = checkInlineScripts(body, 'dist/artifact.html');
+const scriptCount = checkInlineScripts(body, OUT+'/artifact.html');
 
-mkdirSync('dist',{recursive:true});
-cpSync('public','dist',{recursive:true});
-writeFileSync('dist/index.html', doc);
-writeFileSync('dist/artifact.html', body);
-console.log('dist/index.html   ', (doc.length/1024).toFixed(0)+' KB  (full document, for Pages)');
-console.log('dist/artifact.html', (body.length/1024).toFixed(0)+' KB  (fragment)');
+mkdirSync(OUT,{recursive:true});
+cpSync('public',OUT,{recursive:true});
+writeFileSync(OUT+'/index.html', doc);
+writeFileSync(OUT+'/artifact.html', body);
+console.log(OUT+'/index.html   ', (doc.length/1024).toFixed(0)+' KB  (full document, for Pages'+(ALL_SECTIONS?', all sections on':'')+')');
+console.log(OUT+'/artifact.html', (body.length/1024).toFixed(0)+' KB  (fragment)');
 console.log('inline scripts     ', scriptCount, 'parsed');

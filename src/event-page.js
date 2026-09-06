@@ -495,7 +495,7 @@ function ensureCss() {
 }
 const Page = {
   ensureCss,
-  async mount(host, campaignId) {
+  async mount(host, campaignId, initialTab) {
     ensureCss();
     const c = (await ZOHO.CRM.API.getRecord({ Entity:'Campaigns', RecordID:campaignId })).data[0];
     this.c = c;
@@ -507,7 +507,7 @@ const Page = {
     host.innerHTML = `
       ${this.banner(c)}
       <div class="tabs" role="tablist">
-        ${['Overview','Accounts','Contacts','Meetings','Room schedule','Calendar sync','At a glance'].map((t,i)=>`<button role="tab" data-t="${t}" aria-selected="${i===0}">${t}</button>`).join('')}
+        ${['Overview','Accounts','Contacts','Meetings','Room schedule','Calendar sync','At a glance'].map(t=>`<button role="tab" data-t="${t}" aria-selected="${t===(initialTab||'Overview')}">${t}</button>`).join('')}
         ${['Timeline'].map(t=>`<button role="tab" disabled style="opacity:.4;cursor:default">${t}</button>`).join('')}
       </div>
       <div class="body" id="ecp-body"></div>`;
@@ -522,7 +522,7 @@ const Page = {
       if (b.dataset.a === 'meeting') Wizard.open(this);
     });
     this.host = host;
-    this.tab('Overview');
+    this.tab(initialTab || 'Overview');
   },
 
   banner(c) {
@@ -1658,7 +1658,7 @@ function ecFmtDateFull(iso) {
 
 /* ---------- tab: meetings ---------- */
 const EM_VERSION = '2.1.1';
-// Opportunity_Meetings.Meeting_Status — six values in the original picklist.
+// Meeting_Status — six values in the original picklist.
 const EM_STATUS_PILL = { 'Booked':'blue', 'Planned':'blue', 'Held':'green', 'Finished':'green',
   'Declined':'red', 'Cancelled':'red' };
 // Participants.Type: buyers get a role letter, Our Attendee is kept in its own column.

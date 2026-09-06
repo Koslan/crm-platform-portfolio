@@ -11,6 +11,10 @@ await p.waitForSelector('.ecp .bar', {timeout:8000});
 say('record page mounted', true);
 await p.waitForTimeout(600);
 say('header counters filled', /\d/.test(await p.locator('#ecp-conf').textContent()));
+// the record opens on Contacts, the tab people use; Overview is one click away
+say('opens on the Contacts tab', (await p.locator('.ecp .tabs button[aria-selected="true"]').textContent()).trim()==='Contacts');
+await p.click('.ecp .tabs button[data-t="Overview"]');
+await p.waitForSelector('.ecp table.d', {timeout:8000});
 say('overview: rooms + team tables', (await p.locator('.ecp table.d').count())>=2);
 await p.screenshot({path:'s1-overview.png'});
 

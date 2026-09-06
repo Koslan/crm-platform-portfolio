@@ -23,7 +23,8 @@ for (const width of [1500, 1000, 390]) {
   await p.goto(U);
   await p.waitForTimeout(700);
   const ids = await p.evaluate(() => Object.keys(ALL));
-  const routes = ['', '#/zoho', '#/ai', '#/fullstack', ...ids.map(i => '#/p/' + i)];
+  const cases = await p.evaluate(() => (window.ZOHO_PUBLIC ? ZOHO_PUBLIC.CASES : []).map(c => '#/zoho/' + c.slug));
+  const routes = ['', '#/zoho', '#/contact', '#/about-demos', ...cases, ...ids.map(i => '#/p/' + i)];
 
   const over = [];
   for (const r of routes) {

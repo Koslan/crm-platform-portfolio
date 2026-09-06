@@ -516,9 +516,9 @@ const Enrichment = {
       <div class="tools"><span class="hint" id="e-note">Nothing loaded yet. The provider is a fixture, so this costs no credits.</span>
         <span class="grow"></span><button class="btn sec" id="e-imp" style="padding:8px 14px" disabled>Import selected</button></div>
       <div class="tw" id="e-tw"></div>
-      <div class="hint" style="margin-top:10px"><b>Known gap:</b> there is no preview of what a write would change before it happens.
-        On the production version, matched contacts are updated straight after loading. The right fix is a before/after diff
-        and a confirmation step — that screen is missing here on purpose, so the gap is visible rather than glossed over.</div>
+      <div class="hint" style="margin-top:10px"><b>Limitation:</b> matched contacts are updated straight after loading — there is no
+        preview of what a write would change before it happens. A before/after diff with a confirmation step is what would close
+        that gap; it is stated here rather than glossed over.</div>
     </div>`;
     const st = { page:0, rows:[], sel:new Set() };
     this.st = st;

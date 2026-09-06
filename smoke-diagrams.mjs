@@ -19,7 +19,12 @@ const PAGES = [
   { id: 'org-tooling',  kind: 'authority', minCells: 10 },
   { id: 'cross-system', kind: 'authority', minCells: 24, dg: 0 },
   { id: 'cross-system', kind: 'funnel',    minBuckets: 6, dg: 1 },
+  { id: 'zoho/orchestration',        kind: 'layers', minNodes: 20 },
+  { id: 'zoho/teams-crm',            kind: 'layers', minNodes: 14 },
+  { id: 'zoho/platform-engineering', kind: 'chain',  minNodes: 8 },
 ];
+/* a bare id is an item page; a slash means a case study */
+const url = id => U + (id.indexOf('/') >= 0 ? '#/' : '#/p/') + id;
 const label = p => p.id + (p.dg != null ? ' [' + p.kind + ']' : '');
 
 for (const page of PAGES) {
@@ -29,7 +34,7 @@ for (const page of PAGES) {
   p.on('pageerror', e => errs.push('pageerror: ' + e.message));
   p.on('console', m => { if (m.type() === 'error' && !/ERR_TUNNEL|fonts.googleapis/.test(m.text())) errs.push(m.text()); });
 
-  await p.goto(U + '#/p/' + page.id);
+  await p.goto(url(page.id));
   await p.waitForSelector('.dg', { timeout: 8000 });
   await p.waitForTimeout(200);
   const fig = p.locator('.dg').nth(at);
@@ -38,6 +43,9 @@ for (const page of PAGES) {
   if (page.kind === 'chain') {
     say(label(page) + ': step nodes drawn (' + nodeCount + ')', nodeCount >= page.minNodes);
     say(label(page) + ': at least one failure diamond', (await fig.locator('.dgfail').count()) >= 1);
+  } else if (page.kind === 'layers') {
+    say(label(page) + ': layer nodes drawn (' + nodeCount + ')', nodeCount >= page.minNodes);
+    say(label(page) + ': bands drawn', (await fig.locator('.dgl-row').count()) >= 4);
   } else if (page.kind === 'authority') {
     say(label(page) + ': matrix cells drawn (' + nodeCount + ')', nodeCount >= page.minCells);
     const ruleText = (await fig.locator('.dg-rule').count()) ? (await fig.locator('.dg-rule').textContent()).trim() : '';
@@ -48,9 +56,11 @@ for (const page of PAGES) {
     say(label(page) + ': rule nodes drawn', (await fig.locator('.dgrule').count()) >= 1);
   }
 
-  // aria-label on the svg is non-empty
-  const ariaLabel = await fig.locator('svg').getAttribute('aria-label');
-  say(label(page) + ': svg aria-label present', !!(ariaLabel && ariaLabel.trim().length > 0));
+  // an accessible label: on the svg for the SVG archetypes, on the figure for the HTML ones
+  const ariaLabel = (await fig.locator('svg[aria-label]').count())
+    ? await fig.locator('svg[aria-label]').first().getAttribute('aria-label')
+    : await fig.getAttribute('aria-label');
+  say(label(page) + ': aria-label present', !!(ariaLabel && ariaLabel.trim().length > 0));
 
   // clicking a node fills .dg-detail with non-empty text. Not every node has
   // curated detail copy (e.g. a bare "never" matrix cell) — pick one that
@@ -84,23 +94,26 @@ for (const page of PAGES) {
   await p.close();
 }
 
-/* Responsive pass: 1500 / 1000 / 390. Chain diagrams must go vertical
-   under 700px; nothing may push the page body into horizontal scroll
-   at any width, on any archetype. */
+/* Responsive pass: 1500 / 1000 / 390. A chain wraps its step cards onto
+   further lines when the container is narrow; nothing may push the page body
+   into horizontal scroll at any width, on any archetype. */
 for (const width of [1500, 1000, 390]) {
   const p = await b.newPage({ viewport: { width, height: 900 } });
   for (const page of PAGES) {
     const at = page.dg || 0;
-    await p.goto(U + '#/p/' + page.id);
+    await p.goto(url(page.id));
     await p.waitForSelector('.dg', { timeout: 8000 });
     await p.waitForTimeout(150);
     const bodyScrollW = await p.evaluate(() => document.body.scrollWidth);
     const winW = await p.evaluate(() => window.innerWidth);
     say(width + 'px ' + label(page) + ': no page-body horizontal scroll', bodyScrollW <= winW + 4);
     if (page.kind === 'chain') {
-      const vertical = await p.locator('.dg').nth(at).getAttribute('data-dg-vertical');
-      const expected = width < 700 ? '1' : '0';
-      say(width + 'px ' + label(page) + ': vertical layout ' + (width < 700 ? 'on' : 'off'), vertical === expected);
+      // every step card must be fully inside its figure, whatever the width
+      const inside = await p.evaluate((i) => {
+        const f = document.querySelectorAll('.dg')[i]; const r0 = f.getBoundingClientRect();
+        return [...f.querySelectorAll('.dgc-step')].every(el => { const r = el.getBoundingClientRect(); return r.left >= r0.left - 1 && r.right <= r0.right + 1; });
+      }, at);
+      say(width + 'px ' + label(page) + ': every step card stays inside the figure', inside);
     }
   }
   await p.close();

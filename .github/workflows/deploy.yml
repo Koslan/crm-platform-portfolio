@@ -90,6 +90,8 @@ jobs:
           print('clean')
           PY
       - run: npm test
+      - name: Build with every section switched on, and test the hidden ones
+        run: npm run build:all && npm run test:hidden
       - uses: actions/upload-artifact@v4
         with:
           name: site

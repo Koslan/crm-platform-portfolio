@@ -1,13 +1,18 @@
 /* =============================================================
-   Diagrams engine — hand-drawn SVG schematics for the write-up pages.
+   Diagrams engine — schematics for the case studies and technical notes.
 
-   Same trick as the integration map (imapSVG/ZONES/EDGES, above this
-   file's injection point): plain SVG strings, a click on a node fills
-   a detail panel underneath. This file generalises that one pattern
-   into five reusable archetypes so a write-up's data structure, not
-   hand-drawn coordinates, describes the picture.
+   Same trick as the original integration map: a picture whose nodes can be
+   clicked, with a detail panel underneath. A write-up's data structure, not
+   hand-drawn coordinates, describes the picture. Six archetypes:
 
-   No runtime dependencies. One visual language across all five kinds:
+     chain      a sequence of calls with failure points and checkpoints (HTML, wraps)
+     layers     a layered system picture, external systems down to interfaces (HTML, wraps)
+     authority  an ownership matrix: which system may write which field (SVG)
+     states     a small state machine with cheap and expensive transitions (SVG)
+     funnel     ordered rules sorting an input into outcome buckets (SVG)
+     coverage   bars per group with a stated blind spot (SVG)
+
+   No runtime dependencies. One visual language across all six:
      node        fill #F8F9FB  stroke #D9DCE5
      node.active fill #EDEDFB  stroke #5B5BD6
      edge        stroke #C3C8D6
@@ -17,7 +22,7 @@
 
    API:
      window.Diagrams.render(spec) -> html string
-       <figure class="dg">…<svg>…</svg><div class="dg-detail"></div></figure>
+       <figure class="dg">…</figure> with a .dg-detail panel at the foot
      window.Diagrams.wire(rootEl)
        attaches click + keyboard handling to every .dg found under rootEl
 ============================================================= */
@@ -102,7 +107,12 @@ function detailHTML(entry) {
   if (!entry) return '';
   let h = '<p class="t">' + esc(entry.t || '') + '</p>';
   if (entry.d) h += '<p>' + esc(entry.d) + '</p>';
-  if (entry.demo) h += '<p><a href="#/p/' + esc(entry.demo) + '">Open the demo / write-up &rarr;</a></p>';
+  if (entry.demo) {
+    // a bare id is an item page; a path such as zoho/widgets is used as given
+    const target = entry.demo.indexOf('/') >= 0 ? entry.demo : 'p/' + entry.demo;
+    const label = target.indexOf('zoho/') === 0 ? 'Open the case study' : 'Open';
+    h += '<p><a href="#/' + esc(target) + '">' + label + ' &rarr;</a></p>';
+  }
   return h;
 }
 
@@ -121,99 +131,86 @@ function activate(root, spec, id) {
   root.querySelectorAll('[data-dgid]').forEach(el => el.setAttribute('aria-describedby', detail.id));
 }
 
-/* ================= archetype A: chain ================= */
+/* ================= archetype A: chain =================
+   Rendered as HTML rather than SVG: a row of step cards that wraps onto
+   further lines when the container is narrow, so a seven-hop chain is
+   readable at 390px without scaling the type down. Failure points and
+   checkpoints hang under their step; rails (a loop back, a branch, an
+   async start) are annotation cards attached to the step they leave. */
 
-function chainSVG(spec, vertical) {
+function chainHTML(spec) {
   const steps = spec.steps || [];
-  const n = steps.length;
-  const stepW = 118, stepH = 46, gapX = 46, gapY = 30, failH = 30, pad = 24;
-  let svg, w, h;
-
-  if (!vertical) {
-    w = pad * 2 + n * stepW + (n - 1) * gapX;
-    h = 220;
-    const baseY = 70;
-    let body = arrowMarkerDefs();
-    const cx = i => pad + i * (stepW + gapX);
-    // edges between steps
-    for (let i = 0; i < n - 1; i++) {
-      const x1 = cx(i) + stepW, x2 = cx(i + 1);
-      body += '<line class="dgedge" x1="' + x1 + '" y1="' + (baseY + stepH/2) + '" x2="' + x2 + '" y2="' + (baseY + stepH/2)
-        + '" marker-end="url(#dg-arrow)"></line>';
-    }
-    // rails (retry/fallback/loop arcs above, async below)
-    (spec.rails || []).forEach(r => {
-      const fromIdx = steps.findIndex(s => s.id === r.from);
-      const toIdx = steps.findIndex(s => s.id === r.to);
-      if (fromIdx < 0 || toIdx < 0) return;
-      if (r.kind === 'async') {
-        const x = cx(fromIdx) + stepW / 2;
-        const y1 = baseY + stepH, y2 = y1 + 46;
-        body += '<line class="dgedge dgasync" x1="' + x + '" y1="' + y1 + '" x2="' + x + '" y2="' + y2
-          + '" marker-end="url(#dg-arrow)"></line>';
-        body += rectNode('rail:' + r.from + ':' + r.to, x - 80, y2, 160, 40, r.label, '', { cls: 'dgasyncnode' });
-        body += textLine(x, y2 - 6, r.sub || '', { style: 'font:400 9px "DM Mono",monospace;fill:' + SUB });
-      } else if (r.kind === 'branch') {
-        const x = cx(fromIdx) + stepW / 2;
-        const y1 = baseY + stepH, y2 = y1 + 46;
-        body += '<line class="dgedge dgasync" x1="' + x + '" y1="' + y1 + '" x2="' + x + '" y2="' + y2
-          + '" marker-end="url(#dg-arrow)"></line>';
-        body += rectNode('rail:' + r.from + ':' + r.to, x - 84, y2, 168, 40, r.label, '', { cls: 'dgasyncnode' });
-      } else {
-        // retry / fallback / loop — an arc over the top with a label
-        const x1 = cx(Math.min(fromIdx, toIdx)) + stepW / 2;
-        const x2 = cx(Math.max(fromIdx, toIdx)) + stepW / 2;
-        const midX = (x1 + x2) / 2;
-        const arcY = baseY - 34;
-        body += '<path class="dgedge dgrail" d="M' + x1 + ',' + (baseY - 2) + ' Q' + midX + ',' + arcY + ' ' + x2 + ',' + (baseY - 2)
-          + '" marker-end="url(#dg-arrow)"></path>';
-        body += textLine(midX, arcY - 6, r.label, { style: 'font:400 9px "DM Mono",monospace;fill:' + SUB });
-      }
+  const rails = spec.rails || [];
+  let body = '<div class="dgc">';
+  steps.forEach((s, i) => {
+    let col = '<div class="dgc-col">';
+    col += '<div class="dgc-step" data-dgid="' + escAttr(s.id) + '" tabindex="0" role="button">'
+      + '<b>' + esc(s.n) + '</b>' + (s.sub ? '<small>' + esc(s.sub) + '</small>' : '') + '</div>';
+    if (s.checkpoint) col += '<div class="dgc-cp">' + esc(s.checkpoint) + '</div>';
+    if (s.fail) col += '<div class="dgfail dgc-fail" data-dgid="' + escAttr(s.id + ':fail') + '" tabindex="0" role="button"><i></i>' + esc(s.fail) + '</div>';
+    rails.filter(r => r.from === s.id).forEach(r => {
+      const toIdx = steps.findIndex(x => x.id === r.to);
+      const to = toIdx >= 0 ? steps[toIdx] : null;
+      let glyph = '&darr;', kind = 'async';
+      if (r.kind === 'loop' || r.kind === 'retry' || r.kind === 'fallback') { glyph = '&#8635;'; kind = 'loop'; }
+      else if (r.kind === 'branch') { glyph = '&#8600;'; kind = 'branch'; }
+      const target = to && to.id !== s.id ? '<small>' + (kind === 'loop' ? 'back to ' : 'to ') + esc(to.n) + '</small>' : '';
+      col += '<div class="dgc-rail dgc-' + kind + '" data-dgid="' + escAttr('rail:' + r.from + ':' + r.to) + '" tabindex="0" role="button">'
+        + '<span class="g">' + glyph + '</span>' + esc(r.label) + (r.sub ? '<small>' + esc(r.sub) + '</small>' : '') + target + '</div>';
     });
-    // step nodes
-    steps.forEach((s, i) => {
-      const x = cx(i), y = baseY;
-      body += rectNode(s.id, x, y, stepW, stepH, s.n, s.sub, {});
-      if (s.checkpoint) {
-        const tickX = x + stepW + gapX / 2;
-        body += '<line x1="' + tickX + '" y1="' + (y + stepH/2 - 10) + '" x2="' + tickX + '" y2="' + (y + stepH/2 + 10)
-          + '" stroke="' + ACTIVE_LINE + '" stroke-width="2.4"></line>';
-        body += textLine(tickX, y + stepH/2 + 24, s.checkpoint, { style: 'font:400 8.5px "DM Mono",monospace;fill:' + ACTIVE_LINE });
-      }
-      if (s.fail) {
-        const dx = x + stepW / 2, dy = y + stepH + failH / 2 + 10;
-        body += diamond(s.id + ':fail', dx, dy, failH, s.fail);
-      }
-    });
-    h = 70 + stepH + failH + 60;
-    svg = '<svg role="img" data-dg-fluid="1" aria-label="' + esc(spec.aria) + '" viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>';
-  } else {
-    w = 320;
-    const nodeY = i => 20 + i * (stepH + gapY + 24);
-    let body = arrowMarkerDefs();
-    for (let i = 0; i < n - 1; i++) {
-      const y1 = nodeY(i) + stepH, y2 = nodeY(i + 1);
-      body += '<line class="dgedge" x1="' + (w/2) + '" y1="' + y1 + '" x2="' + (w/2) + '" y2="' + y2
-        + '" marker-end="url(#dg-arrow)"></line>';
-    }
-    steps.forEach((s, i) => {
-      const y = nodeY(i);
-      body += rectNode(s.id, w/2 - stepW/2, y, stepW, stepH, s.n, s.sub, {});
-      if (s.fail) {
-        const dx = w/2 + stepW/2 + 46, dy = y + stepH/2;
-        body += diamond(s.id + ':fail', dx, dy, 24, s.fail);
-      }
-    });
-    h = nodeY(n - 1) + stepH + 20;
-    svg = '<svg role="img" data-dg-fluid="1" aria-label="' + esc(spec.aria) + '" viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>';
-  }
+    col += '</div>';
+    body += col;
+  });
+  body += '</div>';
   const legend = '<div class="dg-legend">'
-    + '<span><i class="lg-line"></i> synchronous call</span>'
-    + '<span><i class="lg-line lg-dash"></i> does not wait</span>'
+    + '<span><i class="lg-line"></i> next call</span>'
     + '<span><i class="lg-diamond"></i> known failure point</span>'
     + '<span><i class="lg-tick"></i> checkpoint saved</span>'
+    + '<span><i class="lg-dash"></i> branch, loop or start that does not wait</span>'
     + '</div>';
-  return { svg, legend, w, h };
+  return { html: body, legend };
+}
+
+/* ================= archetype F: layers =================
+   A layered system picture — external systems at the top, the CRM in the
+   middle, automation and interfaces below — drawn with HTML so every band
+   wraps its nodes on a phone instead of shrinking. Rows:
+     { id, label, nodes:[{id,n,sub}], core }   a band of nodes (core = dark)
+     { arrow:'label', async:true }             the connector under a band
+     { cols:[{id,label,nodes}] }               bands side by side
+     { gap:'minutes later' }                   a pause in time
+     { back:'label' }                          a return path upwards
+   Arrows are inserted between consecutive bands automatically. */
+
+function layersHTML(spec) {
+  const rows = spec.rows || [];
+  const nodeHTML = n => '<div class="dgl-node" data-dgid="' + escAttr(n.id) + '" tabindex="0" role="button">'
+    + '<b>' + esc(n.n) + '</b>' + (n.sub ? '<small>' + esc(n.sub) + '</small>' : '') + '</div>';
+  const band = r => '<div class="dgl-row' + (r.core ? ' dgl-core' : '') + '" data-dgrow="' + escAttr(r.id || '') + '">'
+    + '<div class="dgl-lab">' + esc(r.label || '') + '</div>'
+    + '<div class="dgl-nodes">' + (r.nodes || []).map(nodeHTML).join('') + '</div></div>';
+  const arrow = r => '<div class="dgl-arrow' + (r.async ? ' dgl-async' : '') + '"><i></i>'
+    + (r.arrow ? '<span>' + esc(r.arrow) + '</span>' : '') + '</div>';
+  let body = '<div class="dgl">';
+  let prevWasBand = false;
+  rows.forEach((r, i) => {
+    const isBand = !!(r.nodes || r.cols);
+    if (isBand && prevWasBand) body += arrow({});
+    if (r.arrow !== undefined) { body += arrow(r); prevWasBand = false; return; }
+    if (r.gap) { body += '<div class="dgl-gap">' + esc(r.gap) + '</div>'; prevWasBand = false; return; }
+    if (r.back) { body += '<div class="dgl-back"><i></i><span>' + esc(r.back) + '</span></div>'; prevWasBand = false; return; }
+    if (r.cols) {
+      body += '<div class="dgl-cols">' + r.cols.map(c => band(c)).join('') + '</div>';
+    } else body += band(r);
+    prevWasBand = true;
+  });
+  body += '</div>';
+  const legend = '<div class="dg-legend">'
+    + '<span><i class="lg-cell lg-source"></i> a system, service or surface — click for what it does</span>'
+    + '<span><i class="lg-line"></i> data or control flows down</span>'
+    + '<span><i class="lg-line lg-dash"></i> does not wait, or returns later</span>'
+    + '</div>';
+  return { html: body, legend };
 }
 
 /* ================= archetype B: authority ================= */
@@ -240,12 +237,14 @@ function authoritySVG(spec) {
     });
   });
   const svg = '<svg role="img" width="' + w + '" aria-label="' + esc(spec.aria) + '" viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>';
+  // legend lists only the states the matrix actually uses
+  const used = new Set(Object.values(spec.cells || {}));
   const legend = '<div class="dg-legend">'
     + '<span><i class="lg-cell lg-owner"></i> owner</span>'
     + '<span><i class="lg-cell lg-source"></i> source</span>'
     + '<span><i class="lg-cell lg-never"></i> never</span>'
-    + '<span><i class="lg-cell lg-create"></i> create-only</span>'
-    + '<span><i class="lg-cell lg-trunc"></i> truncated</span>'
+    + (used.has('create-only') ? '<span><i class="lg-cell lg-create"></i> create-only</span>' : '')
+    + (used.has('truncated') ? '<span><i class="lg-cell lg-trunc"></i> truncated</span>' : '')
     + '</div>';
   return { svg, legend, w, h };
 }
@@ -464,7 +463,8 @@ function coverageSVG(spec) {
 /* ================= render / wire ================= */
 
 const RENDERERS = {
-  chain: (spec, vertical) => chainSVG(spec, vertical),
+  chain: spec => chainHTML(spec),
+  layers: spec => layersHTML(spec),
   authority: spec => authoritySVG(spec),
   states: spec => statesSVG(spec),
   funnel: spec => funnelSVG(spec),
@@ -480,8 +480,7 @@ const RENDERERS = {
 function render(spec) {
   const fn = RENDERERS[spec.kind];
   if (!fn) return '';
-  const isChain = spec.kind === 'chain';
-  const out = isChain ? fn(spec, false) : fn(spec);
+  const out = fn(spec);
   const blindBlock = out.blind ? out.blind : '';
   // coverage puts the blind block first, per the site's own rule that incompleteness leads
   const before = spec.kind === 'coverage' ? blindBlock : '';
@@ -506,27 +505,18 @@ function render(spec) {
   // the source doesn't actually identify.
   const noteBlock = spec.note ? '<p class="dg-note">' + esc(spec.note) + '</p>' : '';
   const specJSON = escAttr(JSON.stringify(spec));
-  return '<figure class="dg" data-kind="' + esc(spec.kind) + '" data-dg-spec="' + specJSON + '">'
+  const canvas = out.svg ? '<div class="dg-canvas">' + out.svg + '</div>' : out.html;
+  return '<figure class="dg dg-' + esc(spec.kind) + '" data-kind="' + esc(spec.kind) + '" data-dg-spec="' + specJSON + '"'
+    + (spec.aria ? ' aria-label="' + escAttr(spec.aria) + '"' : '') + '>'
     + (spec.title ? '<div class="dg-title">' + esc(spec.title) + '</div>' : '')
     + before
-    + '<div class="dg-canvas">' + out.svg + '</div>'
+    + canvas
     + ruleBlock
     + out.legend
     + noteBlock
     + after
     + '<div class="dg-detail" tabindex="-1"></div>'
     + '</figure>';
-}
-
-function reflow(figure, spec) {
-  if (spec.kind !== 'chain') return;
-  const canvas = figure.querySelector('.dg-canvas');
-  if (!canvas) return;
-  const vertical = figure.getBoundingClientRect().width < 700;
-  if (figure.dataset.dgVertical === (vertical ? '1' : '0')) return;
-  figure.dataset.dgVertical = vertical ? '1' : '0';
-  const out = chainSVG(spec, vertical);
-  canvas.innerHTML = out.svg;
 }
 
 function wire(root) {
@@ -538,10 +528,7 @@ function wire(root) {
     try { spec = JSON.parse(fig.dataset.dgSpec); } catch (e) { return; }
     fig.dataset.dgWired = '1';
     const pick = id => activate(fig, spec, id);
-    // Delegated on the figure itself, not on each [data-dgid] node: a
-    // vertical/horizontal reflow of a chain regenerates the whole canvas,
-    // and delegation means those fresh nodes are already clickable —
-    // nothing needs rebinding after reflow() swaps the markup.
+    // Delegated on the figure itself, not on each [data-dgid] node.
     fig.addEventListener('click', e => {
       const el = e.target.closest('[data-dgid]');
       if (el && fig.contains(el)) pick(el.dataset.dgid);
@@ -551,11 +538,6 @@ function wire(root) {
       const el = e.target.closest('[data-dgid]');
       if (el && fig.contains(el)) { e.preventDefault(); pick(el.dataset.dgid); }
     });
-    if (spec.kind === 'chain') {
-      const onResize = () => reflow(fig, spec);
-      onResize();
-      window.addEventListener('resize', onResize);
-    }
     // activate the first entry so the panel is never empty
     const first = spec.detail && Object.keys(spec.detail)[0];
     if (first) pick(first);

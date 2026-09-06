@@ -18,8 +18,11 @@ const W = 1200, H = 630;
 const b = await chromium.launch({ ...launchOpts });
 const p = await b.newPage({ viewport: { width: W, height: H } });
 await p.goto('file://' + process.cwd() + '/dist/index.html#/p/solution');
-await p.waitForSelector('h1', { timeout: 5000 });
-await p.waitForTimeout(400);
+await p.waitForSelector('#rec-host .bar, #rec-host table, #rec-host .grid', { timeout: 8000 });
+await p.waitForTimeout(700);
+// the matrix itself, not the page's introduction
+await p.evaluate(() => { const el = document.querySelector('#rec-host'); window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 12); });
+await p.waitForTimeout(300);
 
 await p.addStyleTag({ content: `
   #__og_plate {
@@ -40,7 +43,7 @@ await p.evaluate(() => {
   el.id = '__og_plate';
   el.innerHTML =
     '<div class="name">Kostiantyn <span class="accent">Buriak</span></div>' +
-    '<div class="role">CRM Platform Engineer</div>' +
+    '<div class="role">Zoho CRM &middot; platform &amp; integration engineer</div>' +
     '<div class="site">koslan.github.io/crm-platform-portfolio</div>';
   document.body.appendChild(el);
 });

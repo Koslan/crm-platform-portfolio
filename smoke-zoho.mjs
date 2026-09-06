@@ -1,8 +1,7 @@
-/* The Zoho index is now the work in six pieces rather than one card grid, and
-   two screens that used to be reachable only as tabs inside other records have
-   pages of their own. These checks hold that shape: the sections, the scale
-   strip, the cross-tab rows, the planned entries, and both new pages actually
-   mounting their widget rather than rendering an empty host. */
+/* The Zoho index: overview, scale strip, the platform diagram, the seven case
+   studies, and the examples and notes under them — plus two screens that used
+   to be reachable only as tabs inside other records and now have pages of
+   their own, actually mounting their widget rather than rendering an empty host. */
 import { chromium, launchOpts } from './test/browser.mjs';
 const b = await chromium.launch({ ...launchOpts });
 const p = await b.newPage({ viewport:{ width:1500, height:1000 } });
@@ -12,23 +11,16 @@ const say=(n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
 const U='file://'+process.cwd()+'/dist/index.html';
 
 await p.goto(U+'#/zoho'); await p.waitForTimeout(500);
-say('zoho: six pieces of work, each its own section', (await p.locator('.bsec').count())===6);
-say('zoho: every section carries its paragraph', (await p.locator('.bsec > .sub').count())===6);
-say('zoho: scale strip states five figures', (await p.locator('.scale .stat').count())===5);
+say('zoho: scale strip states five figures', (await p.locator('.stats .stat').count())===5);
+say('zoho: five directions of work, each with a paragraph', (await p.locator('.dirs .dir').count())===5 && (await p.locator('.dirs .dir p').count())===5);
+say('zoho: the platform diagram is drawn', (await p.locator('.dg-layers .dgl-row').count())>=5);
+say('zoho: seven case studies indexed', (await p.locator('.cslist .csrow[href^="#/zoho/"]').count())===7);
 const links=await p.locator('a[href^="#/p/"]').count();
-say('zoho: index links every page ('+links+')', links>=20);
-say('zoho: work living on another tab is labelled as such',
-    (await p.locator('.alsolab').count())===2);
-const alsoTxt=(await p.locator('.alsolab').allTextContents()).join(' ');
-say('zoho: the other home is named, not implied', /another platform/i.test(alsoTxt) && /AI tab/.test(alsoTxt));
-const zohoKinds=(await p.locator('.rowlist .rk').allTextContents());
-say('zoho: planned work is still listed, not hidden ('+zohoKinds.filter(t=>/Planned/.test(t)).length+')',
-    zohoKinds.filter(t=>/Planned/.test(t)).length>=5);
-/* Pages that got written must stop advertising themselves as unbuilt. */
-const written=['contact-model','deluge-cicd','widget-system'];
-for (const id of written) {
-  const kind=await p.locator(`a[href="#/p/${id}"] .rk`).first().textContent();
-  say(`zoho: ${id} is listed as written, not planned`, kind==='Write-up');
+say('zoho: index links every example and note ('+links+')', links>=12);
+say('zoho: nothing on the index is labelled planned', !/Planned/.test(await p.locator('#view').textContent()));
+/* Pages that got written are listed as notes, under their case. */
+for (const id of ['contact-model','deluge-cicd','widget-system','cross-system','org-tooling']) {
+  say(`zoho: ${id} is listed`, (await p.locator(`a[href^="#/p/${id}"]`).count())>=1);
 }
 
 /* Contact enrichment — the account is the one with a full contact list on it,
@@ -52,11 +44,6 @@ say('cockpit: open value computed ('+open.trim()+')', /\$/.test(open));
 await p.locator('#rec-host [data-o="me"]').click(); await p.waitForTimeout(500);
 const scoped=(await p.locator('#ck-open').textContent().catch(()=>''))||'';
 say('cockpit: narrowing the scope recalculates the counters', scoped!==open);
-
-/* A planned entry must say it is planned rather than 404 or render a stub page
-   that pretends to be a write-up. */
-await p.goto(U+'#/p/external-server'); await p.waitForTimeout(300);
-say('planned page says it is planned', /not built yet/i.test(await p.locator('#view').textContent()));
 
 say('no console errors ('+errs.length+')', errs.length===0);
 errs.slice(0,5).forEach(e=>console.log('       '+e.slice(0,180)));

@@ -4,7 +4,7 @@ const p = await b.newPage({ viewport:{ width:1500, height:1050 } });
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message));
 p.on('console',m=>{ if(m.type()==='error' && !/ERR_TUNNEL|fonts.googleapis/.test(m.text())) errs.push(m.text()); });
 const say=(n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
-const U='file://'+process.cwd()+'/dist/index.html';
+const U='file://'+process.cwd()+'/dist-all/index.html'; // the all-sections build — see build.mjs
 p.on('dialog', d=>d.dismiss());
 
 /* --- sf-lwc: page opens, is built, has the platform switcher --- */
@@ -55,13 +55,13 @@ await p.screenshot({path:'sf1-lwc.png'});
 await p.goto(U+'#/about');
 await p.waitForTimeout(300);
 const tabLabels = (await p.locator('#tabs a').allTextContents()).map(t=>t.trim());
-say('nav: exactly four tabs ('+tabLabels.join(', ')+')', tabLabels.length === 4);
+say('nav: no Salesforce tab ('+tabLabels.join(', ')+')', tabLabels.length === 5 && !tabLabels.includes('Salesforce'));
 say('nav: no standalone Salesforce tab', !tabLabels.some(t=>/salesforce/i.test(t)));
 say('nav: the AI tab is called Applied AI', tabLabels.some(t=>/applied ai/i.test(t)));
 
 await p.goto(U+'#/salesforce');
 await p.waitForTimeout(400);
-say('old #/salesforce link redirects to About ('+p.url().split('#')[1]+')', p.url().endsWith('#/about'));
+say('old #/salesforce link redirects to the front page ('+p.url().split('#')[1]+')', /#\/$/.test(p.url()));
 
 /* sf-lwc is the one surviving cross-platform page, and it is reachable from Zoho */
 await p.goto(U+'#/zoho');
