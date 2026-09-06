@@ -6,6 +6,7 @@ tab: "zoho"
 group: "Trade shows: booking, meetings, follow-up"
 route: "#/p/calendar-sync"
 kind: "plan"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"calendar-sync\""

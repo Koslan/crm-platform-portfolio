@@ -6,6 +6,7 @@ tab: "zoho"
 group: "Weekly reports, reminders and workflows"
 route: "#/p/reporting"
 kind: "plan"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"reporting\""

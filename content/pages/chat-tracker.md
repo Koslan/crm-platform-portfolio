@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Connecting Teams, Slack and Jira to the CRM"
 route: "#/p/chat-tracker"
 kind: "emul"
+public: true
+public_tab: "zoho"
+case: "#/zoho/jira-sync"
 diagrams: 1
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"chat-tracker\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > CRM owns routing and delivery state; stable markers make every ten-minute run safe to replay.
 >
-> **Material labels** (`MAT`): Production-derived demo
+> **Material labels** (`MAT`, публично не рендерятся): Production-derived demo
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A tagged Teams reply becomes the correct Jira comment without manual re-entry. The thread carries context, CRM carries routing and delivery state, and Jira owns the issue and its visibility. Every run is safe to replay, and missing routing data is skipped rather than guessed.

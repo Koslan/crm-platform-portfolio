@@ -2,7 +2,7 @@
 file: "skills-map"
 title: "Карта навыков (STORY)"
 entries: 76
-words: 4869
+words: 4847
 source:
   code: "src/app.html · STORY"
 ---
@@ -16,13 +16,13 @@ source:
 
 ## Deluge
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** Three years as the only Deluge engineer on a production org: hundreds of functions behind integrations, scheduled jobs and every widget on the platform.
 
 **Построено:** The language is only half of it. Before Zoho provided a functions API the platform gave one browser editor and one function at a time, so I built the extraction and deploy tooling that put the whole codebase under Git with review and dependency analysis — and delivered business processes spanning dozens of functions as one reviewable change.
 
-**Результат:** Deluge stopped being isolated snippets in textareas and became a codebase I could reason about. That is what made the larger systems on this site possible.
+**Результат:** Deluge stopped being isolated snippets in textareas and became a codebase I could reason about. That is what made the larger systems possible.
 
 _Ссылка на демо:_ `#/p/orghealth`
 
@@ -44,13 +44,13 @@ for each pg in pageList          // no while loop in Deluge
 
 ## Widgets
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** Sales lives in tables the platform cannot draw — 400-contact target lists, room schedules, a service-line matrix — and every one has to run inside an iframe the CRM controls.
 
-**Построено:** 70+ production widgets on a corporate design system of my own: a versioned component and function library every screen is assembled from, composite screens backed by several Deluge services and external systems at once, mobile adaptations for the Zoho app, and an offline harness that stubs the SDK so a change is verified before production sees it.
+**Построено:** 70+ production widgets on a corporate design system of my own: a versioned component and function library every screen is assembled from, composite screens backed by several Deluge services and external systems at once, mobile adaptations for the Zoho app, and an offline stand that stubs the SDK so a change is verified before production sees it.
 
-**Результат:** The record page became the tool people actually work in. Most of these widgets run live on this site.
+**Результат:** The record page became the tool people actually work in.
 
 _Ссылка на демо:_ `#/p/event`
 
@@ -58,13 +58,13 @@ _Ссылка на демо:_ `#/p/event`
 
 ## COQL
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** Every widget and integration needs data the REST list endpoints return awkwardly or not at all.
 
-**Построено:** COQL as the daily data-access layer: cross-module read models, reusable query patterns, and the platform's ceilings — 200 rows, 14 criteria — treated as ordinary constraints rather than discoveries. For this site I wrote an interpreter of the same dialect.
+**Построено:** COQL as the daily data-access layer: cross-module read models, reusable query patterns, and the platform's ceilings — 200 rows, 14 criteria — treated as ordinary constraints rather than discoveries.
 
-**Результат:** One query surface everywhere, and the widgets on this page run against it unmodified.
+**Результат:** One query surface everywhere, with the ceilings designed for rather than discovered.
 
 _Ссылка на демо:_ `#/p/event`
 
@@ -80,13 +80,13 @@ limit 200 offset 400   -- ceiling: 200 rows, page by hand
 
 ## Zoho SDK
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** A widget only exists inside the CRM and the SDK it depends on has no offline form, so every change used to be tested in production.
 
-**Построено:** Production work across record pages, related lists, buttons, web tabs, Canvas and mobile surfaces — learned deep enough to build a compatible offline harness for the SDK surface the widget estate uses: init and lifecycle, record APIs, resize, connection invokes, the platform's own error envelopes.
+**Построено:** Production work across record pages, related lists, buttons, web tabs, Canvas and mobile surfaces — learned deep enough to build a compatible offline stand for the SDK surface the widget estate uses: init and lifecycle, record APIs, resize, connection invokes, the platform's own error envelopes.
 
-**Результат:** Widgets develop and test outside the CRM. The emulator running every demo on this site is that harness, promoted to a product.
+**Результат:** Widgets develop and test outside the CRM, and a change is verified before the platform ever sees it.
 
 _Ссылка на демо:_ `#/p/event`
 
@@ -103,11 +103,11 @@ ZOHO.embeddedApp.init();
 
 ## custom modules
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The org kept its relations as free text — “which business unit, which programme” lived as strings someone once typed.
 
-**Построено:** Dozens of custom, junction, service and journal modules across a landscape approaching a hundred, with relationships, ownership, lifecycle and validation defined rather than accumulated — plus the migration scripts that moved years of strings into real references.
+**Построено:** Fifty-plus custom modules — junction, service and journal modules among them — with relationships, ownership, lifecycle and validation defined rather than accumulated, plus the migration scripts that moved years of strings into real references.
 
 **Результат:** Reports and rollups became possible; “which deals touch this unit” is a query now, not a guess.
 
@@ -117,7 +117,7 @@ _Ссылка на демо:_ `#/p/solution`
 
 ## workflows
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Daily ownership of an automation estate accumulated over years: rules, schedules and functions, most of them inherited.
 
@@ -131,7 +131,7 @@ _Ссылка на демо:_ `#/p/orghealth`
 
 ## Blueprints
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The sales process existed as tribal knowledge; stages were skipped and loss reasons never captured.
 
@@ -143,7 +143,7 @@ _Ссылка на демо:_ `#/p/orghealth`
 
 ## schedules
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** Everything periodic on the platform runs through scheduled functions, and they share one quota and one timeout.
 
@@ -157,7 +157,7 @@ _Ссылка на демо:_ `#/p/orghealth`
 
 ## validation rules
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The org accepted bad data faster than any cleanup could remove it, and every report inherited the mess.
 
@@ -171,7 +171,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Tabulator
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A 400-row target list needs filtering, sorting and in-cell editing — inside an iframe, on CRM data.
 
@@ -185,7 +185,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## layouts
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A CRM form is a tax on every deal a salesperson logs, and the org's forms had grown by accretion for years.
 
@@ -197,7 +197,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## roles & profiles
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Sales ops, BD and regional teams in several countries: everyone needs their slice, nobody should see everything.
 
@@ -245,7 +245,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Zoho One
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The CRM sits inside a wider suite someone has to own.
 
@@ -351,7 +351,7 @@ trigger OppTrigger on Opportunity (after update) {
 
 ## Microsoft Graph
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** Meetings are booked in Outlook; sales needs them in the CRM within minutes, without anyone forwarding invitations.
 
@@ -365,7 +365,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Teams & Teams bots
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Deals are discussed in Teams threads; none of it reached the record, and nobody was going to retype it.
 
@@ -400,7 +400,7 @@ async function token(){
 
 ## idempotency
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A sync that runs every ten minutes will eventually run twice over the same data.
 
@@ -414,7 +414,7 @@ _Ссылка на демо:_ `#/p/chat-tracker`
 
 ## delta tokens
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Full re-reads guarantee timeouts; provider cursors solve that until one expires mid-run.
 
@@ -428,7 +428,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Email ingestion
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Customer email lived in personal mailboxes across several sources; the CRM saw none of it.
 
@@ -440,7 +440,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Jira
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Presales discusses a deal in Teams — and none of it reaches the Jira issue engineering actually works from.
 
@@ -454,7 +454,7 @@ _Ссылка на демо:_ `#/p/chat-tracker`
 
 ## Apollo
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Conference target lists arrive as exports with wrong company names and no shared key with the CRM.
 
@@ -466,7 +466,7 @@ _Ссылка на демо:_ `#/p/chat-tracker`
 
 ## webhooks
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Events are not re-sent: a rejected write is a lost event, and the rejection reason is unknown in advance.
 
@@ -503,7 +503,7 @@ report(dropped, substituted);        // degradation is itemised
 
 ## reconciliation
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** “Sixty minutes here, forty-five there” does not tell an operator what the record should say.
 
@@ -517,7 +517,7 @@ _Ссылка на демо:_ `#/p/event`
 
 ## Adaptive Cards
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A person takes minutes to fill a form; a synchronous Teams call has seconds.
 
@@ -531,7 +531,7 @@ _Ссылка на демо:_ `#/p/chat-recap`
 
 ## deduplication
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The same person exists four different ways across two systems.
 
@@ -543,7 +543,7 @@ _Ссылка на демо:_ `#/p/chat-recap`
 
 ## Slack
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Integration failures used to be discovered by salespeople noticing stale data.
 
@@ -615,7 +615,7 @@ _Ссылка на демо:_ `#/p/chat-recap`
 
 ## Deluge deploy pipeline
 
-**Где:** Room 8 · 2024—now · daily
+**Где:** Room 8 · 2024—present · daily
 
 **Задача:** Before Zoho provided a functions API the platform offered one browser editor, one function at a time: no search across the codebase, no history, no local tooling.
 
@@ -631,7 +631,7 @@ _Ссылка на демо:_ `#/p/chat-recap`
 
 **Задача:** The platform keeps no change history: “who changed this rule and when” had no answer.
 
-**Построено:** Source-driven engineering brought to an estate of roughly 1,500 functions: extraction and snapshot tooling pulls code and org configuration into a Git-tracked repository with dependency mapping and response diagnostics, so change history and review exist at all.
+**Построено:** Source-driven engineering brought to an estate of more than a thousand functions: extraction and snapshot tooling pulls code and org configuration into a Git-tracked repository with dependency mapping and response diagnostics, so change history and review exist at all.
 
 **Результат:** The diff between commits does the job the missing change history never did, and “no change reaches production unreviewed” became enforceable.
 
@@ -653,15 +653,13 @@ _Ссылка на демо:_ `#/p/org-tooling`
 
 ## automated testing
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** An embedded CRM application cannot run outside the CRM, so verifying a change used to mean deploying it to production.
 
-**Построено:** A testing architecture for that constraint: an offline harness stubbing the Zoho SDK, seeded datasets with deliberate defects, browser-level regression at desktop and phone widths, mocked external boundaries, and release gates that fail on any console error.
+**Построено:** A testing architecture for that constraint: an offline stand stubbing the Zoho SDK, seeded datasets with deliberate defects, browser-level regression at desktop and phone widths, mocked external boundaries, and release gates that fail on any console error.
 
-**Результат:** Changes are verified before the platform ever sees them. The harness eventually grew into this whole site.
-
-_Ссылка на демо:_ `#/p/harness`
+**Результат:** Changes are verified before the platform ever sees them.
 
 ---
 
@@ -693,7 +691,7 @@ _Ссылка на демо:_ `#/p/buckets`
 
 ## code review
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A platform owner who is also the only reviewer becomes either the bottleneck or the standard.
 
@@ -705,7 +703,7 @@ _Ссылка на демо:_ `#/p/buckets`
 
 ## release management
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** The CRM serves live sales operations; there is no maintenance window that suits everyone.
 
@@ -717,7 +715,7 @@ _Ссылка на демо:_ `#/p/buckets`
 
 ## data quality
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Automated “fixes” destroy data faster than they clean it.
 
@@ -811,7 +809,7 @@ _Ссылка на демо:_ `#/p/buckets`
 
 **Построено:** Validation queries behind migrations, reconciliation checks between systems, data-quality investigation, and reporting that survives “now break it down by…”.
 
-**Результат:** Where this site says “verified against reconciliation rules”, it means SQL proved it.
+**Результат:** Where a migration is described as verified against reconciliation rules, SQL is what proved it.
 
 ---
 
@@ -837,7 +835,7 @@ _Ссылка на демо:_ `#/p/generator`
 
 **Построено:** Durable markup for embedded applications: real tables for data, complex forms, predictable focus order, and structures that scale without special casing.
 
-**Результат:** Interfaces that outlive their first design — the reconciliation tables and the mobile board on this site are that discipline in public.
+**Результат:** Interfaces that outlive their first design — the reconciliation tables and the mobile board are that discipline made visible.
 
 ---
 
@@ -885,11 +883,11 @@ _Ссылка на демо:_ `#/p/board`
 
 **Задача:** AI-assisted delivery is easy to demo and hard to ship.
 
-**Построено:** AI inside a governed workflow: analysis, implementation, tests, documentation and review, with human ownership of architecture, security and business rules, and nothing generated accepted unverified. This site — an SDK emulator, live widgets, a seeded dataset with deliberate defects and a headless test suite — was built that way, and so is my production CRM work.
+**Построено:** AI inside a governed delivery workflow on the platform: analysis, Deluge and widget implementation, tests, documentation and review, with human ownership of architecture, security and business rules, and nothing generated accepted unverified — source review, deployment through tooling that verifies the round trip by hash, behavioural checks before promotion.
 
-**Результат:** You are looking at the result. Every claim on this page is clickable.
+**Результат:** Generation was never the bottleneck; verification is — so the gates decide what ships.
 
-_Ссылка на демо:_ `#/p/site`
+_Ссылка на демо:_ `#/p/code-intelligence`
 
 ---
 
@@ -921,7 +919,7 @@ _Ссылка на демо:_ `#/p/loss-analysis`
 
 ## embedded CRM features
 
-**Где:** Room 8 · 2024—now
+**Где:** Room 8 · 2024—present
 
 **Задача:** AI features inside a CRM must never leak keys into the browser or act without a trail.
 
@@ -935,13 +933,15 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 ## MCP
 
-**Где:** exploring · 2025—now
+**Где:** Room 8 · 2025—present
 
 **Задача:** Assistants need to query an org without being handed the keys to it.
 
-**Построено:** Exploring MCP as a controlled access layer: narrowly scoped typed tools over the same surface my emulator implements, explicit permissions, audit logging, and a hard line between reasoning and authorised action.
+**Построено:** MCP as a controlled access layer: narrowly scoped typed operations over records and the platform tooling around them, explicit permissions, audit logging, and a hard line between reasoning and authorised action. Used by the extraction and audit tooling; as a product surface for salespeople it is an exploration, not production.
 
-**Результат:** The emulator idea pointed at real systems: safe, inspectable access. Exploration, not production.
+**Результат:** Safe, inspectable access — the damage a wrong instruction can do is bounded by a list somebody wrote.
+
+_Ссылка на демо:_ `#/p/mcp-product`
 
 ---
 
@@ -965,7 +965,7 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 **Построено:** Analysis I run myself on the platform's own data: SQL and Python over exports, audit output and reporting datasets; funnel and cohort questions from sales management; data-quality investigations; the evidence layer and taxonomy behind the loss-analysis pipeline. Some of it was a single question answered once, some I owned end to end from the question to the dashboard.
 
-**Результат:** Answers that carry the query behind them — which is also why the audits here state their own blind spots.
+**Результат:** Answers that carry the query behind them — which is also why the audits state their own blind spots.
 
 ---
 
@@ -983,7 +983,7 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 ## CRM administration
 
-**Где:** Room 8 · 2023—now · daily
+**Где:** Room 8 · 2023—present · daily
 
 **Задача:** A multi-country CRM where access, layouts and automation drift into chaos unless someone owns the operating model.
 
@@ -1007,7 +1007,7 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 ## governance & controlled change
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** A CRM serving live sales operations cannot absorb uncontrolled change — and cannot freeze either.
 
@@ -1019,7 +1019,7 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 ## reports & dashboards
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** Commercial teams need numbers they can argue with — one explainable version of them.
 
@@ -1043,7 +1043,7 @@ _Ссылка на демо:_ `#/p/agent-journal`
 
 ## stakeholder ownership
 
-**Где:** Room 8 · 2023—now
+**Где:** Room 8 · 2023—present
 
 **Задача:** One engineer, many masters: sales ops, BD, finance, regional teams — all with urgent requests.
 

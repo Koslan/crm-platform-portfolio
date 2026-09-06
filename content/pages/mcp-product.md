@@ -6,6 +6,9 @@ tab: "ai"
 group: "Control and access"
 route: "#/p/mcp-product"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/ai-workflows"
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"mcp-product\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Typed operations for records and platform tooling, with permissions and validation outside the model.
 >
-> **Material labels** (`MAT`): Working internal tool · Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Working internal tool · Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Claude works with CRM records and related operations through a scoped MCP surface connected to the surrounding Zoho tooling. Reusable skills combine record operations with function pull, analysis, deploy and run capabilities, turning one-off prompts into repeatable development, audit and operational workflows.

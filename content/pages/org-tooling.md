@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/org-tooling"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/platform-engineering"
 diagrams: 1
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"org-tooling\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Pull the org into one searchable system, map dependencies and turn browser-only change into reviewed delivery.
 >
-> **Material labels** (`MAT`): Working internal tool · Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Working internal tool · Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Zoho exposes the running platform, but not the complete codebase, dependency graph or change history an engineering team needs. I built the missing layer around it: function extraction, configuration snapshots, dependency and invocation analysis, external-call inventory, Git review, and tools that deploy and run approved functions.
@@ -27,7 +30,7 @@ source:
 
 ## One searchable system for the function estate
 
-No API returns the list of functions — not one; the documented parameter rejects every value, and the CLI exports metadata and widgets, never automation. The fix begins with a negative result recorded rather than hidden: fifty-five parameter values and roughly a hundred and fifty endpoint, version and header combinations tried across production, sandbox and the interface domain. Then four routes in order — ids harvested from a captured session, a console script running under session cookies, a function deployed inside the org that calls the closed endpoint from the inside where authorisation differs, and finally the interface’s own internal call. Fifteen hundred functions in ten to fifteen minutes, in one place a person can grep. Everything below depends on the estate existing as text; none of it is reachable from a browser editor showing one function at a time.
+No API returns the list of functions — not one; the documented parameter rejects every value, and the CLI exports metadata and widgets, never automation. The fix begins with a negative result recorded rather than hidden: fifty-five parameter values and roughly a hundred and fifty endpoint, version and header combinations tried across production, sandbox and the interface domain. Then four routes in order — ids harvested from a captured session, a console script running under session cookies, a function deployed inside the org that calls the closed endpoint from the inside where authorisation differs, and finally the interface’s own internal call. More than a thousand functions in ten to fifteen minutes, in one place a person can grep. Everything below depends on the estate existing as text; none of it is reachable from a browser editor showing one function at a time.
 
 ## Dependencies and invocation paths
 

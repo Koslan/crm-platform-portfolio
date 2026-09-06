@@ -15,7 +15,7 @@ await p.click('.tabs a[href="#/zoho"]');
 await p.waitForTimeout(300);
 const zohoLinks = await p.locator('a[href^="#/p/"]').count();
 say('the Zoho page lists its examples and notes ('+zohoLinks+')', zohoLinks >= 12);
-say('the Zoho page lists seven case studies', (await p.locator('a[href^="#/zoho/"]').count()) >= 7);
+say('the Zoho page lists eight case studies', (await p.locator('a[href^="#/zoho/"]').count()) >= 8);
 
 await p.goto(U+'#/p/org-tooling');
 await p.waitForTimeout(300);

@@ -1,14 +1,14 @@
 # CRM portfolio site
 
-A portfolio of Zoho CRM platform and integration engineering: seven case studies from one
+A portfolio of Zoho CRM platform and integration engineering: eight case studies from one
 production platform, with the production interfaces and flows reproduced in a static page
 against a generated dataset. No backend, no live org, no client data.
 
 Public sections: **About** (profile, capabilities, experience), **Zoho** (overview, architecture,
 case studies, interactive examples, technical notes) and **Contact**. Every case study has a stable
 address — `#/zoho/widgets`, `#/zoho/orchestration`, `#/zoho/teams-crm`, `#/zoho/jira-sync`,
-`#/zoho/enrichment`, `#/zoho/platform-engineering`, `#/zoho/reconciliation` — so a proposal can
-link straight to the relevant one.
+`#/zoho/enrichment`, `#/zoho/platform-engineering`, `#/zoho/reconciliation`, `#/zoho/ai-workflows` —
+so a proposal can link straight to the relevant one.
 
 The Salesforce, AI and full-stack sections still exist in the sources but are switched off in the
 public build (see *Sections* below).
@@ -42,8 +42,9 @@ line above; `node build.mjs --all` turns every section on and writes `dist-all/`
 `npm run test:hidden` exercises so the switched-off code keeps working. Two smaller switches sit
 next to it: `PUBLIC_HIDDEN_ITEMS` hides individual page ids the same way (empty at the moment), and
 items marked `kind:'plan'` are only listed when the AI and full-stack sections are both on, so the
-public build shows nothing that is not built. The one AI page the Zoho work depends on — the
-meeting recap — is registered under Zoho when the AI section is off.
+public build shows nothing that is not built. The AI pages that are CRM work first — the meeting
+recap, the journaled assistant, the loss analysis, the MCP surface, code intelligence — are
+registered under Zoho when the AI section is off (`AI_UNDER_ZOHO`); the rest of that tab stays with it.
 
 ## Layout
 
@@ -54,7 +55,7 @@ meeting recap — is registered under Zoho when the AI section is off.
 | `data/dataset.slim.json` | Trimmed, referentially whole copy, inlined into the single-file build. |
 | `platform/mockZoho.js` | Stand-in for the CRM SDK: a COQL subset, the 200-record ceiling, lookup hydration, write validation, a failure switch. |
 | `src/app.html` | Site shell, navigation, the About and Contact pages, the item pages, the technical notes (`CASES`) and the skill stories. Injection markers are replaced at build time. |
-| `src/cases.js` | The public Zoho content: the overview, the platform architecture diagram and the seven case studies with their diagrams. Data only. |
+| `src/cases.js` | The public Zoho content: the overview, the platform architecture diagram and the eight case studies with their diagrams. Data only. |
 | `src/diagrams.js` | Diagram engine: `chain` and `layers` (HTML, wrap on narrow screens), `authority`, `states`, `funnel`, `coverage` (SVG). A spec object describes the picture; a click on a node fills the detail panel. |
 | `src/event-page.js` | Event campaign record: Overview, Contacts, Meetings, and the booking wizard. |
 | `src/pages.js` | Solution map, contact enrichment, deal conversations. |
@@ -69,7 +70,7 @@ meeting recap — is registered under Zoho when the AI section is off.
 | `smoke*.mjs` | Headless checks; `test/browser.mjs` finds playwright wherever it is installed. `smoke-public.mjs` covers the public structure: case pages, aliases, hidden routes, banned strings, phone widths. `smoke-responsive.mjs` walks every route at three widths. `smoke-ai.mjs` and `smoke-sf.mjs` run against `dist-all/`. |
 | `tools/shots.mjs` | Screenshot helper for visual QA at any viewport: `node tools/shots.mjs out 1440x900 zoho zoho/widgets:full`. |
 | `tools/og.mjs` | Regenerates the social preview image. |
-| `content/` | One-way markdown export of the page texts and diagram specs, for editing prose without opening the sources (`content/INDEX.md`). Written before the public rework; the exporter does not yet know about `src/cases.js`. |
+| `content/` | One-way markdown export of the page texts, the case studies and the diagram specs, for editing prose without opening the sources (`content/INDEX.md`). `npm run build && npm run build:all && node content/_export.mjs`; needs `turndown` (`npm i --no-save turndown`). |
 | `prompts/`, `docs/fidelity-map.md` | The fidelity-pass prompt and its lookup table (see below). |
 | `docs/portfolio-rework-summary.md` | What the public rework changed, what is hidden, the direct URLs. |
 

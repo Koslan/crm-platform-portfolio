@@ -6,6 +6,9 @@ tab: "ai"
 group: "AI as a business solution"
 route: "#/p/chat-recap"
 kind: "emul"
+public: true
+public_tab: "zoho"
+case: "#/zoho/teams-crm"
 diagrams: 1
 source:
   nav: "src/app.html · AI_GROUPS · id=\"chat-recap\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Teams, Krisp and future sources feed one governed evidence-to-recap pipeline.
 >
-> **Material labels** (`MAT`): Production-derived demo
+> **Material labels** (`MAT`, публично не рендерятся): Production-derived demo
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Meetings held in Teams use Teams transcripts; meetings held elsewhere use Krisp. Both enter the same process: resolve the meeting and the account, gather the evidence, generate a recap to the corporate standard, validate it and write the structured result back to CRM. The source boundary is open to further providers without changing the workflow around it.
@@ -39,20 +42,14 @@ source:
 _Alt-текст (`aria`, читается скринридером):_ Seven-hop chain from reading the meeting record to writing the recap back, with a permission failure on listing transcripts
 
 1. **Read meeting** — CRM
-   - чекпойнт: stage written
+   - чекпойнт: stage written on the record after every hop
 2. **Resolve organiser** — directory identity
-   - чекпойнт: stage written
 3. **Join link → id** — online-meeting id
-   - чекпойнт: stage written
-4. **List transcripts**
-   - чекпойнт: stage written
+4. **List transcripts** — source A
    - отказ: 403
-5. **Download captions**
-   - чекпойнт: stage written
-6. **Model call**
-   - чекпойнт: stage written
+5. **Download captions** — VTT
+6. **Model call** — captions → recap
 7. **Write summary** — + stage
-   - чекпойнт: stage written
 
 **Связи:**
 - `meeting` → `meeting` (async): pipeline started on card 1
@@ -78,7 +75,7 @@ _Alt-текст (`aria`, читается скринридером):_ Seven-hop 
   The whole chain is started the moment a person picks the account on the first card — long before anyone asks for a recap. Nothing waits for it.
 - `rail:list:list` — **Fallback: second source**
   When there is no transcript, a second source is matched by score rather than by key, with a gate that refuses the automatic link if the known recording owner is not among the candidates.
-  _ссылка на демо: #/p/cross-system_
+  _ссылка: #/p/cross-system_
 
 <details>
 <summary>Редактируемая спека (это и есть источник — правьте её)</summary>
@@ -93,44 +90,38 @@ _Alt-текст (`aria`, читается скринридером):_ Seven-hop 
    "id": "meeting",
    "n": "Read meeting",
    "sub": "CRM",
-   "checkpoint": "stage written"
+   "checkpoint": "stage written on the record after every hop"
   },
   {
    "id": "organiser",
    "n": "Resolve organiser",
-   "sub": "directory identity",
-   "checkpoint": "stage written"
+   "sub": "directory identity"
   },
   {
    "id": "join",
    "n": "Join link → id",
-   "sub": "online-meeting id",
-   "checkpoint": "stage written"
+   "sub": "online-meeting id"
   },
   {
    "id": "list",
    "n": "List transcripts",
-   "sub": "",
-   "fail": "403",
-   "checkpoint": "stage written"
+   "sub": "source A",
+   "fail": "403"
   },
   {
    "id": "download",
    "n": "Download captions",
-   "sub": "",
-   "checkpoint": "stage written"
+   "sub": "VTT"
   },
   {
    "id": "model",
    "n": "Model call",
-   "sub": "",
-   "checkpoint": "stage written"
+   "sub": "captions → recap"
   },
   {
    "id": "write",
    "n": "Write summary",
-   "sub": "+ stage",
-   "checkpoint": "stage written"
+   "sub": "+ stage"
   }
  ],
  "rails": [

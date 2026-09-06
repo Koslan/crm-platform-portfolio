@@ -6,6 +6,9 @@ tab: "ai"
 group: "AI assistance inside CRM interfaces"
 route: "#/p/agent-journal"
 kind: "live"
+public: true
+public_tab: "zoho"
+case: "#/zoho/ai-workflows"
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"agent-journal\""
@@ -19,7 +22,7 @@ warning: "CASES-запись для этой страницы НЕ рендер�
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Every proposed change carries a before/after diff and a human gate for high-risk fields.
 >
-> **Material labels** (`MAT`): Portfolio prototype · Pre-recorded parsing · Emulator writes only
+> **Material labels** (`MAT`, публично не рендерятся): Portfolio prototype · Pre-recorded parsing · Emulator writes only
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A write-capable agent needs more than a chat history. This portfolio prototype resolves a command against the live field list, validates the target, pauses on high-risk changes, and writes every proposed action to a filterable journal with the before and after state.

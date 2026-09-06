@@ -6,6 +6,7 @@ tab: "fullstack"
 group: "Full-stack"
 route: "#/p/harness"
 kind: "note"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · FS_ITEMS · id=\"harness\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > An offline SDK surface and 279 browser checks, failing on any console error.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A widget normally runs only inside a live CRM and the SDK it controls. I built an offline test harness around the subset the widget estate actually uses: lifecycle, record APIs, queries, function calls, connection calls, validation and failure envelopes. Production-derived interfaces can now be exercised before deployment, against repeatable data and deliberate failures.

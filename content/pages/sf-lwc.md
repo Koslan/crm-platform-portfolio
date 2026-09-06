@@ -6,6 +6,8 @@ tab: "zoho"
 group: "Cleaning up contacts, deduplication and enrichment"
 route: "#/p/sf-lwc"
 kind: "live"
+public: false
+case: "#/zoho/enrichment"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"sf-lwc\""
@@ -17,7 +19,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > The same employment-history contract in a Zoho widget and a real Lightning Web Component.
 >
-> **Material labels** (`MAT`): Cross-platform implementation demo
+> **Material labels** (`MAT`, публично не рендерятся): Cross-platform implementation demo
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > The workflow is the constant: change the main employer with two ordered writes, restore the old state if the second fails, and surface field-access errors as user-facing messages. The Zoho widget and the Salesforce Lightning Web Component implement that same contract through different platform primitives.

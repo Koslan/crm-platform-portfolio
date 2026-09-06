@@ -17,16 +17,17 @@ Engineer, а не как демонстрация того, как сложно 
 Страницы с `kind:'plan'` регистрируются только когда включены и AI, и Full-stack — публично
 ничего «planned» нет. `build.mjs --all` включает все разделы и пишет `dist-all/` — по нему
 гоняются тесты скрытых разделов (`npm run test:hidden`), так что код продолжает жить и
-проверяться. Единственная AI-страница, без которой не обходится Zoho-кейс — `chat-recap` —
-при выключенном AI регистрируется под Zoho.
+проверяться. AI-страницы, которые по сути работа в CRM (`AI_UNDER_ZOHO`), при выключенном AI
+регистрируются под Zoho.
 
-**Zoho — новая информационная архитектура.** Вместо шести групп карточек: обзор из пяти
+**Zoho — новая информационная архитектура.** Вместо шести групп карточек: обзор из шести
 направлений (platform development, custom interfaces, integrations, data & reliability, platform
-engineering), плашка масштаба, одна большая диаграмма платформы как системы, индекс из семи
-flagship-кейсов, сетка интерактивных примеров, список технических заметок, дисклеймер про
-синтетические данные. Контент кейсов — в новом модуле `src/cases.js` (только данные).
+engineering, AI inside CRM workflows), плашка масштаба, одна большая диаграмма платформы как
+системы, индекс из восьми flagship-кейсов, сетка интерактивных примеров, список технических
+заметок, дисклеймер про синтетические данные. Контент кейсов — в новом модуле `src/cases.js`
+(только данные).
 
-**Семь кейсов** по единой структуре: summary (What / Scale / My role / Key topics) → Context +
+**Восемь кейсов** по единой структуре: summary (What / Scale / My role / Key topics) → Context +
 Key facts в две колонки → Architecture с диаграммой → Constraints → Implementation →
 Reliability and failure handling (таблица) → Data ownership and security (где уместно) →
 My responsibility → Result → Interactive example (встроенное демо) → More examples →
@@ -44,7 +45,7 @@ Contacts, а не на Overview. Чипы Live demo / Emulated flow / Write-up /
 View Zoho work / Download CV / LinkedIn / Email, GitHub — вторичный (контакт и футер).
 Разделы: featured work (индекс кейсов), capabilities (шесть групп по инженерным capability,
 истории по клику в формате «Where I used it» без шаблона Task/Built/Result), how I run a platform
-(6 карточек), experience (Room 8 в прошедшем времени, «2023 — 2026»), credentials & education,
+(6 карточек), experience (Room 8 «2023 — present»), credentials & education,
 contact. Удалены секции «This site, live» (счётчики тестов и демо), терминал и карта интеграций
 с узлами AI/Salesforce.
 
@@ -59,10 +60,25 @@ contact. Удалены секции «This site, live» (счётчики те�
 (`zoho/<slug>`). Матрица authority показывает в легенде только используемые состояния; строки
 «Unnamed» из матрицы убраны, ограничение названо одной сноской.
 
+**Кейс 08 — AI inside CRM workflows** (`#/zoho/ai-workflows`, алиасы `ai`, `agents`, `llm`,
+`openai`). Собран под вакансии типа «AI systems engineer — OpenAI agents, CRM & API integrations»
+только из того, что было: production-пайплайн рекапов (Teams/Krisp → Claude → корпоративный
+стандарт → человек принимает → запись по полям), серверный rephrase в виджетах (ключ не в
+странице, Undo), двухстадийный loss-analysis (шесть источников, таксономия из 38 причин; роль —
+дизайн и прототип, продакшен делал другой инженер, слабость прототипа — без structured output —
+названа), write-capable ассистент с risk gate и журналом (честно: прототип для портфолио против
+эмулятора), MCP как граница доступа (используется org-тулингом), Zia оценена. Отдельный раздел
+«где модели можно решать, а где нет» — ответ на screening-вопрос про разделение AI reasoning и
+детерминированных правил. Встроенный пример — agent journal с плашкой «что это». Пять AI-страниц
+(`chat-recap`, `agent-journal`, `loss-analysis`, `mcp-product`, `code-intelligence`) публичны под
+Zoho (`AI_UNDER_ZOHO`); `team-intelligence`, `ai-workflow`, plan-страница остаются скрытыми.
+В capability-сетке появилась группа «AI in CRM workflows»; истории `AI-assisted development` и
+`MCP` переписаны без ссылок на сайт. В диаграмме платформы — узлы «Claude · OpenAI» и «Model stages».
+
 **Тексты.** Полный аудит публичных строк: убраны «this site», «running every demo on this site»,
 «For this site I wrote an interpreter», упоминания эмулятора, харнесса, Playwright и числа тестов
-как достижений; «2023—now» заменено на «2023—2026», Room 8 — апрель 2023 – август 2026, бейдж
-«current» снят, глаголы в прошедшем времени. Известное ограничение виджета enrichment
+как достижений; «2023—now» заменено на «2023 — present» (по решению Кости от 6 сентября: Room 8
+показывается как текущее место — «April 2023 – present», «Now — 2026» в колонке handover). Известное ограничение виджета enrichment
 переформулировано как limitation, а не как «missing here on purpose»; «Still open» про 218 с
 против 120 с — как ограничение с проектным ответом. Дисклеймер про синтетические данные — одной
 фразой на Zoho-лендинге, в футере и на каждой демо-странице, плюс короткая страница
@@ -78,15 +94,14 @@ contact. Удалены секции «This site, live» (счётчики те�
 | Раздел | Что именно | Где лежит |
 | --- | --- | --- |
 | Salesforce | вкладка, `sf-lwc` (LWC-порт), страница `sf-sync`, группа Salesforce в capability grid, SF-истории навыков | `SF_ITEMS`, `viewSFLWC`, `viewSFSync`, `src/sflwc.js`, `platform/mockSF.js`, `salesforce/`, `smoke-sf.mjs` |
-| AI | вкладка, `agent-journal` (демо), заметки `code-intelligence`, `ai-workflow`, `loss-analysis`, `team-intelligence`, `mcp-product`, группа AI в capability grid | `AI_GROUPS`, `src/aijournal.js`, `CASES`, `smoke-ai.mjs` |
+| AI | вкладка Applied AI, заметки `ai-workflow` (про верификацию AI-разработки, с числом тестов) и `team-intelligence`, plan-страница `ai-interface-assistance` | `AI_GROUPS`, `CASES`, `smoke-ai.mjs` |
 | Full-stack | вкладка, `harness`, `generator`, `ci-guards`, `site` (страница «как сделан сайт»), группа Backend | `FS_ITEMS`, `CASES`, `ABOUT`/`vHow` |
 | Planned | `calendar-sync`, `mobile-canvas`, `teams-jira`, `reporting`, `external-server`, `ai-interface-assistance` — старые адреса ведут в кейс, который покрывает тему | `SHOW_PLANNED`, `RETIRED` |
 | About | терминал (`termAnswer`), счётчики «This site, live», карта интеграций `imapSVG` | функции остались в `src/app.html`, не вызываются |
 
-`chat-recap` — единственная страница AI-группы, оставшаяся публичной: в кейсе Teams AI показан как
-одна детерминированная стадия реального CRM-процесса, а не как «AI-секция». Заметка
-`team-intelligence` (пост-митинговая аналитика) осталась скрытой вместе с вкладкой — стоит решить,
-не место ли ей в кейсе 03.
+Пять страниц AI-группы публичны под Zoho — `chat-recap`, `agent-journal`, `loss-analysis`,
+`mcp-product`, `code-intelligence` — потому что это работа в CRM, а не «AI-секция»; они входят в
+кейсы 03, 06 и 08. `team-intelligence` остаётся скрытой (решение Кости).
 
 ## Какие материалы объединены в кейсы
 
@@ -97,16 +112,19 @@ contact. Удалены секции «This site, live» (счётчики те�
 | 03 From meeting data to CRM automation — with Teams as the control surface | `#/zoho/teams-crm` | chat-recap | chat-recap, board | cross-system → refuse, resume |
 | 04 Teams → CRM → Jira: one thread, three systems, and who owns what | `#/zoho/jira-sync` | chat-tracker | chat-tracker | cross-system → resume, who-owns |
 | 05 Contact enrichment and identity resolution | `#/zoho/enrichment` | enrichment (вкладка Contact enrichment) | enrichment | contact-model, cross-system → refuse |
-| 06 Zoho platform engineering | `#/zoho/platform-engineering` | orghealth | orghealth | org-tooling, deluge-cicd |
+| 06 Zoho platform engineering | `#/zoho/platform-engineering` | orghealth | orghealth | org-tooling, deluge-cicd, code-intelligence |
 | 07 Data authority, reconciliation and migration | `#/zoho/reconciliation` | event (вкладка Calendar sync) | event | cross-system → who-owns, contact-model |
+| 08 AI inside CRM workflows | `#/zoho/ai-workflows` | agent-journal (прототип, помечен) | agent-journal, chat-recap, board | loss-analysis, mcp-product |
 
 Публичных страниц-примеров девять (event, board, cockpit, solution, enrichment, orghealth,
-chat-recap, chat-tracker + встроенные), заметок пять (cross-system, org-tooling, deluge-cicd,
-widget-system, contact-model). Тест проверяет, что у каждой есть родительский кейс.
+chat-recap, chat-tracker, agent-journal), заметок восемь (cross-system, org-tooling, deluge-cicd,
+widget-system, contact-model, loss-analysis, mcp-product, code-intelligence). Тест проверяет, что
+у каждой есть родительский кейс.
 
 Алиасы, которые тоже работают: `#/zoho/graph-delta-sync`, `#/zoho/sync`, `#/zoho/calendar-sync` →
 orchestration; `#/zoho/interfaces` → widgets; `#/zoho/teams` → teams-crm; `#/zoho/jira` → jira-sync;
-`#/zoho/platform` → platform-engineering; `#/zoho/data`, `#/zoho/migration` → reconciliation.
+`#/zoho/platform` → platform-engineering; `#/zoho/data`, `#/zoho/migration` → reconciliation;
+`#/zoho/ai`, `#/zoho/agents`, `#/zoho/llm`, `#/zoho/openai` → ai-workflows.
 Все старые адреса (`#/rec/*`, `#/demo/*`, `#/case/*`, `#/flow/*`, `#/how`, `#/p/site`,
 `#/p/delta-sync`, `#/p/teams-sync`, `#/p/authority`, …) редиректят — карта в `RETIRED`.
 
@@ -124,6 +142,8 @@ orchestration; `#/zoho/interfaces` → widgets; `#/zoho/teams` → teams-crm; `#
 - 06: цепочка deploy-пайплайна discover → snapshot → analyse → lint → save → read back (SHA-256)
   → test run → evidence с точками отказа.
 - 07: two sources → matching → authority map → sync state per row → repair.
+- 08: evidence → deterministic assembly → model stage (ядро) → human decision → CRM write and trail.
+- Лендинг: добавлены узлы «Claude · OpenAI» (external systems) и «Model stages» (integration services).
 
 ## Какие утверждения изменены после фактчека
 
@@ -133,7 +153,7 @@ orchestration; `#/zoho/interfaces` → widgets; `#/zoho/teams` → teams-crm; `#
 | «70+ widgets across 10 modules» | «70+ widgets across the org’s modules» | число модулей ранее признано неподтверждённым |
 | «~1,500 functions», «roughly 1,500», «Fifteen hundred functions in ten to fifteen minutes» | «more than a thousand» / «1,000+» | точное число чужого орга не публикуем; 1,240 остаётся только как размер сгенерированного орга и так подписано |
 | «Thirty-five services» | «Dozens of services» | абсолютная метрика чужого орга |
-| «2023—now», «current», «since 2023» | «2023—2026», апрель 2023 – август 2026 | Room 8 закончился |
+| «2023—now», «current» | «2023 — present», «April 2023 – present» | решение Кости 6.09: показывать как текущее место; бейдж «current» не возвращён |
 | «Sole technical owner» | «primary engineer and technical owner» | точнее по сути |
 | «Dozens of custom … modules across a landscape approaching a hundred» | «Fifty-plus custom modules» | подтверждённое число |
 | «Still open, and worth saying out loud» (218 с против 120 с) | ограничение и проектный ответ (resumable, ≤5 каналов за прогон) | публичная версия не показывает незавершённую работу; факт сохранён |
@@ -148,21 +168,24 @@ buffer, thirteen meetings three hours wrong.
 
 ## Проверка
 
-`npm run verify` = `build` → `test` (10 файлов, 362 проверки; новый `smoke-public.mjs`: семь
-кейсов, встраивание демо, алиасы, недоступность скрытых маршрутов, запрещённые строки на всех
+`npm run verify` = `build` → `test` (10 файлов, ~390 проверок; новый `smoke-public.mjs`: восемь
+кейсов, публичность AI-страниц под Zoho, встраивание демо, алиасы, недоступность скрытых маршрутов, запрещённые строки на всех
 публичных страницах, привязка каждой страницы к кейсу, back/forward, 390/430 px без
 горизонтального скролла, шапка в одну строку, ноль console errors) → `build:all` → `test:hidden`
 (AI, Salesforce; 47 проверок). CI (`deploy.yml`) делает то же и по-прежнему валит сборку на
-утёкшем идентификаторе. Проверка inline-скриптов из `content-rework2` сохранена.
+утёкшем идентификаторе. Проверка inline-скриптов из `content-rework2` сохранена. Все `smoke*.mjs`
+теперь ставят `process.exitCode=1` на любой FAIL — раньше восемь из них печатали FAIL и выходили
+нулём, так что CI мог быть зелёным при упавшей проверке.
 
 Визуально проверено скриншотами (`tools/shots.mjs`) на 1440×900, 1280×800, 390×844, 430×932 —
 все публичные маршруты, без переполнений и ошибок консоли.
 
 ## Что осталось на Phase 2
 
-- `content/` (markdown-экспорт текстов) сделан до этого прохода: `_export.mjs` не знает про
-  `src/cases.js`, кейсы и выключенные разделы. Либо доучить экспортёр, либо считать `content/`
-  снимком ветки `content-rework2`.
+- `content/` перевыгружен: экспортёр читает `dist-all/` и помечает публичность по `dist/`
+  (`public`, `public_tab`, `case` в front-matter), пишет `cases/<slug>.md`, `pages/about-demos.md`,
+  `tabs/contact.md`, новый лендинг Zoho и диаграммы `layers`. Запуск:
+  `npm run build && npm run build:all && node content/_export.mjs` (нужен `npm i --no-save turndown`).
 - Скриншоты для карточек интерактивных примеров (сейчас три встроенных снимка — event, solution,
   board — используются только в блоке опыта; сетка примеров текстовая, чтобы не раздувать страницу).
 - Вынести датасет (≈1.1 MB) из инлайна в отдельный файл с отложенной загрузкой — вес страницы
@@ -170,10 +193,8 @@ buffer, thirteen meetings three hours wrong.
 - Вернуть Salesforce и AI отдельными проходами: переключатель есть, тесты живут; нужен контент
   того же формата (кейс с диаграммой), в том числе Google Drive ↔ Salesforce / AppExchange.
 - Диаграммы к демо-страницам, где их нет (solution, board, sf-lwc — по анализу 30.08).
-- CV PDF: в шапке репозиторного `Kostiantyn_Buriak_CV.pdf` период Room 8 всё ещё «April 2023 –
-  Present» — обновить файл.
 - Подписи в демо `chat-tracker` (`PITCH`, `Teams_Messages`, `In_Jira`) — названия из
-  первоисточника; решить, оставлять ли их.
+  первоисточника; оставлены по решению Кости.
 
 ## Прямые ссылки для Upwork-предложений
 
@@ -186,9 +207,11 @@ https://koslan.github.io/crm-platform-portfolio/#/zoho/jira-sync
 https://koslan.github.io/crm-platform-portfolio/#/zoho/enrichment
 https://koslan.github.io/crm-platform-portfolio/#/zoho/platform-engineering
 https://koslan.github.io/crm-platform-portfolio/#/zoho/reconciliation
+https://koslan.github.io/crm-platform-portfolio/#/zoho/ai-workflows
 https://koslan.github.io/crm-platform-portfolio/#/contact
 ```
 
 Под конкретную проблему клиента: Zoho API / лимиты / синк → orchestration или platform-engineering;
 миграция или расхождения данных → reconciliation; кастомный виджет → widgets; дубли и обогащение →
-enrichment; Teams / Jira → teams-crm / jira-sync.
+enrichment; Teams / Jira → teams-crm / jira-sync; AI-агенты, OpenAI/Claude в CRM, approval и audit →
+ai-workflows (+ enrichment для Apollo-части таких вакансий).

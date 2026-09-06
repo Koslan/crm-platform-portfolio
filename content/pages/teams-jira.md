@@ -6,6 +6,7 @@ tab: "zoho"
 group: "Connecting Teams, Slack and Jira to the CRM"
 route: "#/p/teams-jira"
 kind: "plan"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"teams-jira\""

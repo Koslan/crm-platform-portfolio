@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Cleaning up contacts, deduplication and enrichment"
 route: "#/p/contact-model"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/enrichment"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"contact-model\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **`sub` — НЕ рендерится, см. LEAD:**
 > A many-to-many contact model, the migration onto it, and the identity rules every inbound path now obeys.
@@ -41,3 +44,7 @@ A model is only worth having if every route obeys it. Identity resolution runs b
 ## The trade
 
 The relationship layer is real complexity, and every consumer — widget, report, integration — has to understand it. That cost is taken deliberately, because the simplicity it replaced existed only in the schema. Users were already carrying the complexity as duplicate records, lost employment history and a question about a group account that nobody could answer; they were simply carrying it without any of the tools this model hands back.
+
+## See it live
+
+Блок-callout внизу страницы ведёт на `#/p/enrichment` — Contact enrichment.

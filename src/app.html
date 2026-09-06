@@ -778,12 +778,14 @@ AI_GROUPS.forEach(g=>reg(g.items,'ai',g.h));
    work and follows that section's switch. */
 if(isPublic('salesforce')) reg(SF_ITEMS,'zoho','Cleaning up contacts, deduplication and enrichment');
 reg(FS_ITEMS,'fullstack','Full-stack');
-/* The meeting-recap flow is written up on the AI tab but is Zoho work first — the model is
-   one stage of a CRM process. When the AI section is off it is registered under Zoho instead
-   of disappearing with the tab. */
+/* The AI pages that are Zoho work first — the model is one stage of a CRM process, the
+   assistant writes into CRM records, the MCP surface fronts the org tooling — are registered
+   under Zoho when the AI section is off, instead of disappearing with the tab. The rest of
+   that tab (AI in engineering, recurring reports, the plan page) stays with it. */
+const AI_UNDER_ZOHO=['chat-recap','agent-journal','loss-analysis','mcp-product','code-intelligence'];
 if(!isPublic('ai')){
- const recap=AI_GROUPS.flatMap(g=>g.items).find(i=>i.id==='chat-recap');
- if(recap) reg([recap],'zoho','AI in the CRM: recaps, loss analysis, drafted text');
+ const all=AI_GROUPS.flatMap(g=>g.items);
+ reg(AI_UNDER_ZOHO.map(id=>all.find(i=>i.id===id)).filter(Boolean),'zoho','AI in the CRM: recaps, loss analysis, drafted text');
 }
 
 /* ---------------- public Zoho content: cases, parents, siblings ---------------- */
@@ -792,11 +794,12 @@ const CASE_LIST = PUB.CASES;
 const CASE_BY_SLUG = {}; CASE_LIST.forEach(c=>CASE_BY_SLUG[c.slug]=c);
 /* Old and alternative case addresses, so a link pasted into a proposal keeps working. */
 const CASE_ALIAS = {'interfaces':'widgets','graph-delta-sync':'orchestration','sync':'orchestration','calendar-sync':'orchestration',
- 'teams':'teams-crm','jira':'jira-sync','platform':'platform-engineering','data':'reconciliation','migration':'reconciliation'};
+ 'teams':'teams-crm','jira':'jira-sync','platform':'platform-engineering','data':'reconciliation','migration':'reconciliation',
+ 'ai':'ai-workflows','agents':'ai-workflows','llm':'ai-workflows','openai':'ai-workflows'};
 /* Which case an interactive example belongs to first; notes derive theirs from the case that lists them. */
 const DEMO_PARENT = {event:'widgets',cockpit:'widgets',solution:'widgets',board:'widgets',
  enrichment:'enrichment','chat-recap':'teams-crm','chat-tracker':'jira-sync',orghealth:'platform-engineering',
- 'sf-lwc':'enrichment','agent-journal':'teams-crm'};
+ 'sf-lwc':'enrichment','agent-journal':'ai-workflows'};
 const ITEM_PARENT = {...DEMO_PARENT};
 const noteId = n => typeof n === 'string' ? n : n.id;
 CASE_LIST.forEach(c=>(c.notes||[]).forEach(n=>{ const id=noteId(n); if(!ITEM_PARENT[id]) ITEM_PARENT[id]=c.slug; }));
@@ -913,17 +916,17 @@ const TIPS={
  'SQL':'From migration validation queries to reporting — SQL is where my data work gets checked.',
  'PostgreSQL':'The database behind my backend work and side tooling — schema design included.',
  /* --- AI --- */
- 'AI-assisted development':'AI is my delivery multiplier, not a toy: this site — an SDK emulator, '+Object.values(ALL).filter(i=>i.kind==='live'||i.kind==='emul').length+' live widgets, '+TEST_COUNT+' tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.',
+ 'AI-assisted development':'AI inside a governed delivery workflow — analysis, Deluge and widget implementation, tests, documentation, review — with human ownership of architecture, security and business rules, and nothing generated accepted unverified.',
  'Claude':'Claude Code daily, tuned for CRM work: custom skills for widget development, MCP for org access, review gates so nothing generated lands unread.',
  'OpenAI API':'Designed a two-stage loss-analysis pipeline: ten times more code gathering evidence from six sources than calling the model, and a 38-cause taxonomy in the prompt so answers land in the company’s own categories.',
  'embedded CRM features':'AI living inside CRM surfaces I built: server-side recap rephrasing (no key ever in the page), an agent design where every action writes a before/after diff to a journal module.',
- 'MCP':'Building MCP access to CRM data so assistants can query an org safely — the same idea as this site’s emulator, pointed at real systems.',
+ 'MCP':'A scoped MCP surface over CRM records and the platform tooling around them: typed operations, explicit permissions, an audit trail — used by the org’s extraction and audit tooling.',
  'Zoho native AI':'Zia evaluated and configured where it earns its place — and replaced with custom pipelines where it doesn’t.'
 };
 /* ---- skill stories: task → built → result ---- */
 const STORY={
  "Deluge": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "Three years as the only Deluge engineer on a production org: hundreds of functions behind integrations, scheduled jobs and every widget on the platform.",
   "b": "The language is only half of it. Before Zoho provided a functions API the platform gave one browser editor and one function at a time, so I built the extraction and deploy tooling that put the whole codebase under Git with review and dependency analysis — and delivered business processes spanning dozens of functions as one reviewable change.",
   "r": "Deluge stopped being isolated snippets in textareas and became a codebase I could reason about. That is what made the larger systems possible.",
@@ -931,14 +934,14 @@ const STORY={
   "code": "// checkpoint per page — not per run\nfor each pg in pageList          // no while loop in Deluge\n{\n  if(done == false)\n  {\n    resp = invokeurl [ url: deltaLink ... connection: \"graph\" ];\n    processEvents(resp);\n    saveCheckpoint(mailbox, resp.get(\"@odata.deltaLink\"));\n    done = resp.get(\"@odata.nextLink\") == null;\n  }\n}"
  },
  "Widgets": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "Sales lives in tables the platform cannot draw — 400-contact target lists, room schedules, a service-line matrix — and every one has to run inside an iframe the CRM controls.",
   "b": "70+ production widgets on a corporate design system of my own: a versioned component and function library every screen is assembled from, composite screens backed by several Deluge services and external systems at once, mobile adaptations for the Zoho app, and an offline stand that stubs the SDK so a change is verified before production sees it.",
   "r": "The record page became the tool people actually work in.",
   "demo": "event"
  },
  "COQL": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "Every widget and integration needs data the REST list endpoints return awkwardly or not at all.",
   "b": "COQL as the daily data-access layer: cross-module read models, reusable query patterns, and the platform's ceilings — 200 rows, 14 criteria — treated as ordinary constraints rather than discoveries.",
   "r": "One query surface everywhere, with the ceilings designed for rather than discovered.",
@@ -946,7 +949,7 @@ const STORY={
   "code": "select id, Full_Name, Account_Name.Account_Name\nfrom Contacts\nwhere Account_Name.Country = 'Poland'\n  and Meeting_Status in ('booked', 'held')\nlimit 200 offset 400   -- ceiling: 200 rows, page by hand"
  },
  "Zoho SDK": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "A widget only exists inside the CRM and the SDK it depends on has no offline form, so every change used to be tested in production.",
   "b": "Production work across record pages, related lists, buttons, web tabs, Canvas and mobile surfaces — learned deep enough to build a compatible offline stand for the SDK surface the widget estate uses: init and lifecycle, record APIs, resize, connection invokes, the platform's own error envelopes.",
   "r": "Widgets develop and test outside the CRM, and a change is verified before the platform ever sees it.",
@@ -954,54 +957,54 @@ const STORY={
   "code": "ZOHO.embeddedApp.on(\"PageLoad\", function(page){\n  ZOHO.CRM.API.coql({select_query: q})\n    .then(render)\n    .catch(showErrorEnvelope); // same shape offline & live\n});\nZOHO.embeddedApp.init();"
  },
  "custom modules": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The org kept its relations as free text — “which business unit, which programme” lived as strings someone once typed.",
   "b": "Fifty-plus custom modules — junction, service and journal modules among them — with relationships, ownership, lifecycle and validation defined rather than accumulated, plus the migration scripts that moved years of strings into real references.",
   "r": "Reports and rollups became possible; “which deals touch this unit” is a query now, not a guess.",
   "demo": "solution"
  },
  "workflows": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Daily ownership of an automation estate accumulated over years: rules, schedules and functions, most of them inherited.",
   "b": "Criteria architecture, execution order, function orchestration and conflict analysis as routine work — and an index of the whole estate: every function cross-referenced against five entry channels, every rule against its execution history.",
   "r": "Rules marked active that had never fired once turned up in that index — a criterion still named a renamed field. Automation is inventory now, not folklore.",
   "demo": "orghealth"
  },
  "Blueprints": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The sales process existed as tribal knowledge; stages were skipped and loss reasons never captured.",
   "b": "Blueprint-driven lifecycles as part of platform ownership: states, controlled transitions, per-stage mandatory fields, automation hand-offs and the escape paths that surface in week two — with a deliberate boundary between what belongs in a Blueprint, a workflow, code and the UI.",
   "r": "The loss-analysis work downstream became possible, because the data it needs is enforced at entry."
  },
  "schedules": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "Everything periodic on the platform runs through scheduled functions, and they share one quota and one timeout.",
   "b": "The org's scheduled workload designed as a whole: partitioning, resumability, overlap prevention, idempotency and safe backfills — delta syncs, a chat import every ten minutes, a monthly forced resync.",
   "r": "No single run nears the ceiling, and an interrupted job continues instead of restarting.",
   "demo": "orghealth"
  },
  "validation rules": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The org accepted bad data faster than any cleanup could remove it, and every report inherited the mess.",
   "b": "Validation placed by layer rather than by habit — layouts, Blueprints, workflows, widgets and Deluge — so each business invariant holds where it cannot be bypassed, without blocking legitimate exceptions or integration traffic. Every refusal names its reason.",
   "r": "Data quality became a property of the system rather than of individual diligence.",
   "demo": "event"
  },
  "Tabulator": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A 400-row target list needs filtering, sorting and in-cell editing — inside an iframe, on CRM data.",
   "b": "Reusable patterns for large interactive datasets across the widget estate: custom header filters, validated in-cell editing, state that survives a refresh, custom rendering, and writes back into the CRM.",
   "r": "Contact triage that used to need a spreadsheet export happens on the record page.",
   "demo": "event"
  },
  "layouts": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A CRM form is a tax on every deal a salesperson logs, and the org's forms had grown by accretion for years.",
   "b": "Layouts and information architecture across dozens of modules: role- and process-specific variants, conditional sections, field dependencies, naming consistency, and controlled evolution as requirements changed.",
   "r": "Faster entry and cleaner records — the right field became the easy one, and layout changes pass the same review as code."
  },
  "roles & profiles": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Sales ops, BD and regional teams in several countries: everyone needs their slice, nobody should see everything.",
   "b": "The access model designed rather than accumulated: a role hierarchy following the org chart, least-privilege profiles, module and field permissions, record ownership and sharing rules that survive reorgs — with their effect on automation, reporting and integrations accounted for.",
   "r": "Access questions have an answer in the model instead of a special case per person."
@@ -1025,7 +1028,7 @@ const STORY={
   "r": "Meetings argue about what to do next, not about whose numbers are right."
  },
  "Zoho One": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The CRM sits inside a wider suite someone has to own.",
   "b": "Platform-level administration of the surrounding estate: applications, user lifecycle, provisioning, access coordination, and the integration boundaries between CRM and adjacent products.",
   "r": "One accountable owner for the whole Zoho footprint."
@@ -1074,14 +1077,14 @@ const STORY={
   "r": "Delivery didn't need a translator between the client and the build."
  },
  "Microsoft Graph": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "Meetings are booked in Outlook; sales needs them in the CRM within minutes, without anyone forwarding invitations.",
   "b": "Graph integrations across calendar, mail and identity: an Entra app registration with least-privilege scopes, delta queries with durable state per mailbox, throttling budgets that slow a mailbox instead of failing it, and failure isolation so one broken account cannot stop the rest.",
   "r": "Two years of unattended operation — a mailbox that breaks reports itself instead of silently drifting.",
   "demo": "event"
  },
  "Teams & Teams bots": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Deals are discussed in Teams threads; none of it reached the record, and nobody was going to retype it.",
   "b": "Teams-centred workflows spanning conversations, meetings, Adaptive Cards, CRM records and the issue tracker: identity resolution, asynchronous interaction, auditability — including a text contract in the first message of a thread instead of a bot nobody would have approved, and a resumable importer that takes five channels a run.",
   "r": "Thread context lands on the right deal with the mapping source recorded; ambiguous threads park for review instead of guessing.",
@@ -1095,40 +1098,40 @@ const STORY={
   "code": "async function token(){\n  if(cache && cache.exp - 60_000 > Date.now()) return cache.value;\n  cache = await refresh();          // client_credentials / refresh_token\n  return cache.value;\n}\n// on 401: cache = null; retry once; then fail loudly"
  },
  "idempotency": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A sync that runs every ten minutes will eventually run twice over the same data.",
   "b": "Replay guarantees defined per integration: stable identities, deduplication state, explicit create-versus-update semantics, and protection of human-authored fields — markers inside comment bodies, rolling journals of processed event ids on the record itself.",
   "r": "“Ran twice” became a non-event: the second pass finds its own marks and steps over them.",
   "demo": "chat-tracker"
  },
  "delta tokens": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Full re-reads guarantee timeouts; provider cursors solve that until one expires mid-run.",
   "b": "Incremental synchronisation with durable checkpoints per page, expiry recovery inside the same run, periodic full reconciliation to clear drift, and explicit handling of deletions.",
   "r": "The syncs self-heal from every token failure mode seen in production.",
   "demo": "event"
  },
  "Email ingestion": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Customer email lived in personal mailboxes across several sources; the CRM saw none of it.",
   "b": "A server-side ingestion pipeline over multiple sources and mailboxes: identity and thread resolution, deduplication, routing to the right account and deal, attachment handling and exception reporting.",
   "r": "The record tells the whole story of an account, including the part that used to die in inboxes."
  },
  "Jira": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Presales discusses a deal in Teams — and none of it reaches the Jira issue engineering actually works from.",
   "b": "A Teams-to-Jira integration routed by a PITCH code resolved once from a thread's root message: public or role-restricted comments made idempotent by a marker inside the body, attachments sent as links rather than uploads, and a one-time reaction confirming delivery back on the source message.",
   "r": "A ten-minute sync that never duplicates a comment, with delivery visible on the Teams message itself instead of only inside Jira.",
   "demo": "chat-tracker"
  },
  "Apollo": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Conference target lists arrive as exports with wrong company names and no shared key with the CRM.",
   "b": "Enrichment into the CRM with governance: account-hierarchy resolution, four identity keys applied in order ending with a normalised profile URL, field authority, conservative update rules, quota-aware batching, and human review of ambiguous candidates.",
   "r": "Hundreds of people imported without creating duplicates — the tool is safe to run twice."
  },
  "webhooks": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Events are not re-sent: a rejected write is a lost event, and the rejection reason is unknown in advance.",
   "b": "A receiver that repairs its own payload: five attempts, reading the failing field out of the CRM error, substituting or dropping it, switching create to update when a duplicate id comes back — with the raw payload retained and everything dropped itemised.",
   "r": "Records arrive degraded-but-visible instead of not at all, and the degradation is on the record rather than in a log nobody reads.",
@@ -1142,27 +1145,27 @@ const STORY={
   "r": "Throttling became a slowdown, not an outage."
  },
  "reconciliation": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "“Sixty minutes here, forty-five there” does not tell an operator what the record should say.",
   "b": "Reconciliation built on explicit field authority rather than comparison: a third column carrying the expected value computed from an authority map, the governing rule printed under it, and a repair that writes exactly that.",
   "r": "Disagreements between systems became a queue to work rather than an argument to have.",
   "demo": "event"
  },
  "Adaptive Cards": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A person takes minutes to fill a form; a synchronous Teams call has seconds.",
   "b": "Human-in-the-loop workflows inside a channel that cannot wait: stateless cards reissued in a loop for search, callback-driven progression, a bounded lifetime so a forgotten card cannot hold a run open, and a sentinel value carrying “chosen deliberately” through a control that returns one string.",
   "r": "A search over hundreds of accounts happens inside something that cannot fetch.",
   "demo": "chat-recap"
  },
  "deduplication": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The same person exists four different ways across two systems.",
   "b": "Identity resolution across integrations and migrations: authoritative identifiers, normalisation, ordered evidence ending with a normalised profile URL, confidence thresholds, merge safety, and human review whenever automation cannot prove identity — name matches shown but never blocking.",
   "r": "Import tools that are safe to run twice, by construction."
  },
  "Slack": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Integration failures used to be discovered by salespeople noticing stale data.",
   "b": "Slack as the operational surface for the integration estate: each sync classifies its own failures and reports its own health, deal events and alerts routed to the channels the team already reads, with noise kept deliberately low.",
   "r": "Time-to-notice for a broken sync dropped from days to minutes — and the monitoring lives in the syncs, not in the chat."
@@ -1198,7 +1201,7 @@ const STORY={
   "r": "Published on AppExchange. The habits it forced — security from day one, logs that never see a token — stayed in everything I have built since."
  },
  "Deluge deploy pipeline": {
-  "w": "Room 8 · 2024—2026 · daily",
+  "w": "Room 8 · 2024—present · daily",
   "t": "Before Zoho provided a functions API the platform offered one browser editor, one function at a time: no search across the codebase, no history, no local tooling.",
   "b": "A two-way delivery pipeline for Deluge: the org's whole codebase pulled to local disk, edited in a real IDE under Git with review and dependency-aware analysis, and pushed back with the round-trip verified — what lands in the org is exactly what was reviewed.",
   "r": "Isolated snippets in textareas became deliverable systems: coordinated multi-function change, dead-code and dependency analysis, and daily development that no longer fights a browser."
@@ -1217,7 +1220,7 @@ const STORY={
   "r": "Release day stopped being an event. Rollback is a revert, not an archaeology dig."
  },
  "automated testing": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "An embedded CRM application cannot run outside the CRM, so verifying a change used to mean deploying it to production.",
   "b": "A testing architecture for that constraint: an offline stand stubbing the Zoho SDK, seeded datasets with deliberate defects, browser-level regression at desktop and phone widths, mocked external boundaries, and release gates that fail on any console error.",
   "r": "Changes are verified before the platform ever sees them."
@@ -1236,19 +1239,19 @@ const STORY={
   "demo": "buckets"
  },
  "code review": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A platform owner who is also the only reviewer becomes either the bottleneck or the standard.",
   "b": "The review standard for CRM change — architecture fit, security, data integrity, platform limits, dependency impact, recovery, test evidence, and who owns it after release — applied to other developers' work and to my own on the same terms.",
   "r": "The standard survives me being on holiday."
  },
  "release management": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "The CRM serves live sales operations; there is no maintenance window that suits everyone.",
   "b": "Release planning around the business: risk and dependency assessment, sequencing against operations, announcement, verification, staged rollout with the risky part behind a flag, and a rollback path decided before the release rather than during it.",
   "r": "Change lands without disrupting the pipeline it serves."
  },
  "data quality": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Automated “fixes” destroy data faster than they clean it.",
   "b": "Data-quality governance across the CRM and its inbound systems: field authority, identity confidence, duplicate policy, exception queues — and three write rules applied everywhere: a name is corrected only when the surname differs, title and email fill only empty fields, everything else that merely differs goes to a human.",
   "r": "Tools that improve data without ever silently overwriting a person's work.",
@@ -1328,9 +1331,9 @@ const STORY={
  "AI-assisted development": {
   "w": "daily since 2024",
   "t": "AI-assisted delivery is easy to demo and hard to ship.",
-  "b": "AI inside a governed workflow: analysis, implementation, tests, documentation and review, with human ownership of architecture, security and business rules, and nothing generated accepted unverified. This site — an SDK emulator, live widgets, a seeded dataset with deliberate defects and a headless test suite — was built that way, and so is my production CRM work.",
-  "r": "You are looking at the result. Every claim on this page is clickable.",
-  "demo": "site"
+  "b": "AI inside a governed delivery workflow on the platform: analysis, Deluge and widget implementation, tests, documentation and review, with human ownership of architecture, security and business rules, and nothing generated accepted unverified — source review, deployment through tooling that verifies the round trip by hash, behavioural checks before promotion.",
+  "r": "Generation was never the bottleneck; verification is — so the gates decide what ships.",
+  "demo": "code-intelligence"
  },
  "Claude": {
   "w": "daily",
@@ -1346,17 +1349,18 @@ const STORY={
   "demo": "loss-analysis"
  },
  "embedded CRM features": {
-  "w": "Room 8 · 2024—2026",
+  "w": "Room 8 · 2024—present",
   "t": "AI features inside a CRM must never leak keys into the browser or act without a trail.",
   "b": "Delivered: server-side recap rephrasing, with no key ever reaching the page. Designed, not shipped: an agent pattern where every action writes time, intent, target and a before-and-after diff to a journal module, with a confirmation screen above a risk threshold.",
   "r": "AI that survives its first disputed edit, because the journal answers who did what.",
   "demo": "agent-journal"
  },
  "MCP": {
-  "w": "exploring · 2025—2026",
+  "w": "Room 8 · 2025—present",
   "t": "Assistants need to query an org without being handed the keys to it.",
-  "b": "Exploring MCP as a controlled access layer: narrowly scoped typed tools over the same surface my emulator implements, explicit permissions, audit logging, and a hard line between reasoning and authorised action.",
-  "r": "The emulator idea pointed at real systems: safe, inspectable access. Exploration, not production."
+  "b": "MCP as a controlled access layer: narrowly scoped typed operations over records and the platform tooling around them, explicit permissions, audit logging, and a hard line between reasoning and authorised action. Used by the extraction and audit tooling; as a product surface for salespeople it is an exploration, not production.",
+  "r": "Safe, inspectable access — the damage a wrong instruction can do is bounded by a list somebody wrote.",
+  "demo": "mcp-product"
  },
  "Zoho native AI": {
   "w": "Room 8 · evaluated",
@@ -1377,7 +1381,7 @@ const STORY={
   "r": "Decisions with named trade-offs instead of accumulated customisation — and a platform that stays explainable."
  },
  "CRM administration": {
-  "w": "Room 8 · 2023—2026 · daily",
+  "w": "Room 8 · 2023—present · daily",
   "t": "A multi-country CRM where access, layouts and automation drift into chaos unless someone owns the operating model.",
   "b": "Own it end to end: user lifecycle, role hierarchy, least-privilege profiles, module and field permissions, record ownership, sharing rules, layouts, workflows, Blueprints and validation. Access changes are treated as governed platform changes — with their effect on automation, reporting and integrations — not one-off exceptions.",
   "r": "An access model that survives reorgs and audits, and an admin surface a successor could take over from the docs."
@@ -1389,13 +1393,13 @@ const STORY={
   "r": "Features that get used — and a platform that becomes easier to operate instead of accumulating workarounds."
  },
  "governance & controlled change": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "A CRM serving live sales operations cannot absorb uncontrolled change — and cannot freeze either.",
   "b": "Run the change model: intake, prioritisation against business impact and capacity, review gates, traceable releases, rollback paths and post-release verification. Least-privilege access, secrets out of client code and logs, audit trail by design — the same habits that passed AppExchange Security Review.",
   "r": "“No change reaches production unreviewed” as an enforced operating rule — and readiness for regulated environments without claiming compliance projects I have not done."
  },
  "reports & dashboards": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "Commercial teams need numbers they can argue with — one explainable version of them.",
   "b": "Native CRM reports and dashboards maintained as part of platform administration; the analytical layer in Zoho Analytics where questions cross modules or systems — synced sources, prepared datasets, transformations, analytical SQL, scheduled delivery.",
   "r": "Weekly management decisions run off one number with a traceable path from source to dashboard."
@@ -1407,7 +1411,7 @@ const STORY={
   "r": "A platform a successor could operate from the docs — which is the honest test of documentation."
  },
  "stakeholder ownership": {
-  "w": "Room 8 · 2023—2026",
+  "w": "Room 8 · 2023—present",
   "t": "One engineer, many masters: sales ops, BD, finance, regional teams — all with urgent requests.",
   "b": "Own the delivery queue from intake to production: gather demand, clarify business impact and dependencies, estimate, prioritise against capacity and risk, sequence releases, communicate status, verify outcomes after launch.",
   "r": "Stakeholders who trust the queue because it is visible, argued and predictable — and a roadmap that survives contact with Q4."
@@ -1669,7 +1673,7 @@ function termAnswer(q){
   return MATRIX.map(r=>r.dom+' — '+(r.l1.length+r.l2.length+r.l3.length)+' skills').join('\n')+'\ntry: <span class="cmd">skills zoho</span>';
  }
  if(c==='experience'){
-  const xp={room8:'Room 8 Group · CRM Engineer / Platform Owner · 2023—2026\n  Primary engineer and technical owner of a production Zoho CRM: integrations (Graph, Teams, Jira, Apollo),\n  widgets across the CRM estate on a shared design system, org extraction into Git,\n  migrations, release process.',
+  const xp={room8:'Room 8 Group · CRM Engineer / Platform Owner · 2023—present\n  Primary engineer and technical owner of a production Zoho CRM: integrations (Graph, Teams, Jira, Apollo),\n  widgets across the CRM estate on a shared design system, org extraction into Git,\n  migrations, release process.',
    noltic:'Noltic · Salesforce Developer · 2022—23\n  REST/SOAP integrations, CI/CD pipeline, Google Drive integration + Chrome extension, LWC.',
    softserve:'SoftServe · Salesforce Dev & Admin · 2021—22\n  Sales/Service/Experience Cloud on concurrent implementations; workshops→release ownership.',
    synebo:'Synebo · Salesforce Developer · 2020—21\n  Apex within governor limits, SOQL optimisation, LWC/Aura/Visualforce.',
@@ -1775,7 +1779,7 @@ const CAPABILITIES = [
  {dom:'Engineering', tab:'zoho', skills:['Git','Deluge deploy pipeline','GitHub Actions','CI/CD','automated testing','code review','release management','documentation']},
  {dom:'Platform ownership', tab:'zoho', skills:['business analysis','CRM administration','UAT & adoption','governance & controlled change','stakeholder ownership','reports & dashboards','data analysis']},
  {dom:'Salesforce', tab:'salesforce', skills:['Apex','Lightning Web Components','SOQL/SOSL','Flows','AppExchange & Security Review','Aura','Visualforce','Sales / Service / Experience Cloud']},
- {dom:'AI', tab:'ai', skills:['AI-assisted development','Claude','OpenAI API','embedded CRM features','MCP','Zoho native AI']},
+ {dom:'AI in CRM workflows', tab:'zoho', skills:['embedded CRM features','OpenAI API','Claude','MCP','Zoho native AI','AI-assisted development']},
  {dom:'Backend', tab:'fullstack', skills:['Java & Spring Boot','Node.js','TypeScript','PostgreSQL']}
 ].filter(g => isPublic(g.tab));
 function capabilitiesHTML(){
@@ -1790,8 +1794,8 @@ function vAbout(){
   +'<h1 style="font-size:clamp(34px,5vw,52px)">Kostiantyn Buriak</h1>'
   +'<p class="lede">More than three years as the primary engineer and technical owner of a production Zoho CRM: the data '
   +'model, <span class="hl">seventy-plus widgets</span>, the <span class="hl">integration layer</span> around Microsoft Graph, '
-  +'Teams, Jira and Apollo, and the <span class="hl">tooling</span> that put an org of more than a thousand functions '
-  +'under version control. Seven years in software engineering, more than five of them on CRM platforms.</p>'
+  +'Teams, Jira and Apollo, the <span class="hl">model stages</span> inside those workflows, and the <span class="hl">tooling</span> '
+  +'that put an org of more than a thousand functions under version control. Seven years in software engineering, more than five of them on CRM platforms.</p>'
   +'<div class="ctas"><a class="pri" href="#/zoho">View Zoho work</a>'
   +'<a class="sec" href="Kostiantyn_Buriak_CV.pdf" download>Download CV</a>'
   +'<a class="sec" href="https://www.linkedin.com/in/kburiak" target="_blank" rel="noopener">LinkedIn</a>'
@@ -1799,7 +1803,7 @@ function vAbout(){
   +statStrip([['3+ yrs','owning a Zoho CRM'],['70+','production widgets'],['10+','connected systems'],['1,000+','functions under Git']])
   +'</div><img class="photo" src="'+PHOTO+'" alt="Kostiantyn Buriak"></div>'
 
-  +'<div class="bsec rv"><span class="idx">01 / FEATURED WORK</span><h2>Seven case studies from one production platform</h2>'
+  +'<div class="bsec rv"><span class="idx">01 / FEATURED WORK</span><h2>Eight case studies from one production platform</h2>'
   +'<p class="sub">Each has a stable address, an architecture picture, the failure modes, and — where the work was a '
   +'screen — the screen itself, running against synthetic data. Open the one closest to your problem.</p>'
   +caseRows(CASE_LIST)
@@ -1811,7 +1815,7 @@ function vAbout(){
   +capabilitiesHTML()+'</div>'
 
   +'<div class="bsec rv"><span class="idx">03 / HOW I RUN A PLATFORM</span><h2>What this looks like off the keyboard</h2>'
-  +'<p class="sub">Technical owner of the platform from 2023 to 2026 — roadmap, delivery and support in one seat. The part of that ownership that is not code: discovery, governance, adoption and the discipline that keeps the rest true.</p>'
+  +'<p class="sub">Technical owner of the platform since 2023 — roadmap, delivery and support in one seat. The part of that ownership that is not code: discovery, governance, adoption and the discipline that keeps the rest true.</p>'
   +'<div class="runcards">'
   +'<div class="runcard"><h3>Business analysis &amp; functional design</h3><p class="rc-sub">Turning a stakeholder request into a data model, not just a screen.</p><ul><li>Stakeholder discovery before a single field gets built — what the request is actually trying to solve.</li><li>Translate &#8220;I want a button&#8221; into entities, relationships and validation rules.</li><li>Push back on requirements that would break the platform, with a working alternative attached — spec before code.</li></ul></div>'
   +'<div class="runcard"><h3>CRM administration &amp; access governance</h3><p class="rc-sub">Who sees what, and why, enforced by design rather than habit.</p><ul><li>Profiles, roles, sharing rules and layouts designed around how teams actually work.</li><li>Access follows the org chart and survives reorgs, because it hangs on roles rather than named users.</li><li>Changes to the access model go through a controlled review, not a live edit.</li></ul></div>'
@@ -1824,8 +1828,8 @@ function vAbout(){
   +'<div class="bsec"><span class="idx">04 / EXPERIENCE</span><h2>Where the seven years happened</h2>'
   +'<p class="sub">More than five years across CRM platforms, read as one track: three consulting years delivering Salesforce, then ownership of a production Zoho platform end to end. Newest first.</p>'
 
-  +job({yr:'2023 — 2026',dur:'3+ years',co:'Room 8 Group',role:'CRM Engineer / Platform Owner',
-   meta:'remote · April 2023 – August 2026 · global game development services company',
+  +job({yr:'2023 — present',dur:'3+ years',co:'Room 8 Group',role:'CRM Engineer / Platform Owner',
+   meta:'remote · April 2023 – present · global game development services company',
    tech:['Zoho CRM','Deluge','JavaScript','Python','COQL','MS Graph','Teams','Jira','Apollo','Slack','Git','GitHub Actions'],
    body:'<p><b>Primary engineer and technical owner</b> of a production Zoho CRM platform serving sales operations, '
    +'business development and regional teams across multiple countries — data model, automation, widgets, '
@@ -1838,7 +1842,7 @@ function vAbout(){
    +'<li>Relations kept as free-text fields; identity resolved by memory.</li>'
    +'<li>Widgets one-off and untested; changes verified in production.</li>'
    +'<li>Nobody could say what the org’s functions did, or which were dead.</li>'
-   +'</ul></div><div class="col now"><span class="k">Handed over — 2026</span><ul>'
+   +'</ul></div><div class="col now"><span class="k">Now — 2026</span><ul>'
    +'<li>The whole org in Git; review gate and CI/CD; releases are one reviewed click.</li>'
    +'<li>Integrations classify their own failures and recover — or report themselves.</li>'
    +'<li>An explicit identity &amp; merge model enforced across every inbound flow.</li>'
@@ -1971,7 +1975,7 @@ const groupSections=groups=>groups.map(g=>
 
 function vZoho(){
  const O=PUB.OVERVIEW;
- return '<p class="eyebrow">Zoho CRM &middot; 2023 &mdash; 2026</p><h1>Zoho CRM engineering</h1>'
+ return '<p class="eyebrow">Zoho CRM &middot; 2023 &mdash; present</p><h1>Zoho CRM engineering</h1>'
   +'<p class="lede">'+O.lede+'</p>'
   +statStrip(O.scale)
   +'<div class="sechead" style="margin-top:44px">What the work covered</div>'
@@ -1983,7 +1987,7 @@ function vZoho(){
     +'for what it does and where it is shown.</p>'
     +window.Diagrams.render(PUB.ARCH):'')
   +'<div class="sechead">Featured engineering work</div>'
-  +'<p class="intro">Seven case studies. Each opens with what it is, its scale and the topics it covers, then the context, '
+  +'<p class="intro">Eight case studies. Each opens with what it is, its scale and the topics it covers, then the context, '
   +'the constraints, the architecture, the failure handling and the result.</p>'
   +caseRows(CASE_LIST)
   +'<div class="sechead">Interactive examples</div>'
@@ -2043,6 +2047,7 @@ function vCaseStudy(c){
  if(c.embed&&PAGE[c.embed]&&ALL[c.embed]){
   h+=csSec('Interactive example','<p class="intro">'+esc(ALL[c.embed].t)+' &mdash; '+esc(ALL[c.embed].s)
    +' <a href="#/p/'+c.embed+'">Open it on its own page &rarr;</a> &middot; <a href="#/about-demos">synthetic data</a></p>'
+   +(c.embedNote?'<div class="callout"><span class="k">What this one is</span><p style="margin:0">'+esc(c.embedNote)+'</p></div>':'')
    +'<div class="legacy cs-embed" id="cs-embed">'+withoutPagehead(PAGE[c.embed].render())+'</div>');
  }
  const more=(c.examples||[]).filter(e=>e.id!==c.embed);

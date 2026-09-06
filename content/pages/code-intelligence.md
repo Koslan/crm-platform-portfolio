@@ -6,6 +6,9 @@ tab: "ai"
 group: "AI in engineering"
 route: "#/p/code-intelligence"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/platform-engineering"
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"code-intelligence\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.
 >
-> **Material labels** (`MAT`): Working internal tool · Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Working internal tool · Architecture write-up
 >
 > **`sub` — НЕ рендерится, см. LEAD:**
 > Full-org extraction, AI-assisted review, dependency analysis and risk discovery across the function estate.

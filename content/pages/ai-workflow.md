@@ -6,6 +6,7 @@ tab: "ai"
 group: "AI in engineering"
 route: "#/p/ai-workflow"
 kind: "note"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"ai-workflow\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Generated work passes source review, behavioural tests, leak guards and controlled promotion before production.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > AI is used throughout delivery: designing new functions and interfaces, generating Deluge, JavaScript and Python, reviewing existing code, expanding tests, identifying regression risk, analysing dependencies and maintaining documentation. The extracted org provides the context; Git review, controlled deployment and automated checks provide the acceptance boundary.

@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Connecting Teams, Slack and Jira to the CRM"
 route: "#/p/cross-system"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/orchestration"
 diagrams: 2
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"cross-system\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Field authority, reconciliation and refusal rules for systems that disagree.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Integration becomes dangerous when transport is implemented before ownership. These cases start by naming which system owns each field, what may fill an empty value, what must never overwrite a person, and when automation must refuse rather than guess.
@@ -41,7 +44,7 @@ Three of these are the same argument in different clothes: two systems hold a va
 
 ## Which system is allowed to be right
 
-A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record. Written down as a table, this settles most arguments before they start. Enforcement lives in the payload builder, where create and update are separated: two fields are never written at all because of length ceilings, and one is truncated. The source gives the mechanism, not the field names, so the three placeholder rows in the matrix below are left unnamed rather than guessed.
+A meeting exists in a calendar, in the CRM, in a chat thread and in an issue. Each has a legitimate claim on part of it. Left alone, every sync overwrites the previous one and the humans stop trusting the record. Written down as a table, this settles most arguments before they start. Enforcement lives in the payload builder, where create and update are separated: two fields are never written at all because of length ceilings, one is truncated, and several are written only on creation so a sync cannot erase a human edit. The mechanism is what matters, so those fields are not named in the matrix below.
 
 <!-- diagram · authority · вставляется после секции body[2] · источник: CASES · dgs[0] -->
 
@@ -58,14 +61,11 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
 | Room note | ▨ never | ● owner | ▨ never | ▨ never |
 | Recap | ▨ never | ● owner | ○ source | ▨ never |
 | Delivery state | ▨ never | ○ source | ▨ never | ● owner |
-| Link to issue | ▨ never | ○ source | ○ source | ▨ never |
-| Unnamed (never) 1 | ▨ never | ○ source | ▨ never | ▨ never |
-| Unnamed (never) 2 | ▨ never | ○ source | ▨ never | ▨ never |
-| Unnamed (cut) | ◪ truncated | ○ source | ▨ never | ▨ never |
+| Link to issue | ▨ never | ○ source | ○ source | ● owner |
 
 **Правило:** Time belongs to the calendar. Judgement belongs to the CRM. Delivery belongs to the tracker. Chat owns nothing.
 
-**Оговорка:** The three rows above are placeholders, not named fields: the write-up says the payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third — without saying which. This diagram marks that a limit exists without guessing what it applies to. The write-up also says several other fields are written only on creation, so a later sync cannot erase a human edit — again without naming them, so no row here is marked create-only.
+**Оговорка:** Not every field is drawn. The payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third; several others are written only on creation, so a later sync cannot erase a human edit. Those fields are not named here, so no row is marked create-only or truncated.
 
 **Пояснения по клику** (`detail`):
 
@@ -83,12 +83,8 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
   The issue tracker is authoritative over its own delivery state.
 - `chat` — **Chat owns nothing**
   The whole Chat column is source or never — the chat is where a decision gets made in conversation, not where it is stored.
-- `unnamed-a:cal` — **Not written, for length reasons — field unnamed**
-  The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for one of them.
-- `unnamed-b:cal` — **Not written, for length reasons — field unnamed**
-  The write-up: "two fields are never written at all because of length ceilings." It does not say which two. This row stands for the other one.
-- `unnamed-c:cal` — **Truncated — field unnamed**
-  The write-up: "one is truncated." It does not say which field, or to what length.
+- `issue-link:tracker` — **Link to issue — the tracker owns it**
+  The issue is the tracker’s own object; the CRM and the chat carry the key as a source.
 
 <details>
 <summary>Редактируемая спека (это и есть источник — правьте её)</summary>
@@ -148,18 +144,6 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
   {
    "id": "issue-link",
    "n": "Link to issue"
-  },
-  {
-   "id": "unnamed-a",
-   "n": "Unnamed (never) 1"
-  },
-  {
-   "id": "unnamed-b",
-   "n": "Unnamed (never) 2"
-  },
-  {
-   "id": "unnamed-c",
-   "n": "Unnamed (cut)"
   }
  ],
  "cells": {
@@ -194,22 +178,10 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
   "issue-link:cal": "never",
   "issue-link:crm": "source",
   "issue-link:chat": "source",
-  "issue-link:tracker": "never",
-  "unnamed-a:cal": "never",
-  "unnamed-a:crm": "source",
-  "unnamed-a:chat": "never",
-  "unnamed-a:tracker": "never",
-  "unnamed-b:cal": "never",
-  "unnamed-b:crm": "source",
-  "unnamed-b:chat": "never",
-  "unnamed-b:tracker": "never",
-  "unnamed-c:cal": "truncated",
-  "unnamed-c:crm": "source",
-  "unnamed-c:chat": "never",
-  "unnamed-c:tracker": "never"
+  "issue-link:tracker": "owner"
  },
  "rule": "Time belongs to the calendar. Judgement belongs to the CRM. Delivery belongs to the tracker. Chat owns nothing.",
- "note": "The three rows above are placeholders, not named fields: the write-up says the payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third — without saying which. This diagram marks that a limit exists without guessing what it applies to. The write-up also says several other fields are written only on creation, so a later sync cannot erase a human edit — again without naming them, so no row here is marked create-only.",
+ "note": "Not every field is drawn. The payload builder that writes from the CRM into the calendar never writes two fields at all, because of length ceilings, and truncates a third; several others are written only on creation, so a later sync cannot erase a human edit. Those fields are not named here, so no row is marked create-only or truncated.",
  "detail": {
   "start-end:cal": {
    "t": "Start / end time — Calendar",
@@ -239,17 +211,9 @@ _Alt-текст (`aria`, читается скринридером):_ Ownership 
    "t": "Chat owns nothing",
    "d": "The whole Chat column is source or never — the chat is where a decision gets made in conversation, not where it is stored."
   },
-  "unnamed-a:cal": {
-   "t": "Not written, for length reasons — field unnamed",
-   "d": "The write-up: \"two fields are never written at all because of length ceilings.\" It does not say which two. This row stands for one of them."
-  },
-  "unnamed-b:cal": {
-   "t": "Not written, for length reasons — field unnamed",
-   "d": "The write-up: \"two fields are never written at all because of length ceilings.\" It does not say which two. This row stands for the other one."
-  },
-  "unnamed-c:cal": {
-   "t": "Truncated — field unnamed",
-   "d": "The write-up: \"one is truncated.\" It does not say which field, or to what length."
+  "issue-link:tracker": {
+   "t": "Link to issue — the tracker owns it",
+   "d": "The issue is the tracker’s own object; the CRM and the chat carry the key as a source."
   }
  }
 }

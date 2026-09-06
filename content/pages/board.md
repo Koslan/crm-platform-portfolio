@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Trade shows: booking, meetings, follow-up"
 route: "#/p/board"
 kind: "live"
+public: true
+public_tab: "zoho"
+case: "#/zoho/widgets"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"board\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > A room-by-room schedule, team load and assisted recap flow for a surface with no developer tools.
 >
-> **Material labels** (`MAT`): Production-derived demo
+> **Material labels** (`MAT`, публично не рендерятся): Production-derived demo
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > The same event platform on the device people carry at the venue: a room timeline, team load, conflict and travel warnings, and a recap flow that writes back to CRM. The interface is designed for short interactions, unreliable attention and a host environment with no mobile developer tools.

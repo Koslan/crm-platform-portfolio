@@ -6,6 +6,7 @@ tab: "ai"
 group: "AI assistance inside CRM interfaces"
 route: "#/p/ai-interface-assistance"
 kind: "plan"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"ai-interface-assistance\""

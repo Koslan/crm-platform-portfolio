@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/solution"
 kind: "live"
+public: true
+public_tab: "zoho"
+case: "#/zoho/widgets"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"solution\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Service lines against business units, with live pipeline and opportunity creation in the same matrix.
 >
-> **Material labels** (`MAT`): Production-derived demo
+> **Material labels** (`MAT`, публично не рендерятся): Production-derived demo
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A programme record becomes an account-planning surface: business units on one axis, service lines on the other, and the latest deal visible in every cell. Unworked potential stays visible alongside pipeline, and a new opportunity starts from the exact row and column where the gap was found.

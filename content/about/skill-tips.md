@@ -2,7 +2,7 @@
 file: "skill-tips"
 title: "Подсказки к навыкам (TIPS)"
 entries: 78
-words: 2005
+words: 1987
 source:
   code: "src/app.html · TIPS"
 ---
@@ -21,11 +21,11 @@ Redesigned the org’s data model: junction modules replaced text-field pseudo-r
 
 ### layouts
 
-Own every layout in a 10-module org — fields placed by what sales actually fills in, with the rarely-used moved out of the way instead of deleted.
+Owned every layout across the org’s modules — fields placed by what sales actually fills in, with the rarely-used moved out of the way instead of deleted.
 
 ### workflows
 
-Wrote and now maintain the org’s whole automation estate — and audited all of it: my index found rules marked active that had never fired once, because a criterion referenced a renamed field.
+Wrote and maintained the org’s whole automation estate — and audited all of it: my index found rules marked active that had never fired once, because a criterion referenced a renamed field.
 
 ### schedules
 
@@ -57,7 +57,7 @@ Introduced sandbox → production promotion with review to an org that had none:
 
 ### Widgets
 
-Built 70+ production widgets across 10 modules: contact desks, meeting boards, a solution matrix, reconciliation screens — on a shared component library with versioning. Most of them run live on this site.
+Built 70+ production widgets across the org’s modules: contact desks, meeting boards, a solution matrix, reconciliation screens — on a shared component library with versioning.
 
 ### Canvas & Canvas Mobile Detail View
 
@@ -65,7 +65,7 @@ Full record pages in Canvas plus mobile widgets for the Zoho app — including a
 
 ### Zoho SDK
 
-I know the embedded SDK well enough to have re-implemented it: the emulator running every demo on this site is my stand-in for ZOHO.CRM.API, down to the error envelopes.
+The embedded SDK across record pages, related lists, buttons, web tabs, Canvas and mobile — known deep enough to build an offline stand-in for it, down to the error envelopes, so a widget is verified before the org sees it.
 
 ### REST APIs
 
@@ -73,7 +73,7 @@ Zoho REST across modules, related lists, notes, tags, users — paging, bulk job
 
 ### COQL
 
-My main query surface: dotted lookups across modules, paging at the 200-row ceiling, the 14-condition criteria limit — and the chunked searches I wrote for when the limits bite. The query console on the Zoho tab runs my interpreter of it.
+My main query surface: dotted lookups across modules, paging at the 200-row ceiling, the 14-condition criteria limit — and the chunked searches I wrote for when the limits bite.
 
 ### Tabulator
 
@@ -93,7 +93,7 @@ Reporting layer over the CRM: synced datasets, SQL-style queries, dashboards sal
 
 ### Zoho One
 
-Administer the wider suite around the CRM — users, apps, provisioning — as part of owning the platform.
+Administered the wider suite around the CRM — users, apps, provisioning — as part of owning the platform.
 
 ### Apex
 
@@ -129,7 +129,7 @@ Configured all three on concurrent client implementations at SoftServe: objects,
 
 ### Microsoft Graph
 
-Built the Room 8 calendar sync: 17 mailboxes over Graph delta queries with a checkpoint per page; throttling stops the mailbox but deliberately keeps the checkpoint. The full story is the delta-sync write-up here.
+Built the Room 8 calendar sync: 17 mailboxes over Graph delta queries with a checkpoint per page; throttling stops the mailbox but deliberately keeps the checkpoint. The full story is in the orchestration case study.
 
 ### Teams & Teams bots
 
@@ -145,7 +145,7 @@ Built the pipeline that carries email out of multiple sources and mailboxes into
 
 ### Entra ID
 
-Every Graph integration I run sits on app registrations I own: permission scopes cut to least privilege, admin consent flows, secrets rotated on schedule.
+Every Graph integration ran on app registrations I owned: permission scopes cut to least privilege, admin consent flows, secrets rotated on schedule.
 
 ### Jira
 
@@ -237,7 +237,7 @@ A name is corrected only when the surname differs; title and email fill only emp
 
 ### Git
 
-Brought Git to a platform with no export: my extraction tooling pulls ~1,500 functions into a reviewable repo, and the diff between commits stands in for the change history the platform never kept.
+Brought Git to a platform with no export: my extraction tooling pulls more than a thousand functions into a reviewable repo, and the diff between commits stands in for the change history the platform never kept.
 
 ### GitHub Actions
 
@@ -253,11 +253,11 @@ From “deploy is a person copy-pasting” to reviewed, one-click, reversible re
 
 ### code review
 
-I review other developers’ CRM work at Room 8 against the platform’s engineering and security standards — and my own changes go through the same gate.
+Reviewed other developers’ CRM work at Room 8 against the platform’s engineering and security standards — and my own changes went through the same gate.
 
 ### automated testing
 
-279 headless Playwright checks run this site on every build, failing on any console error; production widgets get browser tests at phone widths and an offline harness that stubs the Zoho SDK.
+Production widgets get browser tests at phone widths and an offline stand that stubs the Zoho SDK; the release gate fails on any console error, not only on a failed assertion.
 
 ### release management
 
@@ -265,7 +265,7 @@ Releases sequenced so change lands without disrupting live sales operations — 
 
 ### JavaScript
 
-Every widget on this site is framework-free vanilla JS — my daily language for UI that has to live inside an iframe the platform controls.
+Every widget is framework-free vanilla JS — my daily language for UI that has to live inside an iframe the platform controls.
 
 ### TypeScript
 
@@ -273,11 +273,11 @@ Tooling and services where types pay rent: extraction tooling, build scripts, in
 
 ### HTML
 
-Semantic, accessible markup — the reconciliation tables and mobile boards here are plain HTML doing heavy lifting.
+Semantic, accessible markup — the reconciliation tables and the mobile board are plain HTML doing heavy lifting.
 
 ### CSS
 
-Hand-written layout systems: the lane layout for overlapping meetings and the ten-colour stage matrix on this site are pure CSS.
+Hand-written layout systems: the lane layout for overlapping meetings and the ten-colour stage matrix are pure CSS.
 
 ### Python
 
@@ -301,7 +301,7 @@ The database behind my backend work and side tooling — schema design included.
 
 ### AI-assisted development
 
-AI is my delivery multiplier, not a toy: this site — an SDK emulator, 11 live widgets, 279 tests — was built AI-assisted in weeks and audited by hand. The same workflow ships my production CRM work.
+AI inside a governed delivery workflow — analysis, Deluge and widget implementation, tests, documentation, review — with human ownership of architecture, security and business rules, and nothing generated accepted unverified.
 
 ### Claude
 
@@ -317,7 +317,7 @@ AI living inside CRM surfaces I built: server-side recap rephrasing (no key ever
 
 ### MCP
 
-Building MCP access to CRM data so assistants can query an org safely — the same idea as this site’s emulator, pointed at real systems.
+A scoped MCP surface over CRM records and the platform tooling around them: typed operations, explicit permissions, an audit trail — used by the org’s extraction and audit tooling.
 
 ### Zoho native AI
 

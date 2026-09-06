@@ -6,6 +6,9 @@ tab: "ai"
 group: "AI as a business solution"
 route: "#/p/loss-analysis"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/ai-workflows"
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"loss-analysis\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > A two-stage classification pipeline with a human-correctable intermediate record.
 >
-> **Material labels** (`MAT`): Architecture write-up · Contributed design
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up · Contributed design
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A free-text explanation cannot be compared across deals. This design gathers evidence from six sources, materialises a human-correctable intermediate record, then asks the model to place the case inside the company’s own taxonomy. Evidence collection and classification are deliberately separated, so a correction does not require repeating the whole pipeline.

@@ -3,7 +3,8 @@ const b = await chromium.launch({ ...launchOpts });
 const p = await b.newPage({ viewport:{ width:1500, height:1050 } });
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message));
 p.on('console',m=>{ if(m.type()==='error' && !/ERR_TUNNEL|fonts.googleapis/.test(m.text())) errs.push(m.text()); });
-const say=(n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
+/* A failed check fails the process, so CI cannot go green over a FAIL line. */
+const say=(n,c)=>{ console.log((c?'  ok  ':'FAIL  ')+n); if(!c) process.exitCode=1; };
 const U='file://'+process.cwd()+'/dist-all/index.html'; // the all-sections build — see build.mjs
 
 await p.goto(U+'#/p/agent-journal');

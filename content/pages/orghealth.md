@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/orghealth"
 kind: "live"
+public: true
+public_tab: "zoho"
+case: "#/zoho/platform-engineering"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"orghealth\""
@@ -15,9 +18,9 @@ source:
 # An org audit that names what it cannot see
 
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
-> A generated 1,240-function org reconciled against five entry channels, with blind spots stated first.
+> Every function of a generated org reconciled against five entry channels, with blind spots stated first.
 >
-> **Material labels** (`MAT`): Production-derived demo · Working audit tooling
+> **Material labels** (`MAT`, публично не рендерятся): Production-derived demo · Working audit tooling
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > A mature CRM accumulates automation nobody can fully account for. This report reconciles every function against rules, schedules, buttons, widgets and other functions, then distinguishes reachable code, unsupported assumptions and genuine audit gaps. The public dataset is generated; the instrument and the method are the real work.
@@ -28,9 +31,7 @@ _Проза этой страницы живёт прямо в разметке 
 
 # Org health report
 
-A CRM of any age accumulates automation nobody can account for. The platform keeps no reverse references, so “is this function still used?” has no direct answer — this is the answer, assembled by checking five entry channels for every one of them.
-
-Live demoGenerated org, 1,240 functionsNo employer configuration
+A CRM of any age accumulates automation nobody can account for. The platform keeps no reverse references, so “is this function still used?” has no direct answer — this is the answer, assembled by checking five entry channels for every one of them. Shown here against a generated org of 1,240 functions, not an employer’s.
 
 ## The report
 

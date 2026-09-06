@@ -6,6 +6,7 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/external-server"
 kind: "plan"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"external-server\""

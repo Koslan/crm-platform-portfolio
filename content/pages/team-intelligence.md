@@ -6,6 +6,7 @@ tab: "ai"
 group: "AI as a business solution"
 route: "#/p/team-intelligence"
 kind: "note"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · AI_GROUPS · id=\"team-intelligence\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > AI-generated reports and management summaries with deterministic scheduling and delivery controls.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **`sub` — НЕ рендерится, см. LEAD:**
 > AI-generated reports and management summaries with deterministic scheduling and delivery controls.

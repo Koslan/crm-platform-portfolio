@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/widget-system"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/widgets"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"widget-system\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **`sub` — НЕ рендерится, см. LEAD:**
 > Shared components, services, versioning and mobile adaptation behind 70+ production interfaces.
@@ -41,3 +44,7 @@ Nobody reviews seventy widgets by hand before a release. The offline SDK harness
 ## The trade
 
 A shared layer makes local changes safer and platform-wide changes more consequential: one careless edit to a shared component reaches every screen at once. That is exactly why versioning and compatibility rules are part of the product rather than cleanup deferred to later. The cost is real and worth naming — a change that would take an afternoon inside one isolated widget takes longer here, and that slower path is what buys the other sixty-nine screens not breaking.
+
+## See it live
+
+Блок-callout внизу страницы ведёт на `#/p/event` — One event system, end to end.

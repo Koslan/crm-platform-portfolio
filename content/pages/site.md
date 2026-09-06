@@ -6,6 +6,7 @@ tab: "fullstack"
 group: "Full-stack"
 route: "#/p/site"
 kind: "live"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · FS_ITEMS · id=\"site\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Production-derived interfaces, synthetic data, an emulated SDK and deliberate failure modes — no backend required.
 >
-> **Material labels** (`MAT`): Public production-shaped build
+> **Material labels** (`MAT`, публично не рендерятся): Public production-shaped build
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > This site turns the offline widget harness into a public environment: production-derived interfaces run against synthetic records, an emulated platform SDK and deliberate latency, throttling, token and validation failures. The company and the surrounding application shells are invented; no employer endpoint, credential or internal identifier is present.

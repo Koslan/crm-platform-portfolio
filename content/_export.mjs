@@ -1,11 +1,14 @@
 /* Экспортёр контента: тянет все тексты и спеки диаграмм из собранного сайта
    в content/*.md.
-   Зависимость: npm i -D turndown  (один раз; сборка сайта её не трогает)
-   Запуск:      npm run build && node content/_export.mjs
+   Зависимость: npm i --no-save turndown  (один раз; сборка сайта её не трогает)
+   Запуск:      npm run build && npm run build:all && node content/_export.mjs
+   Читает dist-all/ (все разделы включены), чтобы скрытые страницы тоже попадали
+   в экспорт, и dist/ — чтобы пометить, что из этого публично. Без dist-all/
+   работает по dist/ и экспортирует только публичное.
    Односторонний: перезаписывает md из кода. Правки в md обратно НЕ применяет —
    см. content/INDEX.md, раздел «Как применить правку». */
 import { chromium, launchOpts } from '../test/browser.mjs';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import TurndownService from 'turndown';
 
 const td = new TurndownService({ headingStyle:'atx', bulletListMarker:'-', codeBlockStyle:'fenced' });
@@ -30,10 +33,13 @@ const fm = o => '---\n' + Object.entries(o).map(([k,v]) =>
     : k+': '+(Array.isArray(v)?JSON.stringify(v):(typeof v==='number'?v:JSON.stringify(v)))
 ).join('\n') + '\n---\n';
 
+/* `demo` в detail — либо id страницы, либо путь вида zoho/<slug> или p/<id>/<section>. */
+const demoHref = d => '#/' + (String(d).includes('/') ? d : 'p/' + d);
+
 /* ---------- диаграмма → читаемый markdown + редактируемая спека ---------- */
 function diagramMd(d, anchor) {
   let s = `\n<!-- diagram · ${d.kind} · вставляется после секции body[${(d.at ?? 1) - 1}] · источник: ${anchor} -->\n`;
-  s += `\n### Диаграмма — ${ {chain:'цепочка шагов', authority:'матрица владения', funnel:'воронка'}[d.kind] || d.kind }\n\n`;
+  s += `\n### Диаграмма — ${ {chain:'цепочка шагов', authority:'матрица владения', funnel:'воронка', layers:'слои архитектуры', states:'состояния', coverage:'покрытие'}[d.kind] || d.kind }\n\n`;
   s += `_Alt-текст (\`aria\`, читается скринридером):_ ${d.aria}\n\n`;
 
   if (d.kind === 'authority') {
@@ -54,6 +60,18 @@ function diagramMd(d, anchor) {
     if (d.rails?.length) s += '\n**Связи:**\n' + d.rails.map(r =>
       `- \`${r.from}\` → \`${r.to}\` (${r.kind}): ${r.label}`).join('\n') + '\n';
   }
+  if (d.kind === 'layers') {
+    (d.rows||[]).forEach(r => {
+      if (r.arrow) { s += `\n↓ _${r.arrow}_\n`; return; }
+      s += `\n**${r.label}**${r.core ? ' (ядро)' : ''}\n`;
+      const cols = r.cols || [{ nodes: r.nodes }];
+      cols.forEach(c => {
+        if (c.label) s += `\n_${c.label}_\n`;
+        (c.nodes||[]).forEach(n => { s += `- **${n.n}**${n.sub ? ' — ' + n.sub : ''}\n`; });
+      });
+    });
+    if (d.back) s += `\n**Обратная стрелка:** ${d.back.label || ''}\n`;
+  }
   if (d.kind === 'funnel') {
     s += `**Вход:** ${d.input.n}${d.input.count?` (${d.input.count})`:''}\n\n**Правила по порядку:**\n`;
     s += (d.rules||[]).map(r=>`${r.order}. ${r.n}`).join('\n') + '\n';
@@ -64,7 +82,7 @@ function diagramMd(d, anchor) {
   if (d.detail && Object.keys(d.detail).length) {
     s += '\n**Пояснения по клику** (`detail`):\n\n';
     for (const [k,v] of Object.entries(d.detail))
-      s += `- \`${k}\` — **${v.t}**\n  ${v.d}${v.demo?`\n  _ссылка на демо: #/p/${v.demo}_`:''}\n`;
+      s += `- \`${k}\` — **${v.t}**\n  ${v.d}${v.demo?`\n  _ссылка: ${demoHref(v.demo)}_`:''}\n`;
   }
   s += '\n<details>\n<summary>Редактируемая спека (это и есть источник — правьте её)</summary>\n\n```json\n'
      + JSON.stringify(d, null, 1) + '\n```\n\n</details>\n';
@@ -73,9 +91,22 @@ function diagramMd(d, anchor) {
 
 /* ---------- сбор данных ---------- */
 const b = await chromium.launch({ ...launchOpts });
+const FULL = existsSync('dist-all/index.html') ? 'dist-all' : 'dist';
 const p = await b.newPage({ viewport:{ width:1500, height:1000 } });
-await p.goto('file://' + process.cwd() + '/dist/index.html');
+await p.goto('file://' + process.cwd() + '/' + FULL + '/index.html');
 await p.waitForTimeout(700);
+
+/* Что из этого публично — по публичной сборке. */
+let PUBLIC_IDS = null, PUBLIC_TABS = null, PUBLIC_TAB_OF = {};
+if (FULL !== 'dist' && existsSync('dist/index.html')) {
+  const pp = await b.newPage({ viewport:{ width:1500, height:1000 } });
+  await pp.goto('file://' + process.cwd() + '/dist/index.html'); await pp.waitForTimeout(500);
+  const pub = await pp.evaluate(() => ({ ids:Object.fromEntries(Object.values(ALL).map(i=>[i.id,i.tab])), tabs:TABS.map(t=>t.id),
+    sections: typeof PUBLIC_SECTIONS !== 'undefined' ? PUBLIC_SECTIONS : null }));
+  PUBLIC_TAB_OF = pub.ids; PUBLIC_IDS = new Set(Object.keys(pub.ids)); PUBLIC_TABS = pub.tabs;
+  await pp.close();
+}
+const isPublicId = id => PUBLIC_IDS ? PUBLIC_IDS.has(id) : true;
 
 const D = await p.evaluate(() => {
   const clone = x => JSON.parse(JSON.stringify(x));
@@ -90,30 +121,42 @@ const D = await p.evaluate(() => {
   });
   const own = {};
   for (const id of ['event','orghealth','sf-lwc','agent-journal','site']) {
+    if (!PAGE[id]) continue;
     const w = document.createElement('div'); w.innerHTML = PAGE[id].render();
     w.querySelectorAll('script,.dg-detail').forEach(n=>n.remove());
     own[id] = w.innerHTML;
   }
+  const contact = (() => { const w = document.createElement('div'); w.innerHTML = typeof vContact === 'function' ? vContact() : ''; return w.innerHTML; })();
   return { CASES:clone(CASES), REC:clone(REC), STORY:clone(STORY), TIPS:clone(TIPS),
     ABOUT:clone(ABOUT), EDGES:clone(EDGES), CO:clone(CO), PAIR:clone(PAIR),
     ZOHO_GROUPS:clone(ZOHO_GROUPS), AI_GROUPS:clone(AI_GROUPS), SF_ITEMS:clone(SF_ITEMS), FS_ITEMS:clone(FS_ITEMS),
     LEAD:clone(LEAD), MAT:clone(MAT), RELATED:clone(RELATED),
     ALL:Object.fromEntries(Object.entries(ALL).map(([k,v])=>[k,{t:v.t,s:v.s,kind:v.kind,tab:v.tab,group:v.group}])),
-    pageIds:Object.keys(PAGE), about, own, TEST_COUNT,
-    ledes:{ zoho:strip(vZoho().split('<div class="sechead"')[0]), ai:strip(vAI().split('<div class="sechead"')[0]),
+    pageIds:Object.keys(PAGE), about, own, contact,
+    TEST_COUNT: typeof TEST_COUNT !== 'undefined' ? TEST_COUNT : null,
+    PUB: clone(window.ZOHO_PUBLIC || null), TABS: clone(TABS),
+    SECTIONS: typeof PUBLIC_SECTIONS !== 'undefined' ? clone(PUBLIC_SECTIONS) : null,
+    DEMO_PARENT: typeof DEMO_PARENT !== 'undefined' ? clone(DEMO_PARENT) : {},
+    ledes:{ zoho:strip(vZoho().split('<div class="sechead"')[0].split('<div class="stats">')[0]), ai:strip(vAI().split('<div class="sechead"')[0]),
             fullstack:strip(vFS().split('<div class="sechead"')[0]) }
   };
 });
 await b.close();
 
 const root = 'content';
-['tabs','pages','about'].forEach(x=>mkdirSync(root+'/'+x,{recursive:true}));
+['tabs','pages','about','cases'].forEach(x=>mkdirSync(root+'/'+x,{recursive:true}));
 const written = [];
 const put = (f, s) => { writeFileSync(root+'/'+f, s.replace(/\n{4,}/g,'\n\n\n')); written.push(f); };
 
 const CASE_BY_ID = {}; const CAT_BY_ID = {};
 for (const [cat,l] of Object.entries(D.CASES)) l.forEach((c,i)=>{ CASE_BY_ID[c.id]=c; CAT_BY_ID[c.id]=[cat,i]; });
-const REC_BY_PAGE = { solution:'solution', board:'board', 'chat-recap':'teams', 'chat-tracker':'tracker' };
+const REC_BY_PAGE = { solution:'solution', board:'board', 'chat-recap':'teams', 'chat-tracker':'tracker', enrichment:'enrichment', cockpit:'cockpit' };
+/* Кейс, к которому страница относится на публичном сайте (ссылка «назад» ведёт в него). */
+const CASE_OF_ITEM = {};
+if (D.PUB) {
+  Object.entries(D.DEMO_PARENT).forEach(([id,slug]) => CASE_OF_ITEM[id] = slug);
+  D.PUB.CASES.forEach(c => (c.notes||[]).forEach(n => { const id = typeof n === 'string' ? n : n.id; if (!CASE_OF_ITEM[id]) CASE_OF_ITEM[id] = c.slug; }));
+}
 const OWN = ['event','orghealth','sf-lwc','agent-journal','site'];
 
 /* ---------- страницы ---------- */
@@ -132,12 +175,15 @@ for (const [id, meta] of Object.entries(D.ALL)) {
   if (isOwn) src.body_render = `src/app.html · PAGE['${id}'].render()`;
 
   const dgs = [ ...(c ? (c.dgs || (c.dg?[c.dg]:[])) : []), ...(rec?.dg ? [rec.dg] : []) ];
+  const pub = isPublicId(id);
   let s = fm({ page:id, title:meta.t, type, tab:meta.tab, group:meta.group, route:`#/p/${id}`,
-    kind:meta.kind, diagrams:dgs.length, source:src,
+    kind:meta.kind, public:pub, ...(pub && PUBLIC_TAB_OF[id] ? { public_tab:PUBLIC_TAB_OF[id] } : {}),
+    ...(CASE_OF_ITEM[id] ? { case:`#/zoho/${CASE_OF_ITEM[id]}` } : {}),
+    diagrams:dgs.length, source:src,
     ...(shadowed?{warning:'CASES-запись для этой страницы НЕ рендерится: PAGE перекрывает CASES в vItem()'}:{}) });
 
   s += `\n# ${meta.t}\n\n> **Подпись в навигации** (\`s\`) — видна на карточке в списке:\n> ${meta.s}\n`;
-  if (D.MAT[id])  s += `>\n> **Material labels** (\`MAT\`): ${D.MAT[id].join(' · ')}\n`;
+  if (D.MAT[id])  s += `>\n> **Material labels** (\`MAT\`, публично не рендерятся): ${D.MAT[id].join(' · ')}\n`;
   if (D.LEAD[id]) s += `>\n> **Лид страницы** (\`LEAD\`) — абзац под подписью:\n> ${D.LEAD[id]}\n`;
   /* `sub` больше не виден на сайте: vItem срезает .pagehead целиком, а лид берётся
      из LEAD. Оставлен в экспорте как исходный материал, но помечен честно. */
@@ -184,6 +230,57 @@ for (const [id, meta] of Object.entries(D.ALL)) {
   put(`pages/${id}.md`, s);
 }
 
+
+/* ---------- кейсы (src/cases.js) ---------- */
+const html2md = h => td.turndown(String(h||'')).trim();
+if (D.PUB) {
+  D.PUB.CASES.forEach((c, i) => {
+    const S = c.summary || {};
+    let s = fm({ case:c.slug, num:c.num, title:c.t, route:`#/zoho/${c.slug}`, public:true,
+      embed:c.embed || null, examples:(c.examples||[]).map(e=>e.id),
+      notes:(c.notes||[]).map(n=>typeof n==='string'?n:n.id+'/'+n.sec), related:c.related||[],
+      words: words(c.context)+words(c.architecture&&c.architecture.text)+(c.implementation||[]).reduce((n,[,t])=>n+words(t),0)
+            +(c.reliability?c.reliability.rows.reduce((n,[a,b])=>n+words(a)+words(b),0):0)+words(c.security)+words(c.role)+words(c.result),
+      source:{ body:`src/cases.js · CASES[${i}] (slug "${c.slug}")`, furniture:'src/app.html · vCaseStudy()' } });
+    s += `\n# ${c.num} · ${c.t}\n\n> **Kicker** (\`kicker\`): ${c.kicker}\n>\n> **Одной строкой** (\`one\`): ${c.one}\n`;
+    s += `\n## Summary\n\n- **What:** ${S.what||''}\n- **Scale:** ${S.scale||''}\n- **My role:** ${S.role||''}\n- **Key topics:** ${(S.topics||[]).join(' · ')}\n`;
+    if (c.facts) s += `\n## Key facts\n\n| | |\n| --- | --- |\n` + c.facts.map(([k,v])=>`| ${k} | ${v} |`).join('\n') + '\n';
+    s += `\n## Context\n\n${html2md(c.context)}\n`;
+    if (c.architecture) {
+      s += `\n## Architecture\n\n${html2md(c.architecture.text)}\n`;
+      if (c.architecture.dg) s += diagramMd(c.architecture.dg, `CASES[${i}].architecture.dg`);
+    }
+    if (c.constraints) s += `\n## Constraints\n\n` + c.constraints.map(([k,v])=>`- **${k}** — ${v}`).join('\n') + '\n';
+    if (c.implementation) { s += `\n## Implementation\n`; c.implementation.forEach(([h,t]) => { s += `\n### ${h}\n\n${html2md(t)}\n`; }); }
+    if (c.reliability) s += `\n## Reliability and failure handling\n\n${c.reliability.intro||''}\n\n| When | What the system does |\n| --- | --- |\n`
+      + c.reliability.rows.map(([a,b])=>`| ${a} | ${b} |`).join('\n') + '\n';
+    if (c.security) s += `\n## Data ownership and security\n\n${html2md(c.security)}\n`;
+    if (c.role) s += `\n## My responsibility\n\n${html2md(c.role)}\n`;
+    if (c.result) s += `\n## Result\n\n${html2md(c.result)}\n`;
+    if (c.embed) s += `\n## Interactive example\n\nВстроено: [\`${c.embed}\`](../pages/${c.embed}.md)${c.embedTab?` (вкладка «${c.embedTab}»)`:''}.${c.embedNote?`\n\n> ${c.embedNote}`:''}\n`;
+    if (c.examples && c.examples.length) s += `\n## More examples\n\n` + c.examples.map(e=>`- [\`${e.id}\`](../pages/${e.id}.md)${e.note?` — ${e.note}`:''}`).join('\n') + '\n';
+    if (c.notes && c.notes.length) s += `\n## Technical notes\n\n` + c.notes.map(n => typeof n==='string'
+      ? `- [\`${n}\`](../pages/${n}.md)` : `- [\`${n.id}/${n.sec}\`](../pages/${n.id}.md) — **${n.t}** ${n.s}`).join('\n') + '\n';
+    if (c.related && c.related.length) s += `\n## Related cases\n\n` + c.related.map(r=>`- [\`${r}\`](./${r}.md)`).join('\n') + '\n';
+    put(`cases/${c.slug}.md`, s);
+  });
+
+  /* about-demos — короткая страница, тоже данные в src/cases.js */
+  const A = D.PUB.ABOUT_DEMOS;
+  let s = fm({ page:'about-demos', title:A.t, route:'#/about-demos', public:true, source:{ body:'src/cases.js · ABOUT_DEMOS', furniture:'src/app.html · vAboutDemos()' } });
+  s += `\n# ${A.t}\n`;
+  A.body.forEach(([h,t]) => { s += `\n## ${h}\n\n${t}\n`; });
+  put('pages/about-demos.md', s);
+}
+
+/* ---------- контакт ---------- */
+{
+  let s = fm({ tab:'contact', title:'Contact', route:'#/contact', public: PUBLIC_TABS ? PUBLIC_TABS.includes('contact') : true,
+    source:{ body:'src/app.html · vContact()' } });
+  s += `\n# Contact\n\n_Проза живёт прямо в разметке \`vContact()\` — правьте по совпадению строки._\n\n` + html2md(D.contact) + '\n';
+  put('tabs/contact.md', s);
+}
+
 /* ---------- табы ---------- */
 /* sf-lwc lives under a Zoho group rather than on a tab of its own, so it is
    appended to the Zoho listing the same way `reg()` appends it in the site. */
@@ -191,12 +288,22 @@ const tabItems = { zoho:[...D.ZOHO_GROUPS.flatMap(g=>g.items), ...D.SF_ITEMS],
                    ai:D.AI_GROUPS.flatMap(g=>g.items), fullstack:D.FS_ITEMS };
 const tabTitle = { zoho:'Zoho', ai:'Applied AI', fullstack:'Full-stack' };
 for (const [tab, items] of Object.entries(tabItems)) {
-  let s = fm({ tab, title:tabTitle[tab], route:`#/${tab}`, items:items.length,
+  let s = fm({ tab, title:tabTitle[tab], route:`#/${tab}`, items:items.length, public: PUBLIC_TABS ? PUBLIC_TABS.includes(tab) : true,
     source:{ lede:`src/app.html · v${tab==='zoho'?'Zoho':tab==='ai'?'AI':'FS'}()`,
              items:`src/app.html · ${tab==='zoho'?'ZOHO_GROUPS':tab==='ai'?'AI_GROUPS':'FS_ITEMS'}` } });
-  s += `\n# ${tabTitle[tab]}\n\n## Лид страницы\n\n${D.ledes[tab]}\n\n## Карточки\n\n`;
-  s += '| id | Заголовок (`t`) | Подпись (`s`) | Вид |\n| --- | --- | --- | --- |\n';
-  items.forEach(i=>{ s += `| [\`${i.id}\`](../pages/${i.id}.md) | ${i.t} | ${i.s} | ${i.kind} |\n`; });
+  s += `\n# ${tabTitle[tab]}\n\n## Лид страницы\n\n${D.ledes[tab]}\n`;
+  if (tab === 'zoho' && D.PUB) {
+    const O = D.PUB.OVERVIEW;
+    s += `\n## Плашка масштаба (\`OVERVIEW.scale\`, src/cases.js)\n\n` + O.scale.map(([b,l])=>`- **${b}** ${l}`).join('\n') + '\n';
+    s += `\n## Направления (\`OVERVIEW.directions\`)\n`;
+    O.directions.forEach(([h,t,tags]) => { s += `\n### ${h}\n\n${t}\n\n_Теги:_ ${tags.join(' · ')}\n`; });
+    if (D.PUB.ARCH) s += `\n## Платформа как одна система (\`ARCH\`)\n` + diagramMd(D.PUB.ARCH, 'src/cases.js · ARCH');
+    s += `\n## Кейсы (\`CASES\`, по файлу на кейс в content/cases/)\n\n` + D.PUB.CASES.map(c=>`- ${c.num} [\`${c.slug}\`](../cases/${c.slug}.md) — ${c.t}`).join('\n') + '\n';
+    s += `\n_Публично страница Zoho рисуется из этих данных (\`vZoho()\`); группы ниже — реестр страниц (\`ZOHO_GROUPS\`), их абзацы на публичной странице не показываются._\n`;
+  }
+  s += `\n## Карточки\n\n`;
+  s += '| id | Заголовок (`t`) | Подпись (`s`) | Вид | Публично |\n| --- | --- | --- | --- | --- |\n';
+  items.forEach(i=>{ s += `| [\`${i.id}\`](../pages/${i.id}.md) | ${i.t} | ${i.s} | ${i.kind} | ${isPublicId(i.id) ? (PUBLIC_TAB_OF[i.id] && PUBLIC_TAB_OF[i.id]!==tab ? 'да, под '+PUBLIC_TAB_OF[i.id] : 'да') : 'нет'} |\n`; });
   const groups = tab==='zoho' ? D.ZOHO_GROUPS : tab==='ai' ? D.AI_GROUPS : null;
   if (groups) {
     s += `

@@ -6,6 +6,7 @@ tab: "fullstack"
 group: "Full-stack"
 route: "#/p/ci-guards"
 kind: "note"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · FS_ITEMS · id=\"ci-guards\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Identifier, credential and integrity checks run before anything is published.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Every public replica begins with private source material, so every file is a possible leak. The build checks generated-data integrity, scans source for values shaped like real org identifiers, hosts, domains or credentials, and runs the full behavioural suite before publication.

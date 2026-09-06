@@ -7,7 +7,7 @@
 
    Nothing here calls a real model. Recognition and intent-parsing are
    deterministic lookups keyed by the exact preset utterance, exactly as
-   the rest of this site is: pre-recorded, and it says so on the screen.
+   the rest of the examples are: pre-recorded, and it says so on the screen.
 ============================================================= */
 (function () {
 'use strict';
@@ -158,8 +158,8 @@ const AgentJournal = {
     host.innerHTML = `
       <div class="panel">
         <h4 style="margin:0 0 4px">Try a command</h4>
-        <p class="hint" style="margin:0 0 10px">Recognition, intent parsing and resolution here are pre-recorded —
-          exactly like the rest of this site (see <a href="#/p/site">How this site works</a>). Six examples are wired
+        <p class="hint" style="margin:0 0 10px">Recognition, intent parsing and resolution here are pre-recorded, and
+          the writes go to an emulated org (<a href="#/about-demos">about the examples</a>). Six examples are wired
           to the six outcomes the journal below can produce.</p>
         <div class="cmdrow"><input id="aj-in" placeholder="Pick a preset below, or edit one and press Run" readonly>
           <button class="btn" id="aj-run" disabled>Run</button></div>

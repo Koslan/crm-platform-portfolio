@@ -6,6 +6,9 @@ tab: "zoho"
 group: "Org tooling, CI/CD, deployment and the external server"
 route: "#/p/deluge-cicd"
 kind: "note"
+public: true
+public_tab: "zoho"
+case: "#/zoho/platform-engineering"
 diagrams: 0
 source:
   nav: "src/app.html · ZOHO_GROUPS · id=\"deluge-cicd\""
@@ -17,7 +20,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.
 >
-> **Material labels** (`MAT`): Working internal tool · Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Working internal tool · Architecture write-up
 >
 > **`sub` — НЕ рендерится, см. LEAD:**
 > Pull, analyse, review, deploy, run and verify — one controlled toolchain around a browser-only editor.
@@ -41,3 +44,7 @@ Delivery does not end with a successful request. The platform will accept a save
 ## What the pipeline rests on
 
 It stands on platform surfaces that are less complete and less stable than a real source API: some endpoints are undocumented, the versions were found empirically, and part of the flow depends on a session that expires. So every unsupported path and manual fallback is written down and kept visible rather than being allowed to settle into tribal knowledge. A pipeline whose failure modes are undocumented is a pipeline that strands whoever inherits it, which is the same problem it was built to solve.
+
+## See it live
+
+Блок-callout внизу страницы ведёт на `#/p/orghealth` — An org audit that names what it cannot see.

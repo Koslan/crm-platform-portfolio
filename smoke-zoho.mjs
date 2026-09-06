@@ -1,4 +1,4 @@
-/* The Zoho index: overview, scale strip, the platform diagram, the seven case
+/* The Zoho index: overview, scale strip, the platform diagram, the eight case
    studies, and the examples and notes under them — plus two screens that used
    to be reachable only as tabs inside other records and now have pages of
    their own, actually mounting their widget rather than rendering an empty host. */
@@ -7,14 +7,15 @@ const b = await chromium.launch({ ...launchOpts });
 const p = await b.newPage({ viewport:{ width:1500, height:1000 } });
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message));
 p.on('console',m=>{ if(m.type()==='error' && !/ERR_/.test(m.text())) errs.push('console: '+m.text()); });
-const say=(n,c)=>console.log((c?'  ok  ':'FAIL  ')+n);
+/* A failed check fails the process, so CI cannot go green over a FAIL line. */
+const say=(n,c)=>{ console.log((c?'  ok  ':'FAIL  ')+n); if(!c) process.exitCode=1; };
 const U='file://'+process.cwd()+'/dist/index.html';
 
 await p.goto(U+'#/zoho'); await p.waitForTimeout(500);
 say('zoho: scale strip states five figures', (await p.locator('.stats .stat').count())===5);
-say('zoho: five directions of work, each with a paragraph', (await p.locator('.dirs .dir').count())===5 && (await p.locator('.dirs .dir p').count())===5);
+say('zoho: six directions of work, each with a paragraph', (await p.locator('.dirs .dir').count())===6 && (await p.locator('.dirs .dir p').count())===6);
 say('zoho: the platform diagram is drawn', (await p.locator('.dg-layers .dgl-row').count())>=5);
-say('zoho: seven case studies indexed', (await p.locator('.cslist .csrow[href^="#/zoho/"]').count())===7);
+say('zoho: eight case studies indexed', (await p.locator('.cslist .csrow[href^="#/zoho/"]').count())===8);
 const links=await p.locator('a[href^="#/p/"]').count();
 say('zoho: index links every example and note ('+links+')', links>=12);
 say('zoho: nothing on the index is labelled planned', !/Planned/.test(await p.locator('#view').textContent()));

@@ -1,6 +1,7 @@
 # Как устроен проект сейчас
 
-Снимок на 30 августа 2026. Пересобрать актуальную версию: `npm run build && node content/_export.mjs`.
+Снимок на 30 августа 2026, дополнен 6 сентября после публичного реворка (раздел «Публичная
+сборка» ниже). Пересобрать актуальную версию: `npm run build && npm run build:all && node content/_export.mjs`.
 
 ## Что это за сайт
 
@@ -25,13 +26,34 @@ console error. Сама сборка отказывается писать ст�
 CI (`.github/workflows/deploy.yml`) прогоняет три гейта: целостность датасета → скан на утёкшие
 идентификаторы и креды → тесты.
 
+## Публичная сборка (сентябрь 2026)
+
+`src/app.html` открывается переключателем `PUBLIC_SECTIONS = { about, zoho, contact: true; ai,
+salesforce, fullstack: false }`. Выключенный раздел не рисует вкладку, не регистрирует страницы,
+его маршруты уводят на главную; страницы с `kind:'plan'` регистрируются только когда включены
+и AI, и Full-stack. `node build.mjs --all` включает всё и пишет `dist-all/` — по нему гоняется
+`npm run test:hidden`. Пять AI-страниц, которые по сути работа в CRM (`chat-recap`, `agent-journal`,
+`loss-analysis`, `mcp-product`, `code-intelligence`), при выключенном AI регистрируются под Zoho
+(`AI_UNDER_ZOHO`).
+
+Публичная страница Zoho рисуется из **`src/cases.js`** (`window.ZOHO_PUBLIC`): `OVERVIEW` (лид,
+плашка масштаба, шесть направлений), `ARCH` (диаграмма платформы, архетип `layers`), `CASES`
+(восемь кейсов, `#/zoho/<slug>`; структура: summary → context + facts → architecture + диаграмма →
+constraints → implementation → reliability-таблица → security → role → result → встроенный пример →
+examples → notes → related) и `ABOUT_DEMOS` (`#/about-demos`). Мебель — `vZoho()`, `vCaseStudy()`,
+`wireCaseStudy()` в `src/app.html`. Старые страницы стали детьми кейсов: `DEMO_PARENT` для демо,
+список `notes` кейса — для заметок; ссылка «назад» ведёт в кейс, prev/next ходят внутри него.
+`CASE_ALIAS` и `RETIRED` держат старые адреса живыми. Чипы `MAT` и подписи `KIND` публично не
+рендерятся. На About: hero с CTA, индекс кейсов, capability-сетка (`CAPABILITIES` → `STORY`/`TIPS`
+в формате «Where I used it»), шесть runcards, опыт, образование, контакт.
+
 ## Роутер и реестры
 
 Всё, что определяет страницу, лежит в `src/app.html`:
 
 | Реестр | Что задаёт |
 | --- | --- |
-| `TABS` | четыре вкладки: About me, Zoho, Applied AI, Full-stack |
+| `TABS` | вкладки About, Zoho, Applied AI, Full-stack, Contact — отфильтрованы через `PUBLIC_SECTIONS` (публично три) |
 | `ZOHO_GROUPS`, `AI_GROUPS` | группы работы: заголовок `h`, абзац `intro`, `items`, и `also` — страницы этой же работы, живущие на другой вкладке |
 | `SF_ITEMS`, `FS_ITEMS` | плоские списки; `SF_ITEMS` — одна кросс-платформенная страница, зарегистрированная под группой Zoho |
 | `LEAD`, `MAT` | абзац-лид и material label страницы; рендерятся в `vItem`, потому что `.pagehead` рендерера срезается |
@@ -42,7 +64,8 @@ CI (`.github/workflows/deploy.yml`) прогоняет три гейта: цел
 | `CASES` | лонгриды, рендерит `vCase()` |
 | `PAIR` | write-up → живое демо (callout «See it live») |
 | `STORY`, `TIPS`, `EDGES` | карта навыков, подсказки и схема интеграций на About |
-| `REC2ITEM`, `DEMO2ITEM`, `FIXED` | старые маршруты, которые обязаны продолжать резолвиться |
+| `REC2ITEM`, `DEMO2ITEM`, `FIXED`, `RETIRED`, `CASE_ALIAS` | старые маршруты, которые обязаны продолжать резолвиться |
+| `ZOHO_PUBLIC` (src/cases.js) | `OVERVIEW`, `ARCH`, `CASES`, `ABOUT_DEMOS` — публичная страница Zoho и кейсы |
 
 **Правило приоритета** (`vItem`): `PAGE` → `CASES` → заглушка. Если id есть и там и там,
 запись в `CASES` не рендерится вообще. Сейчас так с одним: `agent-journal` — его текст
@@ -71,9 +94,14 @@ CI (`.github/workflows/deploy.yml`) прогоняет три гейта: цел
 Движок — `src/diagrams.js`, `window.Diagrams.render(spec)`. Диаграмма описывается **данными**,
 не координатами. Три архетипа в работе:
 
-- `chain` — цепочка шагов с чекпойнтами, отказами и связями (`rails`): `chat-recap`, `chat-tracker`
+- `chain` — цепочка шагов с чекпойнтами, отказами и связями (`rails`): `chat-recap`, `chat-tracker`,
+  кейс `platform-engineering`. С сентября рисуется HTML-карточками, которые переносятся по строкам
+- `layers` — слоистая архитектура: бэнды `rows` (узлы `nodes`, параллельные колонки `cols`, `core`),
+  стрелки между слоями `{arrow}`, пауза `{gap}`, обратная стрелка `back`: диаграмма платформы и семь кейсов
 - `authority` — матрица владения полями: `cross-system`, `org-tooling`
 - `funnel` — вход → правила → гейты → корзины: `cross-system`
+
+`detail[...].demo` принимает id страницы (`p/<id>`) или путь (`zoho/<slug>`, `p/<id>/<section>`).
 
 Вставка в лонгрид — по индексу `at` (после какой секции `body`). Страница может нести несколько
 диаграмм: `dgs: [...]`, вставка идёт с конца, чтобы ранняя не сдвигала индекс поздней.

@@ -1,4 +1,4 @@
-/* The public structure: seven case studies with stable addresses, hidden
+/* The public structure: eight case studies with stable addresses, hidden
    sections that do not resolve, no status labels or placeholder copy, no
    self-referential bragging, sane behaviour at phone widths. */
 import { chromium, launchOpts } from './test/browser.mjs';
@@ -15,8 +15,8 @@ const go = async h => { await p.goto(U + '#/' + h); await p.waitForTimeout(350);
 const hash = () => p.evaluate(() => location.hash);
 const text = () => p.locator('#view').innerText();
 
-/* ---- the seven cases ---- */
-const CASES = ['widgets', 'orchestration', 'teams-crm', 'jira-sync', 'enrichment', 'platform-engineering', 'reconciliation'];
+/* ---- the eight cases ---- */
+const CASES = ['widgets', 'orchestration', 'teams-crm', 'jira-sync', 'enrichment', 'platform-engineering', 'reconciliation', 'ai-workflows'];
 for (const slug of CASES) {
   await go('zoho/' + slug);
   const t = await text();
@@ -45,12 +45,21 @@ await p.waitForSelector('#cs-embed .tabs button[data-t]', { timeout: 8000 }).cat
 await p.waitForTimeout(1200);
 const enrTab = await p.locator('#cs-embed .tabs button[aria-selected="true"]').first().textContent().catch(() => '');
 say('enrichment embeds the account record open on Contact enrichment (' + (enrTab || '').trim() + ')', (enrTab || '').trim() === 'Contact enrichment');
+await go('zoho/ai-workflows');
+await p.waitForSelector('#cs-embed .aj .presets button', { timeout: 8000 }).catch(() => {});
+say('ai-workflows embeds the agent journal', (await p.locator('#cs-embed .aj .presets button').count()) >= 4);
+say('ai-workflows says what the embedded prototype is', /prototype/i.test(await text()));
+await p.locator('#cs-embed .aj .presets button').first().click().catch(() => {});
+await p.waitForTimeout(700);
+say('ai-workflows: a preset command runs inside the case page', (await p.locator('#cs-embed .aj .stepcard').count()) >= 2);
 await go('p/cross-system/refuse');
 await p.waitForTimeout(500);
 const scrolledTo = await p.evaluate(() => { const t = document.getElementById('sec-refuse'); return t ? Math.round(t.getBoundingClientRect().top) : null; });
 say('#/p/cross-system/refuse opens the note at its section (top=' + scrolledTo + ')', scrolledTo !== null && scrolledTo < 120);
 
 /* ---- aliases and old addresses ---- */
+await go('zoho/agents');
+say('#/zoho/agents redirects to the AI case', (await hash()) === '#/zoho/ai-workflows');
 await go('zoho/graph-delta-sync');
 say('#/zoho/graph-delta-sync redirects to the orchestration case', (await hash()) === '#/zoho/orchestration');
 await go('p/delta-sync');
@@ -63,10 +72,15 @@ await go('about');
 say('#/about lands on the front page', (await hash()) === '#/');
 
 /* ---- hidden sections do not resolve ---- */
-for (const h of ['ai', 'salesforce', 'fullstack', 'p/sf-lwc', 'p/sf-sync', 'p/agent-journal', 'p/loss-analysis', 'p/harness', 'p/generator', 'p/ci-guards', 'p/ai-workflow', 'p/mcp-product', 'p/code-intelligence', 'p/team-intelligence', 'p/calendar-sync', 'p/mobile-canvas', 'p/teams-jira', 'p/reporting', 'p/external-server', 'p/ai-interface-assistance']) {
+for (const h of ['ai', 'salesforce', 'fullstack', 'p/sf-lwc', 'p/sf-sync', 'p/harness', 'p/generator', 'p/ci-guards', 'p/ai-workflow', 'p/team-intelligence', 'p/calendar-sync', 'p/mobile-canvas', 'p/teams-jira', 'p/reporting', 'p/external-server', 'p/ai-interface-assistance']) {
   await go(h);
   const hh = await hash();
-  say('#/' + h + ' is not reachable (lands on ' + hh + ')', /^#\/(zoho(\/[a-z-]+)?|about-demos|p\/board)?$/.test(hh) && !/#\/p\/(sf-|agent|loss|harness|generator|ci-|ai-|mcp|code-int|team-int|calendar|mobile|teams-jira|reporting|external)/.test(hh));
+  say('#/' + h + ' is not reachable (lands on ' + hh + ')', /^#\/(zoho(\/[a-z-]+)?|about-demos|p\/board)?$/.test(hh) && !/#\/p\/(sf-|harness|generator|ci-|ai-workflow|ai-interface|team-int|calendar|mobile|teams-jira|reporting|external)/.test(hh));
+}
+/* The AI pages that are CRM work stay reachable, under Zoho. */
+for (const h of ['p/agent-journal', 'p/loss-analysis', 'p/mcp-product', 'p/code-intelligence', 'p/chat-recap']) {
+  await go(h);
+  say('#/' + h + ' is public under Zoho', (await hash()) === '#/' + h && /^#\/zoho\//.test(await p.locator('a.back').first().getAttribute('href') || ''));
 }
 await go('');
 const tabs = await p.locator('.tabs a').allTextContents();
@@ -125,7 +139,7 @@ for (const width of [390, 430]) {
   const merrs = [];
   m.on('pageerror', e => merrs.push('pageerror: ' + e.message));
   m.on('console', x => { if (x.type() === 'error' && !/ERR_TUNNEL|fonts.googleapis/.test(x.text())) merrs.push(x.text()); });
-  for (const h of ['', 'zoho', 'contact', 'zoho/widgets', 'zoho/orchestration', 'zoho/teams-crm', 'p/cross-system', 'p/org-tooling', 'p/chat-tracker', 'p/event']) {
+  for (const h of ['', 'zoho', 'contact', 'zoho/widgets', 'zoho/orchestration', 'zoho/teams-crm', 'zoho/ai-workflows', 'p/cross-system', 'p/org-tooling', 'p/chat-tracker', 'p/event', 'p/agent-journal']) {
     await m.goto(U + '#/' + h); await m.waitForTimeout(500);
     const sw = await m.evaluate(() => document.documentElement.scrollWidth);
     say(width + 'px #/' + h + ': no horizontal page scroll (' + sw + ')', sw <= width + 1);

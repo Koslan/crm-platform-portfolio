@@ -6,6 +6,7 @@ tab: "fullstack"
 group: "Full-stack"
 route: "#/p/generator"
 kind: "note"
+public: false
 diagrams: 0
 source:
   nav: "src/app.html · FS_ITEMS · id=\"generator\""
@@ -17,7 +18,7 @@ source:
 > **Подпись в навигации** (`s`) — видна на карточке в списке:
 > The same seed produces the same records; deliberate defects keep the demos honest.
 >
-> **Material labels** (`MAT`): Architecture write-up
+> **Material labels** (`MAT`, публично не рендерятся): Architecture write-up
 >
 > **Лид страницы** (`LEAD`) — абзац под подписью:
 > Random data makes every review noisy, while perfectly clean data removes the cases CRM software must survive. The generator solves both: a fixed seed makes every diff reproducible, and explicit defect injection creates missing emails, conflicting meetings and duplicate-looking identities on purpose.
