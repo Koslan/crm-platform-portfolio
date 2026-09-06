@@ -24,6 +24,7 @@ const aij  = readFileSync('src/aijournal.js','utf8');
 const mksf = readFileSync('platform/mockSF.js','utf8');
 const sflw = readFileSync('src/sflwc.js','utf8');
 const cases= readFileSync('src/cases.js','utf8');
+const shots= readFileSync('src/shots.js','utf8');
 
 /* Which sections the build switches on. The public site is Zoho + profile +
    contact; `node build.mjs --all` (npm run build:all) turns everything on and
@@ -50,6 +51,7 @@ const body = tpl
   .replace('/*__AIJOURNAL__*/',  () => aij)
   .replace('/*__SFLWC__*/',      () => mksf + '\n' + sflw)
   .replace('/*__CASES__*/',      () => cases)
+  .replace('/*__SHOTS__*/',      () => shots)
   .replace(/\/\*__SECTIONS__\*\/\{[^}]*\}/, () => JSON.stringify(SECTIONS));
 
 const title = (/<title>([^<]*)<\/title>/.exec(body) || [,'CRM platform field notes'])[1];

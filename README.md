@@ -5,8 +5,8 @@ production platform, with the production interfaces and flows reproduced in a st
 against a generated dataset. No backend, no live org, no client data.
 
 Public sections: **About** (profile, capabilities, experience), **Zoho** (overview, architecture,
-case studies, interactive examples, technical notes) and **Contact**. Every case study has a stable
-address — `#/zoho/widgets`, `#/zoho/orchestration`, `#/zoho/teams-crm`, `#/zoho/jira-sync`,
+case studies, technical notes), **Screens** (every interactive example on one page) and **Contact**.
+Every case study has a stable address — `#/zoho/widgets`, `#/zoho/orchestration`, `#/zoho/teams-crm`, `#/zoho/jira-sync`,
 `#/zoho/enrichment`, `#/zoho/platform-engineering`, `#/zoho/reconciliation`, `#/zoho/ai-workflows` —
 so a proposal can link straight to the relevant one.
 
@@ -56,6 +56,7 @@ registered under Zoho when the AI section is off (`AI_UNDER_ZOHO`); the rest of 
 | `platform/mockZoho.js` | Stand-in for the CRM SDK: a COQL subset, the 200-record ceiling, lookup hydration, write validation, a failure switch. |
 | `src/app.html` | Site shell, navigation, the About and Contact pages, the item pages, the technical notes (`CASES`) and the skill stories. Injection markers are replaced at build time. |
 | `src/cases.js` | The public Zoho content: the overview, the platform architecture diagram and the eight case studies with their diagrams. Data only. |
+| `src/shots.js` | Generated card thumbnails — one strip of each interactive example. Rebuild with `tools/thumbs.mjs`; never edited by hand. |
 | `src/diagrams.js` | Diagram engine: `chain` and `layers` (HTML, wrap on narrow screens), `authority`, `states`, `funnel`, `coverage` (SVG). A spec object describes the picture; a click on a node fills the detail panel. |
 | `src/event-page.js` | Event campaign record: Overview, Contacts, Meetings, and the booking wizard. |
 | `src/pages.js` | Solution map, contact enrichment, deal conversations. |
@@ -70,6 +71,7 @@ registered under Zoho when the AI section is off (`AI_UNDER_ZOHO`); the rest of 
 | `smoke*.mjs` | Headless checks; `test/browser.mjs` finds playwright wherever it is installed. `smoke-public.mjs` covers the public structure: case pages, aliases, hidden routes, banned strings, phone widths. `smoke-responsive.mjs` walks every route at three widths. `smoke-ai.mjs` and `smoke-sf.mjs` run against `dist-all/`. |
 | `tools/shots.mjs` | Screenshot helper for visual QA at any viewport: `node tools/shots.mjs out 1440x900 zoho zoho/widgets:full`. |
 | `tools/og.mjs` | Regenerates the social preview image. |
+| `tools/thumbs.mjs` | Photographs each interactive example from the built site and writes `src/shots.js`, so a card cannot drift from the screen it opens: `npm run build && node tools/thumbs.mjs`. |
 | `content/` | One-way markdown export of the page texts, the case studies and the diagram specs, for editing prose without opening the sources (`content/INDEX.md`). `npm run build && npm run build:all && node content/_export.mjs`; needs `turndown` (`npm i --no-save turndown`). |
 | `prompts/`, `docs/fidelity-map.md` | The fidelity-pass prompt and its lookup table (see below). |
 | `docs/portfolio-rework-summary.md` | What the public rework changed, what is hidden, the direct URLs. |
@@ -99,6 +101,14 @@ The guards exist because this is a portfolio, and a portfolio that leaks is wors
 4. Register whatever server-side functions it calls: `mockZoho.registerFunction(name, fn)`.
 5. Point a page at `widgets/<name>/index.html` in a frame — the platform loads widgets in one
    too, so this is faithful as well as convenient.
+
+## Reaching the screens
+
+The interactive examples are the part of this portfolio a PDF cannot carry, so they get a route of
+their own: `#/screens` lists all of them with a thumbnail and the case each belongs to, and it is one
+click from the header on every page. Each case study also names its own screens directly under the
+summary (`.csrun`), because a case runs to several thousand pixels and the embedded screen sits
+two thirds of the way down it.
 
 ## Adding a case study
 

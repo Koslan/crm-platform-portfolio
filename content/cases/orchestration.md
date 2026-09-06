@@ -4,7 +4,7 @@ num: "02"
 title: "Multi-system synchronisation and CRM orchestration"
 route: "#/zoho/orchestration"
 public: true
-embed: null
+embed: "event"
 examples: ["event","board"]
 notes: ["cross-system/who-owns","cross-system/resume"]
 related: ["reconciliation","teams-crm"]
@@ -490,6 +490,12 @@ Architecture, implementation, the reliability model and production support, as t
 ## Result
 
 Booked meetings reach the CRM within minutes of appearing in a calendar, without anyone forwarding invitations. The syncs recovered from every token failure mode seen in production and ran unattended for two years; a mailbox that breaks reports itself instead of drifting. Disagreements between the calendar and the CRM became a queue to work rather than an argument to have.
+
+## Interactive example
+
+Встроено: [`event`](../pages/event.md) (вкладка «Meetings»).
+
+> The Meetings tab of a campaign record — the lifecycle the sync writes into. The Calendar sync tab beside it shows the same meetings reconciled against the calendar.
 
 ## More examples
 

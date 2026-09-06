@@ -28,10 +28,38 @@ for (const slug of CASES) {
   say('#/zoho/' + slug + ' no horizontal scroll at 1440', bodyScrollW <= 1440);
 }
 
+/* ---- every case names its screens at the top ---- */
+for (const slug of CASES) {
+  await go('zoho/' + slug);
+  const n = await p.locator('.csrun a').count();
+  const y = await p.evaluate(() => { const el = document.querySelector('.csrun'); return el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null; });
+  say('#/zoho/' + slug + ' offers its screens above the fold (' + n + ' links at ' + y + 'px)', n >= 1 && y !== null && y < 900);
+}
+
+/* ---- the screens catalogue ---- */
+await go('screens');
+const cards = await p.locator('.dcards.screens .dcard').count();
+say('#/screens lists every interactive example (' + cards + ')', cards === 9);
+say('#/screens: every card shows the screen it opens', (await p.locator('.dcards.screens .dcard img').count()) === cards);
+say('#/screens: every card names the case it belongs to', (await p.locator('.dcards.screens .dcase').count()) === cards);
+const dead = await p.evaluate(() => [...document.querySelectorAll('.dcards.screens .dcard')]
+  .map(a => a.getAttribute('href')).filter(h => !ALL[h.replace('#/p/', '')]));
+say('#/screens: every card leads to a page that exists', dead.length === 0);
+await go('');
+say('the first screen links to the screens page', (await p.locator('.hero .ctas a[href="#/screens"]').count()) === 1);
+say('the header carries the screens tab', (await p.locator('.tabs a[href="#/screens"]').count()) === 1);
+
 /* ---- embedded examples mount inside the case pages ---- */
 await go('zoho/teams-crm');
 await p.waitForSelector('#cs-embed .list, #cs-embed .tms', { timeout: 8000 }).catch(() => {});
 say('teams-crm embeds the chat flow', (await p.locator('#cs-embed').count()) === 1 && (await p.locator('#cs-embed button').count()) > 0);
+for (const [slug, tab] of [['widgets', 'Contacts'], ['orchestration', 'Meetings']]) {
+  await go('zoho/' + slug);
+  await p.waitForSelector('#cs-embed .tabs button[data-t]', { timeout: 8000 }).catch(() => {});
+  await p.waitForTimeout(700);
+  const t = await p.locator('#cs-embed .tabs button[aria-selected="true"]').first().textContent().catch(() => '');
+  say('#/zoho/' + slug + ' embeds the event record on ' + tab + ' (' + (t || '').trim() + ')', (t || '').trim() === tab);
+}
 await go('zoho/reconciliation');
 await p.waitForSelector('#cs-embed .tabs button[data-t]', { timeout: 8000 }).catch(() => {});
 await p.waitForTimeout(600);
@@ -84,7 +112,7 @@ for (const h of ['p/agent-journal', 'p/loss-analysis', 'p/mcp-product', 'p/code-
 }
 await go('');
 const tabs = await p.locator('.tabs a').allTextContents();
-say('navigation shows only About, Zoho, Contact', tabs.join('|') === 'About|Zoho|Contact');
+say('navigation shows only About, Zoho, Screens, Contact', tabs.join('|') === 'About|Zoho|Screens|Contact');
 const homeText = await text();
 say('front page names the platform in the first screen', /Zoho CRM/.test(homeText.slice(0, 400)));
 
@@ -93,14 +121,26 @@ const PUBLIC = ['', 'zoho', 'contact', 'about-demos', ...CASES.map(c => 'zoho/' 
 await go('zoho');
 const ids = await p.evaluate(() => Object.keys(ALL));
 PUBLIC.push(...ids.map(id => 'p/' + id));
-const banned = [/\bPlanned\b/, /\bTODO\b/, /coming soon/i, /work in progress/i, /write-up pending/i, /not built yet/i,
-  /Live demo/, /Emulated flow/, /\bthis site\b/i, /headless (checks|tests)/i, /Playwright/, /\b1,500\b/, /fifteen hundred/i,
-  /10 modules/, /Thirty-five services/i, /2023\s*[—–-]\s*now/i, /\bpassionate\b/i, /\bseamless/i, /\bleverag/i, /cutting-edge/i, /rockstar/i, /Unnamed \(/];
+/* Two lists, because an embedded widget is CRM data rather than page furniture:
+   a meeting whose status is "Planned" is a record, not an unwritten page. The
+   status-label ban therefore runs on the page around the widget, and the
+   self-reference ban runs on everything. */
+const bannedChrome = [/\bPlanned\b/, /\bTODO\b/, /coming soon/i, /work in progress/i, /write-up pending/i,
+  /not built yet/i, /Live demo/, /Emulated flow/];
+const bannedAnywhere = [/\bthis site\b/i, /headless (checks|tests)/i, /Playwright/, /\b1,500\b/, /fifteen hundred/i,
+  /10 modules/, /Thirty-five services/i, /2023\s*[—–-]\s*now/i, /\bpassionate\b/i, /\bseamless/i, /\bleverag/i,
+  /cutting-edge/i, /rockstar/i, /Unnamed \(/];
+const chromeText = () => p.evaluate(() => {
+  const v = document.getElementById('view').cloneNode(true);
+  v.querySelectorAll('.legacy').forEach(n => n.remove());
+  return v.innerText;
+});
 let bannedHits = [];
 for (const h of PUBLIC) {
   await go(h);
-  const t = await text();
-  for (const rx of banned) if (rx.test(t)) bannedHits.push('#/' + h + ' → ' + rx);
+  const all = await text(), own = await chromeText();
+  for (const rx of bannedChrome)   if (rx.test(own)) bannedHits.push('#/' + h + ' → ' + rx);
+  for (const rx of bannedAnywhere) if (rx.test(all)) bannedHits.push('#/' + h + ' → ' + rx);
 }
 say('no status labels, placeholders or self-reference on ' + PUBLIC.length + ' public pages', bannedHits.length === 0);
 if (bannedHits.length) console.log(bannedHits.slice(0, 20).join('\n'));

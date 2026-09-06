@@ -4,7 +4,7 @@ num: "01"
 title: "Custom CRM interfaces"
 route: "#/zoho/widgets"
 public: true
-embed: null
+embed: "event"
 examples: ["event","cockpit","solution","board","enrichment"]
 notes: ["widget-system"]
 related: ["orchestration","enrichment"]
@@ -369,6 +369,12 @@ Primary engineer on the whole estate: information architecture, the component li
 ## Result
 
 The record page became the tool people work in. Contact triage that used to need a spreadsheet export happens on the record; a client programme is read as one matrix instead of a report; the team’s pipeline is one screen with its rules printed on it. The library is what made seventy-plus screens sustainable for one small team: a change lands everywhere, and every screen fails the same way — visibly, with a reason.
+
+## Interactive example
+
+Встроено: [`event`](../pages/event.md) (вкладка «Contacts»).
+
+> A campaign record on its Contacts tab: several hundred rows with header filters, in-cell editing and a second scrollbar above the table. The other four screens below are from the same estate.
 
 ## More examples
 

@@ -56,7 +56,7 @@ await p.screenshot({path:'sf1-lwc.png'});
 await p.goto(U+'#/about');
 await p.waitForTimeout(300);
 const tabLabels = (await p.locator('#tabs a').allTextContents()).map(t=>t.trim());
-say('nav: no Salesforce tab ('+tabLabels.join(', ')+')', tabLabels.length === 5 && !tabLabels.includes('Salesforce'));
+say('nav: no Salesforce tab ('+tabLabels.join(', ')+')', tabLabels.length === 6 && !tabLabels.includes('Salesforce'));
 say('nav: no standalone Salesforce tab', !tabLabels.some(t=>/salesforce/i.test(t)));
 say('nav: the AI tab is called Applied AI', tabLabels.some(t=>/applied ai/i.test(t)));
 

@@ -297,6 +297,8 @@ const CASES = [
     + 'team’s pipeline is one screen with its rules printed on it. The library is what made seventy-plus '
     + 'screens sustainable for one small team: a change lands everywhere, and every screen fails the same '
     + 'way — visibly, with a reason.'),
+  embed: 'event', embedTab: 'Contacts',
+  embedNote: 'A campaign record on its Contacts tab: several hundred rows with header filters, in-cell editing and a second scrollbar above the table. The other four screens below are from the same estate.',
   examples: [
     { id: 'event', note: 'A campaign record with a target list of several hundred contacts, a meeting schedule and the five-step booking wizard.' },
     { id: 'cockpit', note: 'Open value, overdue deals, agreements waiting and tasks past due — for the team or for one person, with the rules printed on the screen.' },
@@ -473,6 +475,8 @@ const CASES = [
     + 'forwarding invitations. The syncs recovered from every token failure mode seen in production and ran '
     + 'unattended for two years; a mailbox that breaks reports itself instead of drifting. Disagreements '
     + 'between the calendar and the CRM became a queue to work rather than an argument to have.'),
+  embed: 'event', embedTab: 'Meetings',
+  embedNote: 'The Meetings tab of a campaign record — the lifecycle the sync writes into. The Calendar sync tab beside it shows the same meetings reconciled against the calendar.',
   examples: [
     { id: 'event', note: 'The Meetings tab and the Calendar sync tab of a campaign record: sync states per row, and the reconciliation table with its Expected column.' },
     { id: 'board', note: 'The same event on a phone, with a recap sheet that writes back to the meeting record.' }

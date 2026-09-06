@@ -9,7 +9,7 @@ let failed = 0;
 const say = (n,c)=>{ console.log((c?'  ok  ':'FAIL  ')+n); if(!c) failed++; };
 
 await p.goto(U);
-say('three public tabs rendered', (await p.locator('.tabs a').count()) === 3);
+say('four public tabs rendered', (await p.locator('.tabs a').count()) === 4);
 say('about is the front page', (await p.locator('h1').first().textContent()).includes('Kostiantyn'));
 await p.click('.tabs a[href="#/zoho"]');
 await p.waitForTimeout(300);

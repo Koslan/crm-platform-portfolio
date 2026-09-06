@@ -22,7 +22,7 @@ Zoho CRM · platform & integration engineer · Warsaw (CET) · remote / hybrid
 
 More than three years as the primary engineer and technical owner of a production Zoho CRM: the data model, seventy-plus widgets, the integration layer around Microsoft Graph, Teams, Jira and Apollo, the model stages inside those workflows, and the tooling that put an org of more than a thousand functions under version control. Seven years in software engineering, more than five of them on CRM platforms.
 
-[View Zoho work](#/zoho)[Download CV](Kostiantyn_Buriak_CV.pdf)[LinkedIn](https://www.linkedin.com/in/kburiak)[Email](mailto:buriak.kostiantyn@gmail.com)
+[View Zoho work](#/zoho)[See the screens](#/screens)[Download CV](Kostiantyn_Buriak_CV.pdf)[LinkedIn](https://www.linkedin.com/in/kburiak)[Email](mailto:buriak.kostiantyn@gmail.com)
 
 - **3+ yrs** owning a Zoho CRM
 - **70+** production widgets
